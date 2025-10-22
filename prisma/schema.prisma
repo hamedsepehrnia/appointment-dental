@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SECRETARY
+  PATIENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id          String    @id @default(uuid())
+  phoneNumber String    @unique @map("phone_number")
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  password    String
+  role        Role      @default(PATIENT)
+  
+  // Patient-specific fields (nullable for non-patients)
+  nationalCode String?   @map("national_code")
+  address      String?
+  gender       Gender?
+  
+  // Relations
+  clinicId     String?   @map("clinic_id")
+  clinic       Clinic?   @relation(fields: [clinicId], references: [id])
+  
+  comments     Comment[]
+  
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Clinic {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  phoneNumber String   @map("phone_number")
+  description String?  @db.Text
+  
+  // Relations
+  secretaries User[]
+  doctors     DoctorClinic[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("clinics")
+}
+
+model Doctor {
+  id                String   @id @default(uuid())
+  firstName         String   @map("first_name")
+  lastName          String   @map("last_name")
+  profileImage      String?  @map("profile_image")
+  university        String
+  biography         String?  @db.Text
+  skills            String[] // Array of skills
+  medicalLicenseNo  String   @unique @map("medical_license_no")
+  
+  // Relations
+  clinics           DoctorClinic[]
+  comments          Comment[]
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("doctors")
+}
+
+// Many-to-many relation between Doctor and Clinic
+model DoctorClinic {
+  id        String   @id @default(uuid())
+  doctorId  String   @map("doctor_id")
+  clinicId  String   @map("clinic_id")
+  
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([doctorId, clinicId])
+  @@map("doctor_clinics")
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  coverImage  String?  @map("cover_image")
+  published   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("articles")
+}
+
+model Service {
+  id                    String   @id @default(uuid())
+  title                 String
+  slug                  String   @unique
+  description           String   @db.Text
+  beforeTreatmentTips   String?  @db.Text @map("before_treatment_tips")
+  afterTreatmentTips    String?  @db.Text @map("after_treatment_tips")
+  price                 Int?     // قیمت به تومان
+  durationMinutes       Int?     @map("duration_minutes")
+  coverImage            String?  @map("cover_image")
+  
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  rating    Int?     // امتیاز از ۱ تا ۵ (اختیاری)
+  
+  // Relations
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  doctorId  String   @map("doctor_id")
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("comments")
+}
+
+model OtpCode {
+  id          String   @id @default(uuid())
+  phoneNumber String   @map("phone_number")
+  code        String
+  expiresAt   DateTime @map("expires_at")
+  verified    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([phoneNumber, code])
+  @@map("otp_codes")
+}
+
