@@ -6,6 +6,20 @@ const { isAuthenticated } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 
+// Login with password (Admin/Secretary only)
+router.post(
+  '/login',
+  validate(
+    Joi.object({
+      phoneNumber: schemas.phoneNumber,
+      password: Joi.string().required().messages({
+        'any.required': 'رمز عبور الزامی است',
+      }),
+    })
+  ),
+  asyncHandler(authController.loginWithPassword)
+);
+
 // Request OTP
 router.post(
   '/request-otp',

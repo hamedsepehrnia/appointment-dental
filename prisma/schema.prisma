@@ -105,6 +105,9 @@ model Article {
   coverImage  String?  @map("cover_image")
   published   Boolean  @default(false)
   
+  // Relations
+  comments    Comment[]
+  
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -122,6 +125,9 @@ model Service {
   durationMinutes       Int?     @map("duration_minutes")
   coverImage            String?  @map("cover_image")
   
+  // Relations
+  comments              Comment[]
+  
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -137,8 +143,15 @@ model Comment {
   userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  doctorId  String   @map("doctor_id")
-  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  // Polymorphic relations - only one should be set
+  doctorId  String?  @map("doctor_id")
+  doctor    Doctor?  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  
+  articleId String?  @map("article_id")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  serviceId String?  @map("service_id")
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -157,5 +170,81 @@ model OtpCode {
 
   @@index([phoneNumber, code])
   @@map("otp_codes")
+}
+
+model SiteSettings {
+  id          String   @id @default(uuid())
+  
+  // Site Info
+  siteName    String?  @map("site_name")
+  siteTitle   String?  @map("site_title")
+  description String?  @db.Text
+  logo        String?
+  
+  // Contact Info
+  email       String?
+  phoneNumber String?  @map("phone_number")
+  address     String?  @db.Text
+  
+  // Social Media Links
+  instagram   String?
+  telegram    String?
+  whatsapp    String?
+  twitter     String?
+  linkedin    String?
+  facebook    String?
+  youtube     String?
+  
+  // Working Hours
+  workingHours String? @db.Text @map("working_hours")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model Faq {
+  id        String   @id @default(uuid())
+  question  String   @db.Text
+  answer    String   @db.Text
+  order     Int      @default(0) // Display order (lower number = higher priority)
+  published Boolean  @default(true)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
+
+model Gallery {
+  id          String   @id @default(uuid())
+  title       String?
+  description String?  @db.Text
+  image       String   // Image path
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("gallery")
+}
+
+model InsuranceOrganization {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?  @db.Text
+  website     String?
+  phoneNumber String?  @map("phone_number")
+  email       String?
+  logo        String?
+  published   Boolean  @default(true)
+  order       Int      @default(0) // Display order
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("insurance_organizations")
 }
 

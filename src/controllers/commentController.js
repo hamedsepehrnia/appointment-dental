@@ -36,9 +36,75 @@ const getDoctorComments = async (req, res) => {
 };
 
 /**
- * Create comment (Patient only)
+ * Get comments for an article
  */
-const createComment = async (req, res) => {
+const getArticleComments = async (req, res) => {
+  const { articleId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const { skip, take } = paginate(page, limit);
+
+  const [comments, total] = await Promise.all([
+    prisma.comment.findMany({
+      where: { articleId },
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.comment.count({ where: { articleId } }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { comments },
+    meta: createPaginationMeta(total, page, limit),
+  });
+};
+
+/**
+ * Get comments for a service
+ */
+const getServiceComments = async (req, res) => {
+  const { serviceId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const { skip, take } = paginate(page, limit);
+
+  const [comments, total] = await Promise.all([
+    prisma.comment.findMany({
+      where: { serviceId },
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.comment.count({ where: { serviceId } }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { comments },
+    meta: createPaginationMeta(total, page, limit),
+  });
+};
+
+/**
+ * Create comment for doctor (Patient only)
+ */
+const createDoctorComment = async (req, res) => {
   const { doctorId } = req.params;
   const { content, rating } = req.body;
 
@@ -62,6 +128,96 @@ const createComment = async (req, res) => {
       rating: rating ? parseInt(rating) : null,
       userId: req.session.userId,
       doctorId,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'نظر شما با موفقیت ثبت شد',
+    data: { comment },
+  });
+};
+
+/**
+ * Create comment for article (Patient only)
+ */
+const createArticleComment = async (req, res) => {
+  const { articleId } = req.params;
+  const { content, rating } = req.body;
+
+  // Check if article exists
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+  });
+
+  if (!article) {
+    throw new AppError('مقاله یافت نشد', 404);
+  }
+
+  // Validate rating if provided
+  if (rating && (rating < 1 || rating > 5)) {
+    throw new AppError('امتیاز باید بین ۱ تا ۵ باشد', 400);
+  }
+
+  const comment = await prisma.comment.create({
+    data: {
+      content,
+      rating: rating ? parseInt(rating) : null,
+      userId: req.session.userId,
+      articleId,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'نظر شما با موفقیت ثبت شد',
+    data: { comment },
+  });
+};
+
+/**
+ * Create comment for service (Patient only)
+ */
+const createServiceComment = async (req, res) => {
+  const { serviceId } = req.params;
+  const { content, rating } = req.body;
+
+  // Check if service exists
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+  });
+
+  if (!service) {
+    throw new AppError('خدمت یافت نشد', 404);
+  }
+
+  // Validate rating if provided
+  if (rating && (rating < 1 || rating > 5)) {
+    throw new AppError('امتیاز باید بین ۱ تا ۵ باشد', 400);
+  }
+
+  const comment = await prisma.comment.create({
+    data: {
+      content,
+      rating: rating ? parseInt(rating) : null,
+      userId: req.session.userId,
+      serviceId,
     },
     include: {
       user: {
@@ -159,7 +315,11 @@ const deleteComment = async (req, res) => {
 
 module.exports = {
   getDoctorComments,
-  createComment,
+  getArticleComments,
+  getServiceComments,
+  createDoctorComment,
+  createArticleComment,
+  createServiceComment,
   updateComment,
   deleteComment,
 };

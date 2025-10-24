@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
+const { sanitizeContent } = require('../utils/sanitizeHtml');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -93,9 +94,9 @@ const createService = async (req, res) => {
     data: {
       title,
       slug: finalSlug,
-      description,
-      beforeTreatmentTips,
-      afterTreatmentTips,
+      description: sanitizeContent(description),
+      beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null,
+      afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null,
       price: price ? parseInt(price) : null,
       durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
       coverImage,
@@ -165,9 +166,13 @@ const updateService = async (req, res) => {
     where: { id },
     data: {
       ...(title && { title, slug }),
-      ...(description && { description }),
-      ...(beforeTreatmentTips !== undefined && { beforeTreatmentTips }),
-      ...(afterTreatmentTips !== undefined && { afterTreatmentTips }),
+      ...(description && { description: sanitizeContent(description) }),
+      ...(beforeTreatmentTips !== undefined && { 
+        beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null 
+      }),
+      ...(afterTreatmentTips !== undefined && { 
+        afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null 
+      }),
       ...(price !== undefined && { price: price ? parseInt(price) : null }),
       ...(durationMinutes !== undefined && { durationMinutes: durationMinutes ? parseInt(durationMinutes) : null }),
       ...(coverImage && { coverImage }),

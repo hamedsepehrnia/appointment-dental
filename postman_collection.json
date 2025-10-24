@@ -1,0 +1,1332 @@
+{
+  "info": {
+    "name": "Dental Appointment API",
+    "description": "Complete API collection for Dental Appointment Management System",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login with Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"09123456789\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Request OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"09123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/request-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "request-otp"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"09123456789\",\n  \"code\": \"123456\",\n  \"firstName\": \"احمد\",\n  \"lastName\": \"احمدی\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"احمد\",\n  \"lastName\": \"احمدی\",\n  \"nationalCode\": \"1234567890\",\n  \"address\": \"تهران، خیابان ولیعصر\",\n  \"gender\": \"MALE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors?page=1&limit=10&clinicId=uuid",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "clinicId",
+                  "value": "uuid",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Doctor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Doctor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "دکتر احمد",
+                  "type": "text"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text"
+                },
+                {
+                  "key": "university",
+                  "value": "تهران",
+                  "type": "text"
+                },
+                {
+                  "key": "biography",
+                  "value": "متخصص دندانپزشکی",
+                  "type": "text"
+                },
+                {
+                  "key": "skills",
+                  "value": "[\"جراحی\", \"ایمپلنت\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "medicalLicenseNo",
+                  "value": "12345",
+                  "type": "text"
+                },
+                {
+                  "key": "clinicIds",
+                  "value": "[\"uuid1\", \"uuid2\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors"]
+            }
+          }
+        },
+        {
+          "name": "Update Doctor",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "دکتر احمد",
+                  "type": "text"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text"
+                },
+                {
+                  "key": "university",
+                  "value": "تهران",
+                  "type": "text"
+                },
+                {
+                  "key": "biography",
+                  "value": "متخصص دندانپزشکی",
+                  "type": "text"
+                },
+                {
+                  "key": "skills",
+                  "value": "[\"جراحی\", \"ایمپلنت\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "medicalLicenseNo",
+                  "value": "12345",
+                  "type": "text"
+                },
+                {
+                  "key": "clinicIds",
+                  "value": "[\"uuid1\", \"uuid2\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Doctor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clinics",
+      "item": [
+        {
+          "name": "Get All Clinics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clinics?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Clinic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clinics/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Clinic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clinics",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics"]
+            }
+          }
+        },
+        {
+          "name": "Update Clinic",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clinics/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Clinic",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clinics/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Articles",
+      "item": [
+        {
+          "name": "Get All Articles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles?page=1&limit=10&published=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Article",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/:identifier",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", ":identifier"]
+            }
+          }
+        },
+        {
+          "name": "Create Article",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "مراقبت از دندان",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "محتوا مقاله...",
+                  "type": "text"
+                },
+                {
+                  "key": "excerpt",
+                  "value": "خلاصه مقاله",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "coverImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/articles",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles"]
+            }
+          }
+        },
+        {
+          "name": "Update Article",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "مراقبت از دندان",
+                  "type": "text"
+                },
+                {
+                  "key": "content",
+                  "value": "محتوا مقاله...",
+                  "type": "text"
+                },
+                {
+                  "key": "excerpt",
+                  "value": "خلاصه مقاله",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "coverImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/articles/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Article",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/:identifier",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":identifier"]
+            }
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "جراحی ایمپلنت",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات خدمت",
+                  "type": "text"
+                },
+                {
+                  "key": "beforeTreatmentTips",
+                  "value": "نکات قبل از درمان",
+                  "type": "text"
+                },
+                {
+                  "key": "afterTreatmentTips",
+                  "value": "نکات بعد از درمان",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "5000000",
+                  "type": "text"
+                },
+                {
+                  "key": "durationMinutes",
+                  "value": "120",
+                  "type": "text"
+                },
+                {
+                  "key": "coverImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "جراحی ایمپلنت",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات خدمت",
+                  "type": "text"
+                },
+                {
+                  "key": "beforeTreatmentTips",
+                  "value": "نکات قبل از درمان",
+                  "type": "text"
+                },
+                {
+                  "key": "afterTreatmentTips",
+                  "value": "نکات بعد از درمان",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "5000000",
+                  "type": "text"
+                },
+                {
+                  "key": "durationMinutes",
+                  "value": "120",
+                  "type": "text"
+                },
+                {
+                  "key": "coverImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Get Doctor Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/doctor/:doctorId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "doctor", ":doctorId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Doctor Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"پزشک بسیار حرفه‌ای و دلسوزی هستند\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/doctor/:doctorId",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "doctor", ":doctorId"]
+            }
+          }
+        },
+        {
+          "name": "Get Article Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/article/:articleId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "article", ":articleId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Article Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"مقاله بسیار مفیدی بود، ممنون\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/article/:articleId",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "article", ":articleId"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/service/:serviceId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "service", ":serviceId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Service Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"خدمات عالی ارائه می‌دهند\",\n  \"rating\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/service/:serviceId",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "service", ":serviceId"]
+            }
+          }
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"نظر به‌روزرسانی شده\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FAQs",
+      "item": [
+        {
+          "name": "Get All FAQs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs?page=1&limit=10&published=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single FAQ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"آیا درمان ریشه درد دارد؟\",\n  \"answer\": \"درمان ریشه با بی‌حسی موضعی انجام می‌شود و درد ندارد\",\n  \"order\": 1,\n  \"published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          }
+        },
+        {
+          "name": "Update FAQ",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"آیا درمان ریشه درد دارد؟\",\n  \"answer\": \"درمان ریشه با بی‌حسی موضعی انجام می‌شود و درد ندارد\",\n  \"order\": 1,\n  \"published\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Reorder FAQs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faqs\": [\n    {\n      \"id\": \"uuid1\",\n      \"order\": 1\n    },\n    {\n      \"id\": \"uuid2\",\n      \"order\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", "reorder"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gallery",
+      "item": [
+        {
+          "name": "Get All Gallery Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gallery?page=1&limit=10&published=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Gallery Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gallery/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Upload Gallery Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "تصویر کلینیک",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات تصویر",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "galleryImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gallery",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery"]
+            }
+          }
+        },
+        {
+          "name": "Update Gallery Image",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "تصویر کلینیک",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات تصویر",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "galleryImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gallery/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Gallery Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gallery/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Gallery Images",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"images\": [\n    {\n      \"id\": \"uuid1\",\n      \"order\": 1\n    },\n    {\n      \"id\": \"uuid2\",\n      \"order\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/gallery/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["gallery", "reorder"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get All Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            }
+          }
+        },
+        {
+          "name": "Get Social Media Links",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            }
+          }
+        },
+        {
+          "name": "Update All Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"siteName\": \"کلینیک دندانپزشکی تهران\",\n  \"siteTitle\": \"کلینیک دندانپزشکی\",\n  \"description\": \"بهترین خدمات دندانپزشکی\",\n  \"logo\": \"logo.png\",\n  \"email\": \"info@clinic.com\",\n  \"phoneNumber\": \"021-12345678\",\n  \"address\": \"تهران، خیابان ولیعصر\",\n  \"instagram\": \"https://instagram.com/clinic\",\n  \"telegram\": \"https://t.me/clinic\",\n  \"whatsapp\": \"09123456789\",\n  \"twitter\": \"https://twitter.com/clinic\",\n  \"linkedin\": \"https://linkedin.com/clinic\",\n  \"facebook\": \"https://facebook.com/clinic\",\n  \"youtube\": \"https://youtube.com/clinic\",\n  \"workingHours\": \"شنبه تا پنج‌شنبه: 9-18\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Social Media Links",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instagram\": \"https://instagram.com/clinic\",\n  \"telegram\": \"https://t.me/clinic\",\n  \"whatsapp\": \"09123456789\",\n  \"twitter\": \"https://twitter.com/clinic\",\n  \"linkedin\": \"https://linkedin.com/clinic\",\n  \"facebook\": \"https://facebook.com/clinic\",\n  \"youtube\": \"https://youtube.com/clinic\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Insurance Organizations",
+      "item": [
+        {
+          "name": "Get All Insurance Organizations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insurance?page=1&limit=10&published=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Insurance Organization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insurance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Insurance Organization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"تأمین اجتماعی\",\n  \"description\": \"سازمان تأمین اجتماعی ایران\",\n  \"website\": \"https://tamin.ir\",\n  \"phoneNumber\": \"021-12345678\",\n  \"email\": \"info@tamin.ir\",\n  \"logo\": \"tamin-logo.png\",\n  \"published\": true,\n  \"order\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/insurance",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance"]
+            }
+          }
+        },
+        {
+          "name": "Update Insurance Organization",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"تأمین اجتماعی\",\n  \"description\": \"سازمان تأمین اجتماعی ایران\",\n  \"website\": \"https://tamin.ir\",\n  \"phoneNumber\": \"021-12345678\",\n  \"email\": \"info@tamin.ir\",\n  \"logo\": \"tamin-logo.png\",\n  \"published\": true,\n  \"order\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/insurance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Insurance Organization",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insurance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Insurance Organization Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insurance/:id/toggle-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["insurance", ":id", "toggle-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -11,6 +11,8 @@ const storage = multer.diskStorage({
       uploadPath += 'doctors/';
     } else if (file.fieldname === 'coverImage') {
       uploadPath += 'images/';
+    } else if (file.fieldname === 'galleryImage') {
+      uploadPath += 'gallery/';
     }
     
     cb(null, uploadPath);

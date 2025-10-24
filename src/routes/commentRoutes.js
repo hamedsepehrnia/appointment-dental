@@ -13,10 +13,10 @@ router.get(
   asyncHandler(commentController.getDoctorComments)
 );
 
-// Create comment (Patient only)
+// Create comment for doctor (Authenticated users)
 router.post(
   '/doctor/:doctorId',
-  isPatient,
+  isAuthenticated,
   validate(
     Joi.object({
       content: Joi.string().required().min(10).max(1000).messages({
@@ -27,7 +27,57 @@ router.post(
       rating: Joi.number().integer().min(1).max(5),
     })
   ),
-  asyncHandler(commentController.createComment)
+  asyncHandler(commentController.createDoctorComment)
+);
+
+// Article comments routes
+// Get comments for an article
+router.get(
+  '/article/:articleId',
+  validate(schemas.pagination, 'query'),
+  asyncHandler(commentController.getArticleComments)
+);
+
+// Create comment for article (Authenticated users)
+router.post(
+  '/article/:articleId',
+  isAuthenticated,
+  validate(
+    Joi.object({
+      content: Joi.string().required().min(10).max(1000).messages({
+        'any.required': 'متن نظر الزامی است',
+        'string.min': 'نظر باید حداقل ۱۰ کاراکتر باشد',
+        'string.max': 'نظر نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
+      }),
+      rating: Joi.number().integer().min(1).max(5),
+    })
+  ),
+  asyncHandler(commentController.createArticleComment)
+);
+
+// Service comments routes
+// Get comments for a service
+router.get(
+  '/service/:serviceId',
+  validate(schemas.pagination, 'query'),
+  asyncHandler(commentController.getServiceComments)
+);
+
+// Create comment for service (Authenticated users)
+router.post(
+  '/service/:serviceId',
+  isAuthenticated,
+  validate(
+    Joi.object({
+      content: Joi.string().required().min(10).max(1000).messages({
+        'any.required': 'متن نظر الزامی است',
+        'string.min': 'نظر باید حداقل ۱۰ کاراکتر باشد',
+        'string.max': 'نظر نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
+      }),
+      rating: Joi.number().integer().min(1).max(5),
+    })
+  ),
+  asyncHandler(commentController.createServiceComment)
 );
 
 // Update comment (Owner only)

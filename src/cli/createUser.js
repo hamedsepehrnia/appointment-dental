@@ -4,6 +4,7 @@ require('dotenv').config();
 const readline = require('readline');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const { formatPhoneNumber } = require('../utils/helpers');
 
 const prisma = new PrismaClient();
 
@@ -20,29 +21,32 @@ const question = (query) => {
 
 const createUser = async (role) => {
   try {
-    console.log(`\n=== ایجاد کاربر ${role === 'admin' ? 'مدیر' : 'منشی'} ===\n`);
+    console.log(`\n=== Create ${role === 'admin' ? 'Admin' : 'Secretary'} User ===\n`);
 
-    const firstName = await question('نام: ');
+    const firstName = await question('First Name: ');
     if (!firstName) {
-      console.error('❌ نام الزامی است');
-      process.exit(1);
+      console.error('Error: First name is required');
+     process.exit(1);
     }
 
-    const lastName = await question('نام خانوادگی: ');
+    const lastName = await question('Last Name: ');
     if (!lastName) {
-      console.error('❌ نام خانوادگی الزامی است');
+      console.error('Error: Last name is required');
       process.exit(1);
     }
 
-    const phoneNumber = await question('شماره تلفن (09xxxxxxxxx): ');
+    const phoneNumber = await question('Phone Number (09xxxxxxxxx): ');
     if (!phoneNumber || !phoneNumber.match(/^09\d{9}$/)) {
-      console.error('❌ شماره تلفن نامعتبر است');
+      console.error('Error: Invalid phone number format');
       process.exit(1);
     }
 
-    const password = await question('رمز عبور: ');
+    // Format phone number to standard format
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+
+    const password = await question('Password (min 6 characters): ');
     if (!password || password.length < 6) {
-      console.error('❌ رمز عبور باید حداقل ۶ کاراکتر باشد');
+      console.error('Error: Password must be at least 6 characters');
       process.exit(1);
     }
 
@@ -54,20 +58,20 @@ const createUser = async (role) => {
       });
 
       if (clinics.length === 0) {
-        console.error('❌ هیچ کلینیکی وجود ندارد. ابتدا یک کلینیک ایجاد کنید.');
+        console.error('Error: No clinics found. Please create a clinic first.');
         process.exit(1);
       }
 
-      console.log('\n📋 کلینیک‌های موجود:');
+      console.log('\nAvailable Clinics:');
       clinics.forEach((clinic, index) => {
         console.log(`  ${index + 1}. ${clinic.name} (${clinic.id})`);
       });
 
-      const clinicIndex = await question('\nشماره کلینیک را وارد کنید: ');
+      const clinicIndex = await question('\nSelect clinic number: ');
       const selectedClinic = clinics[parseInt(clinicIndex) - 1];
 
       if (!selectedClinic) {
-        console.error('❌ کلینیک انتخاب شده نامعتبر است');
+        console.error('Error: Invalid clinic selection');
         process.exit(1);
       }
 
@@ -76,11 +80,11 @@ const createUser = async (role) => {
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { phoneNumber },
+      where: { phoneNumber: formattedPhone },
     });
 
     if (existingUser) {
-      console.error('❌ کاربری با این شماره تلفن قبلاً ثبت شده است');
+      console.error('Error: User with this phone number already exists');
       process.exit(1);
     }
 
@@ -92,25 +96,25 @@ const createUser = async (role) => {
       data: {
         firstName,
         lastName,
-        phoneNumber,
+        phoneNumber: formattedPhone,
         password: hashedPassword,
         role: role === 'admin' ? 'ADMIN' : 'SECRETARY',
         ...(clinicId && { clinicId }),
       },
     });
 
-    console.log('\n✅ کاربر با موفقیت ایجاد شد:');
-    console.log(`   نام: ${user.firstName} ${user.lastName}`);
-    console.log(`   شماره تلفن: ${user.phoneNumber}`);
-    console.log(`   نقش: ${user.role}`);
+    console.log('\n✓ User created successfully:');
+    console.log(`   Name: ${user.firstName} ${user.lastName}`);
+    console.log(`   Phone: ${user.phoneNumber}`);
+    console.log(`   Role: ${user.role}`);
     if (clinicId) {
       const clinic = await prisma.clinic.findUnique({ where: { id: clinicId } });
-      console.log(`   کلینیک: ${clinic.name}`);
+      console.log(`   Clinic: ${clinic.name}`);
     }
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ خطا:', error.message);
+    console.error('\nError:', error.message);
     process.exit(1);
   } finally {
     rl.close();
@@ -122,7 +126,8 @@ const createUser = async (role) => {
 const role = process.argv[2];
 
 if (!role || !['admin', 'secretary'].includes(role)) {
-  console.error('❌ استفاده: node createUser.js [admin|secretary]');
+  console.error('Usage: node createUser.js [admin|secretary]');
+  console.error('Example: npm run create:admin');
   process.exit(1);
 }
 

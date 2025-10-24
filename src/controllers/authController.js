@@ -5,6 +5,53 @@ const { generateOtp, formatPhoneNumber, generateRandomPassword } = require('../u
 const { AppError } = require('../middlewares/errorHandler');
 
 /**
+ * Login with password (Admin/Secretary only)
+ */
+const loginWithPassword = async (req, res) => {
+  const { phoneNumber, password } = req.body;
+  const formattedPhone = formatPhoneNumber(phoneNumber);
+
+  // Find user
+  const user = await prisma.user.findUnique({
+    where: { phoneNumber: formattedPhone },
+  });
+
+  if (!user) {
+    throw new AppError('شماره تلفن یا رمز عبور اشتباه است', 401);
+  }
+
+  // Check if user is admin or secretary
+  if (user.role === 'PATIENT') {
+    throw new AppError('این روش ورود فقط برای مدیر و منشی است', 403);
+  }
+
+  // Verify password
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new AppError('شماره تلفن یا رمز عبور اشتباه است', 401);
+  }
+
+  // Create session
+  req.session.userId = user.id;
+  req.session.userRole = user.role;
+  req.session.phoneNumber = user.phoneNumber;
+
+  res.json({
+    success: true,
+    message: 'ورود موفقیت‌آمیز بود',
+    data: {
+      user: {
+        id: user.id,
+        phoneNumber: user.phoneNumber,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    },
+  });
+};
+
+/**
  * Request OTP code
  */
 const requestOtp = async (req, res) => {
@@ -24,8 +71,12 @@ const requestOtp = async (req, res) => {
     },
   });
 
-  // Send SMS
-  const smsResult = await smsService.sendOtp(formattedPhone, code);
+// Send SMS (disabled pattern for now)
+// const smsResult = await smsService.sendOtp(formattedPhone, code);
+  const smsResult = await smsService.sendSimpleSms(
+      formattedPhone,
+      `کد تایید شما: ${code}`
+  );
 
   if (!smsResult.success) {
     throw new AppError('خطا در ارسال پیامک', 500);
@@ -204,6 +255,7 @@ const updateProfile = async (req, res) => {
 };
 
 module.exports = {
+  loginWithPassword,
   requestOtp,
   verifyOtp,
   logout,

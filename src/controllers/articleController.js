@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
+const { sanitizeContent } = require('../utils/sanitizeHtml');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -101,7 +102,7 @@ const createArticle = async (req, res) => {
     data: {
       title,
       slug,
-      content,
+      content: sanitizeContent(content),
       excerpt,
       coverImage,
       published: published || false,
@@ -166,7 +167,7 @@ const updateArticle = async (req, res) => {
     where: { id },
     data: {
       ...(title && { title, slug }),
-      ...(content && { content }),
+      ...(content && { content: sanitizeContent(content) }),
       ...(excerpt !== undefined && { excerpt }),
       ...(coverImage && { coverImage }),
       ...(published !== undefined && { published }),

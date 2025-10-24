@@ -44,9 +44,16 @@
 - آپلود تصویر کاور
 
 ### سیستم نظرات
-- ثبت نظر و امتیاز برای پزشکان
+- ثبت نظر و امتیاز برای پزشکان، مقالات و خدمات
 - محاسبه میانگین امتیاز
 - مدیریت نظرات توسط کاربران
+- سیستم polymorphic برای پشتیبانی از انواع مختلف کامنت
+
+### مدیریت سازمان‌های بیمه
+- ثبت و مدیریت سازمان‌های بیمه تحت پوشش
+- امکان فعال/غیرفعال کردن سازمان‌ها
+- ترتیب‌بندی سازمان‌ها
+- مدیریت توسط ادمین
 
 ## 🛠 تکنولوژی‌های استفاده شده
 
@@ -129,7 +136,7 @@ npm run prisma:studio
 ### 5. ایجاد فولدرهای آپلود
 
 ```powershell
-New-Item -ItemType Directory -Force -Path uploads/doctors, uploads/images
+New-Item -ItemType Directory -Force -Path uploads/doctors, uploads/gallery, uploads/images
 ```
 
 ### 6. ایجاد کاربر مدیر
@@ -168,7 +175,11 @@ appointment-dental/
 │   │   ├── doctorController.js
 │   │   ├── articleController.js
 │   │   ├── serviceController.js
-│   │   └── commentController.js
+│   │   ├── commentController.js
+│   │   ├── faqController.js
+│   │   ├── galleryController.js
+│   │   ├── settingsController.js
+│   │   └── insuranceController.js
 │   ├── middlewares/
 │   │   ├── auth.js            # Authentication middleware
 │   │   ├── errorHandler.js    # Error handling
@@ -182,6 +193,10 @@ appointment-dental/
 │   │   ├── articleRoutes.js
 │   │   ├── serviceRoutes.js
 │   │   ├── commentRoutes.js
+│   │   ├── faqRoutes.js
+│   │   ├── galleryRoutes.js
+│   │   ├── settingsRoutes.js
+│   │   ├── insuranceRoutes.js
 │   │   └── index.js
 │   ├── services/
 │   │   └── smsService.js      # Kavenegar SMS
@@ -189,6 +204,7 @@ appointment-dental/
 │       └── helpers.js          # Helper functions
 ├── uploads/                    # فایل‌های آپلود شده
 │   ├── doctors/               # تصاویر پزشکان
+│   ├── gallery/               # تصاویر گالری
 │   └── images/                # تصاویر مقالات و خدمات
 ├── .env                       # متغیرهای محیطی
 ├── .gitignore
@@ -201,10 +217,23 @@ appointment-dental/
 
 ### Base URL
 ```
-http://localhost:3000/api
+http://localhost:4000/api
 ```
 
 ### Authentication Endpoints
+
+#### ورود با رمز عبور (مدیر/منشی)
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "phoneNumber": "09123456789",
+  "password": "your-password"
+}
+```
+
+**نکته:** این endpoint فقط برای مدیر و منشی است. بیماران نمی‌توانند از این روش استفاده کنند.
 
 #### درخواست کد OTP
 ```http
@@ -411,49 +440,313 @@ DELETE /api/services/:id
 
 ### Comment Endpoints
 
-#### لیست نظرات یک پزشک
+#### نظرات پزشکان
 ```http
+# لیست نظرات یک پزشک
 GET /api/comments/doctor/:doctorId?page=1&limit=10
-```
 
-#### ثبت نظر (فقط بیمار)
-```http
+# ثبت نظر برای پزشک (فقط بیمار)
 POST /api/comments/doctor/:doctorId
 Content-Type: application/json
-
 {
-  "content": "متن نظر",
+  "content": "پزشک بسیار حرفه‌ای و دلسوزی هستند",
   "rating": 5
 }
 ```
 
-#### به‌روزرسانی نظر (صاحب نظر)
+#### نظرات مقالات
 ```http
-PATCH /api/comments/:id
-Content-Type: application/json
+# لیست نظرات یک مقاله
+GET /api/comments/article/:articleId?page=1&limit=10
 
+# ثبت نظر برای مقاله (فقط بیمار)
+POST /api/comments/article/:articleId
+Content-Type: application/json
 {
-  "content": "متن جدید",
+  "content": "مقاله بسیار مفیدی بود، ممنون",
+  "rating": 5
+}
+```
+
+#### نظرات خدمات
+```http
+# لیست نظرات یک خدمت
+GET /api/comments/service/:serviceId?page=1&limit=10
+
+# ثبت نظر برای خدمت (فقط بیمار)
+POST /api/comments/service/:serviceId
+Content-Type: application/json
+{
+  "content": "خدمات عالی ارائه می‌دهند",
   "rating": 4
 }
 ```
 
-#### حذف نظر (صاحب نظر یا مدیر)
+#### مدیریت نظرات
 ```http
+# به‌روزرسانی نظر (صاحب نظر)
+PATCH /api/comments/:id
+Content-Type: application/json
+{
+  "content": "متن جدید",
+  "rating": 4
+}
+
+# حذف نظر (صاحب نظر یا مدیر)
 DELETE /api/comments/:id
+```
+
+### FAQ Endpoints
+
+#### لیست سوالات متداول
+```http
+GET /api/faqs?page=1&limit=10&published=true
+```
+
+#### دریافت سوال متداول
+```http
+GET /api/faqs/:id
+```
+
+#### ایجاد سوال متداول (مدیر/منشی)
+```http
+POST /api/faqs
+Content-Type: application/json
+{
+  "question": "آیا درمان ریشه درد دارد؟",
+  "answer": "درمان ریشه با بی‌حسی موضعی انجام می‌شود و درد ندارد",
+  "order": 1,
+  "published": true
+}
+```
+
+#### به‌روزرسانی سوال متداول (مدیر/منشی)
+```http
+PATCH /api/faqs/:id
+Content-Type: application/json
+{
+  "question": "سوال جدید",
+  "answer": "پاسخ جدید",
+  "order": 1,
+  "published": true
+}
+```
+
+#### حذف سوال متداول (مدیر/منشی)
+```http
+DELETE /api/faqs/:id
+```
+
+#### ترتیب‌بندی سوالات متداول (مدیر/منشی)
+```http
+POST /api/faqs/reorder
+Content-Type: application/json
+{
+  "faqs": [
+    {
+      "id": "uuid1",
+      "order": 1
+    },
+    {
+      "id": "uuid2",
+      "order": 2
+    }
+  ]
+}
+```
+
+### Gallery Endpoints
+
+#### لیست تصاویر گالری
+```http
+GET /api/gallery?page=1&limit=10&published=true
+```
+
+#### دریافت تصویر گالری
+```http
+GET /api/gallery/:id
+```
+
+#### آپلود تصویر گالری (مدیر/منشی)
+```http
+POST /api/gallery
+Content-Type: multipart/form-data
+{
+  "title": "تصویر کلینیک",
+  "description": "توضیحات تصویر",
+  "order": 1,
+  "published": "true",
+  "galleryImage": <file>
+}
+```
+
+#### به‌روزرسانی تصویر گالری (مدیر/منشی)
+```http
+PATCH /api/gallery/:id
+Content-Type: multipart/form-data
+```
+
+#### حذف تصویر گالری (مدیر/منشی)
+```http
+DELETE /api/gallery/:id
+```
+
+#### ترتیب‌بندی تصاویر گالری (مدیر/منشی)
+```http
+POST /api/gallery/reorder
+Content-Type: application/json
+{
+  "images": [
+    {
+      "id": "uuid1",
+      "order": 1
+    },
+    {
+      "id": "uuid2",
+      "order": 2
+    }
+  ]
+}
+```
+
+### Settings Endpoints
+
+#### دریافت تنظیمات سایت
+```http
+GET /api/settings
+```
+
+#### دریافت لینک‌های شبکه‌های اجتماعی
+```http
+GET /api/settings/social-media
+```
+
+#### به‌روزرسانی تنظیمات سایت (فقط مدیر)
+```http
+PATCH /api/settings
+Content-Type: application/json
+{
+  "siteName": "کلینیک دندانپزشکی تهران",
+  "siteTitle": "کلینیک دندانپزشکی",
+  "description": "بهترین خدمات دندانپزشکی",
+  "logo": "logo.png",
+  "email": "info@clinic.com",
+  "phoneNumber": "021-12345678",
+  "address": "تهران، خیابان ولیعصر",
+  "instagram": "https://instagram.com/clinic",
+  "telegram": "https://t.me/clinic",
+  "whatsapp": "09123456789",
+  "twitter": "https://twitter.com/clinic",
+  "linkedin": "https://linkedin.com/clinic",
+  "facebook": "https://facebook.com/clinic",
+  "youtube": "https://youtube.com/clinic",
+  "workingHours": "شنبه تا پنج‌شنبه: 9-18"
+}
+```
+
+#### به‌روزرسانی لینک‌های شبکه‌های اجتماعی (فقط مدیر)
+```http
+PATCH /api/settings/social-media
+Content-Type: application/json
+{
+  "instagram": "https://instagram.com/clinic",
+  "telegram": "https://t.me/clinic",
+  "whatsapp": "09123456789",
+  "twitter": "https://twitter.com/clinic",
+  "linkedin": "https://linkedin.com/clinic",
+  "facebook": "https://facebook.com/clinic",
+  "youtube": "https://youtube.com/clinic"
+}
+```
+
+### Insurance Organizations Endpoints
+
+#### لیست سازمان‌های بیمه
+```http
+GET /api/insurance?page=1&limit=10&published=true
+```
+
+#### دریافت سازمان بیمه
+```http
+GET /api/insurance/:id
+```
+
+#### ایجاد سازمان بیمه (فقط مدیر)
+```http
+POST /api/insurance
+Content-Type: application/json
+{
+  "name": "تأمین اجتماعی",
+  "description": "سازمان تأمین اجتماعی ایران",
+  "website": "https://tamin.ir",
+  "phoneNumber": "021-12345678",
+  "email": "info@tamin.ir",
+  "logo": "tamin-logo.png",
+  "published": true,
+  "order": 1
+}
+```
+
+#### به‌روزرسانی سازمان بیمه (فقط مدیر)
+```http
+PATCH /api/insurance/:id
+Content-Type: application/json
+{
+  "name": "تأمین اجتماعی",
+  "description": "سازمان تأمین اجتماعی ایران",
+  "website": "https://tamin.ir",
+  "phoneNumber": "021-12345678",
+  "email": "info@tamin.ir",
+  "logo": "tamin-logo.png",
+  "published": true,
+  "order": 1
+}
+```
+
+#### حذف سازمان بیمه (فقط مدیر)
+```http
+DELETE /api/insurance/:id
+```
+
+#### تغییر وضعیت انتشار سازمان بیمه (فقط مدیر)
+```http
+PATCH /api/insurance/:id/toggle-status
+```
+
+### Health Check
+
+#### بررسی وضعیت سرور
+```http
+GET /api/health
 ```
 
 ## 🔐 احراز هویت
 
 این سیستم از **Session-based authentication** استفاده می‌کند. پس از ورود موفق، یک session برای کاربر ایجاد می‌شود که در دیتابیس ذخیره می‌گردد.
 
-### فرآیند ورود/ثبت‌نام (OTP):
+### دو روش ورود:
+
+#### 1️⃣ ورود با رمز عبور (Admin & Secretary)
+```http
+POST /api/auth/login
+{
+  "phoneNumber": "09123456789",
+  "password": "your-password"
+}
+```
+- فقط برای مدیر و منشی
+- سریع و بدون نیاز به SMS
+- رمز عبور هنگام ایجاد کاربر در CLI تنظیم می‌شود
+
+#### 2️⃣ ورود با OTP (همه کاربران)
 
 1. کاربر شماره تلفن خود را وارد می‌کند
 2. سیستم یک کد OTP 5 رقمی ارسال می‌کند
 3. کاربر کد را وارد می‌کند
 4. اگر کاربر جدید باشد، نام و نام خانوادگی نیز درخواست می‌شود
 5. Session ایجاد می‌شود و کاربر وارد می‌گردد
+
+**نکته:** بیماران فقط از روش OTP می‌توانند استفاده کنند. مدیر و منشی می‌توانند از هر دو روش استفاده کنند.
 
 ### Cookie Settings:
 - نام: `dental.sid`
@@ -469,6 +762,9 @@ DELETE /api/comments/:id
 - ایجاد/حذف کلینیک
 - ایجاد/حذف پزشک
 - مدیریت مقالات و خدمات
+- مدیریت سوالات متداول و گالری
+- مدیریت تنظیمات سایت
+- مدیریت سازمان‌های بیمه
 - حذف نظرات
 
 ### منشی (SECRETARY)
@@ -476,10 +772,11 @@ DELETE /api/comments/:id
 - ویرایش اطلاعات کلینیک خود
 - ایجاد/ویرایش پزشک
 - مدیریت مقالات و خدمات
+- مدیریت سوالات متداول و گالری
 
 ### بیمار (PATIENT)
 - مشاهده اطلاعات عمومی
-- ثبت نظر برای پزشکان
+- ثبت نظر برای پزشکان، مقالات و خدمات
 - مدیریت پروفایل خود
 - (آینده) رزرو نوبت
 
@@ -527,7 +824,7 @@ npm run create:secretary
 - اعتبار حساب را چک کنید
 
 ### خطای آپلود فایل
-- مطمئن شوید فولدرهای `uploads/doctors` و `uploads/images` وجود دارند
+- مطمئن شوید فولدرهای `uploads/doctors`، `uploads/gallery` و `uploads/images` وجود دارند
 - دسترسی‌های فولدر را بررسی کنید
 
 ## 📄 License

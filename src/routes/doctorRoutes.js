@@ -6,6 +6,7 @@ const { isAdminOrSecretary, isAdmin } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
+const parseFormData = require('../middlewares/parseFormData');
 
 // Get all doctors (public)
 router.get(
@@ -27,6 +28,7 @@ router.post(
   '/',
   isAdminOrSecretary,
   upload.single('profileImage'),
+  parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
   validate(
     Joi.object({
       firstName: Joi.string().required().messages({
@@ -54,6 +56,7 @@ router.patch(
   '/:id',
   isAdminOrSecretary,
   upload.single('profileImage'),
+  parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
   validate(
     Joi.object({
       firstName: Joi.string(),
