@@ -73,6 +73,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API routes
 app.use('/api', routes);
 
+// Swagger setup
+const swaggerSetup = require('./swagger-setup');
+swaggerSetup(app);
+
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({

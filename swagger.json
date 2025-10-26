@@ -1,0 +1,1704 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "سیستم مدیریت نوبت‌دهی کلینیک دندانپزشکی",
+    "description": "API کامل و حرفه‌ای برای مدیریت نوبت‌دهی دو کلینیک دندانپزشکی",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Support"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000/api",
+      "description": "Development server"
+    },
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Alternative port"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "مدیریت احراز هویت و ورود کاربران"
+    },
+    {
+      "name": "Clinics",
+      "description": "مدیریت کلینیک‌ها"
+    },
+    {
+      "name": "Doctors",
+      "description": "مدیریت پزشکان"
+    },
+    {
+      "name": "Articles",
+      "description": "مدیریت مقالات"
+    },
+    {
+      "name": "Services",
+      "description": "مدیریت خدمات"
+    },
+    {
+      "name": "Comments",
+      "description": "سیستم نظرات"
+    },
+    {
+      "name": "FAQs",
+      "description": "سوالات متداول"
+    },
+    {
+      "name": "Gallery",
+      "description": "گالری تصاویر"
+    },
+    {
+      "name": "Settings",
+      "description": "تنظیمات سایت"
+    },
+    {
+      "name": "Insurance",
+      "description": "سازمان‌های بیمه"
+    },
+    {
+      "name": "Health",
+      "description": "وضعیت سرور"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "ورود با رمز عبور (مدیر/منشی)",
+        "description": "این endpoint فقط برای مدیر و منشی است. بیماران نمی‌توانند از این روش استفاده کنند.",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phoneNumber", "password"],
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "09123456789",
+                    "description": "شماره تلفن"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123",
+                    "description": "رمز عبور"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ورود موفق",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/request-otp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "درخواست کد OTP",
+        "description": "ارسال کد OTP 5 رقمی به شماره تلفن کاربر",
+        "operationId": "requestOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phoneNumber"],
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "09123456789"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "کد OTP ارسال شد"
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "429": { "description": "تعداد درخواست‌ها بیش از حد مجاز" }
+        }
+      }
+    },
+    "/auth/verify-otp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "تایید OTP و ورود/ثبت‌نام",
+        "description": "تایید کد OTP و ورود به سیستم. برای کاربران جدید، نام و نام خانوادگی نیز ارسال می‌شود.",
+        "operationId": "verifyOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phoneNumber", "code"],
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "09123456789"
+                  },
+                  "code": {
+                    "type": "string",
+                    "example": "12345",
+                    "description": "کد OTP 5 رقمی"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "احمد",
+                    "description": "فقط برای کاربران جدید"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "احمدی",
+                    "description": "فقط برای کاربران جدید"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ورود موفق",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "دریافت اطلاعات کاربر جاری",
+        "operationId": "getCurrentUser",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "اطلاعات کاربر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "patch": {
+        "tags": ["Authentication"],
+        "summary": "به‌روزرسانی پروفایل",
+        "operationId": "updateProfile",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": { "type": "string", "example": "احمد" },
+                  "lastName": { "type": "string", "example": "احمدی" },
+                  "nationalCode": { "type": "string", "example": "1234567890" },
+                  "address": { "type": "string", "example": "تهران، خیابان ولیعصر" },
+                  "gender": {
+                    "type": "string",
+                    "enum": ["MALE", "FEMALE", "OTHER"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "پروفایل به‌روزرسانی شد"
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "خروج از حساب",
+        "operationId": "logout",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "با موفقیت خارج شدید"
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/clinics": {
+      "get": {
+        "tags": ["Clinics"],
+        "summary": "لیست کلینیک‌ها",
+        "description": "دریافت لیست کلینیک‌ها با pagination",
+        "operationId": "getClinics",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست کلینیک‌ها",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Clinic" }
+                    },
+                    "pagination": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Clinics"],
+        "summary": "ایجاد کلینیک (فقط مدیر)",
+        "operationId": "createClinic",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "address", "phoneNumber"],
+                "properties": {
+                  "name": { "type": "string", "example": "کلینیک دندانپزشکی تهران" },
+                  "address": { "type": "string", "example": "تهران، خیابان ولیعصر، پلاک 123" },
+                  "phoneNumber": { "type": "string", "example": "021-12345678" },
+                  "description": { "type": "string", "example": "کلینیک مجهز دندانپزشکی" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "کلینیک ایجاد شد"
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/clinics/{id}": {
+      "get": {
+        "tags": ["Clinics"],
+        "summary": "دریافت کلینیک",
+        "operationId": "getClinic",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": {
+            "description": "کلینیک",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/Clinic" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Clinics"],
+        "summary": "به‌روزرسانی کلینیک (مدیر/منشی)",
+        "operationId": "updateClinic",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "address": { "type": "string" },
+                  "phoneNumber": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "کلینیک به‌روزرسانی شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "delete": {
+        "tags": ["Clinics"],
+        "summary": "حذف کلینیک (فقط مدیر)",
+        "operationId": "deleteClinic",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "کلینیک حذف شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/doctors": {
+      "get": {
+        "tags": ["Doctors"],
+        "summary": "لیست پزشکان",
+        "description": "دریافت لیست پزشکان با امکان فیلتر بر اساس کلینیک",
+        "operationId": "getDoctors",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "clinicId",
+            "in": "query",
+            "description": "فیلتر بر اساس کلینیک",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست پزشکان",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Doctor" }
+                    },
+                    "pagination": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Doctors"],
+        "summary": "ایجاد پزشک (مدیر/منشی)",
+        "operationId": "createDoctor",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["firstName", "lastName", "university", "medicalLicenseNo"],
+                "properties": {
+                  "firstName": { "type": "string", "example": "دکتر احمد" },
+                  "lastName": { "type": "string", "example": "احمدی" },
+                  "university": { "type": "string", "example": "تهران" },
+                  "biography": { "type": "string", "example": "متخصص دندانپزشکی" },
+                  "skills": { "type": "string", "example": "[\"جراحی\", \"ایمپلنت\"]" },
+                  "medicalLicenseNo": { "type": "string", "example": "12345" },
+                  "clinicIds": { "type": "string", "example": "[\"uuid1\", \"uuid2\"]" },
+                  "profileImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "پزشک ایجاد شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/doctors/{id}": {
+      "get": {
+        "tags": ["Doctors"],
+        "summary": "دریافت پزشک",
+        "operationId": "getDoctor",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": {
+            "description": "اطلاعات پزشک"
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Doctors"],
+        "summary": "به‌روزرسانی پزشک (مدیر/منشی)",
+        "operationId": "updateDoctor",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "university": { "type": "string" },
+                  "biography": { "type": "string" },
+                  "skills": { "type": "string" },
+                  "medicalLicenseNo": { "type": "string" },
+                  "clinicIds": { "type": "string" },
+                  "profileImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "پزشک به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Doctors"],
+        "summary": "حذف پزشک (فقط مدیر)",
+        "operationId": "deleteDoctor",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "پزشک حذف شد" }
+        }
+      }
+    },
+    "/articles": {
+      "get": {
+        "tags": ["Articles"],
+        "summary": "لیست مقالات",
+        "operationId": "getArticles",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست مقالات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Article" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Articles"],
+        "summary": "ایجاد مقاله (مدیر/منشی)",
+        "operationId": "createArticle",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "content"],
+                "properties": {
+                  "title": { "type": "string", "example": "مراقبت از دندان" },
+                  "content": { "type": "string", "example": "محتوا مقاله..." },
+                  "excerpt": { "type": "string", "example": "خلاصه مقاله" },
+                  "published": { "type": "boolean" },
+                  "coverImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "مقاله ایجاد شد" }
+        }
+      }
+    },
+    "/articles/{identifier}": {
+      "get": {
+        "tags": ["Articles"],
+        "summary": "دریافت مقاله (با slug یا ID)",
+        "operationId": "getArticle",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "description": "ID یا slug مقاله",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "مقاله" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/articles/{id}": {
+      "patch": {
+        "tags": ["Articles"],
+        "summary": "به‌روزرسانی مقاله (مدیر/منشی)",
+        "operationId": "updateArticle",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "excerpt": { "type": "string" },
+                  "published": { "type": "boolean" },
+                  "coverImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "مقاله به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Articles"],
+        "summary": "حذف مقاله (مدیر/منشی)",
+        "operationId": "deleteArticle",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "مقاله حذف شد" }
+        }
+      }
+    },
+    "/services": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "لیست خدمات",
+        "operationId": "getServices",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست خدمات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Service" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Services"],
+        "summary": "ایجاد خدمت (مدیر/منشی)",
+        "operationId": "createService",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description"],
+                "properties": {
+                  "title": { "type": "string", "example": "جراحی ایمپلنت" },
+                  "description": { "type": "string", "example": "توضیحات خدمت" },
+                  "beforeTreatmentTips": { "type": "string", "example": "نکات قبل از درمان" },
+                  "afterTreatmentTips": { "type": "string", "example": "نکات بعد از درمان" },
+                  "price": { "type": "integer", "example": 5000000 },
+                  "durationMinutes": { "type": "integer", "example": 120 },
+                  "coverImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "خدمت ایجاد شد" }
+        }
+      }
+    },
+    "/services/{identifier}": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "دریافت خدمت (با slug یا ID)",
+        "operationId": "getService",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "خدمت" }
+        }
+      }
+    },
+    "/services/{id}": {
+      "patch": {
+        "tags": ["Services"],
+        "summary": "به‌روزرسانی خدمت (مدیر/منشی)",
+        "operationId": "updateService",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "beforeTreatmentTips": { "type": "string" },
+                  "afterTreatmentTips": { "type": "string" },
+                  "price": { "type": "integer" },
+                  "durationMinutes": { "type": "integer" },
+                  "coverImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "خدمت به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Services"],
+        "summary": "حذف خدمت (مدیر/منشی)",
+        "operationId": "deleteService",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "خدمت حذف شد" }
+        }
+      }
+    },
+    "/comments/doctor/{doctorId}": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "لیست نظرات یک پزشک",
+        "operationId": "getDoctorComments",
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": { "description": "لیست نظرات" }
+        }
+      },
+      "post": {
+        "tags": ["Comments"],
+        "summary": "ثبت نظر برای پزشک (فقط بیمار)",
+        "operationId": "createDoctorComment",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1000,
+                    "example": "پزشک بسیار حرفه‌ای و دلسوزی هستند"
+                  },
+                  "rating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "example": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "نظر ثبت شد" }
+        }
+      }
+    },
+    "/comments/article/{articleId}": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "لیست نظرات یک مقاله",
+        "operationId": "getArticleComments",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": { "description": "لیست نظرات" }
+        }
+      },
+      "post": {
+        "tags": ["Comments"],
+        "summary": "ثبت نظر برای مقاله (فقط بیمار)",
+        "operationId": "createArticleComment",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "مقاله بسیار مفیدی بود، ممنون"
+                  },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "نظر ثبت شد" }
+        }
+      }
+    },
+    "/comments/service/{serviceId}": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "لیست نظرات یک خدمت",
+        "operationId": "getServiceComments",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": { "description": "لیست نظرات" }
+        }
+      },
+      "post": {
+        "tags": ["Comments"],
+        "summary": "ثبت نظر برای خدمت (فقط بیمار)",
+        "operationId": "createServiceComment",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "خدمات عالی ارائه می‌دهند"
+                  },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "نظر ثبت شد" }
+        }
+      }
+    },
+    "/comments/{id}": {
+      "patch": {
+        "tags": ["Comments"],
+        "summary": "به‌روزرسانی نظر (صاحب نظر)",
+        "operationId": "updateComment",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": { "type": "string", "minLength": 10, "maxLength": 1000 },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "نظر به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Comments"],
+        "summary": "حذف نظر (صاحب نظر یا مدیر)",
+        "operationId": "deleteComment",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "نظر حذف شد" }
+        }
+      }
+    },
+    "/faqs": {
+      "get": {
+        "tags": ["FAQs"],
+        "summary": "لیست سوالات متداول",
+        "operationId": "getFaqs",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": { "description": "لیست سوالات متداول" }
+        }
+      },
+      "post": {
+        "tags": ["FAQs"],
+        "summary": "ایجاد سوال متداول (مدیر/منشی)",
+        "operationId": "createFaq",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["question", "answer"],
+                "properties": {
+                  "question": { "type": "string", "example": "آیا درمان ریشه درد دارد؟" },
+                  "answer": { "type": "string", "example": "درمان ریشه با بی‌حسی موضعی انجام می‌شود و درد ندارد" },
+                  "order": { "type": "integer", "example": 1 },
+                  "published": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "سوال ایجاد شد" }
+        }
+      }
+    },
+    "/faqs/{id}": {
+      "get": {
+        "tags": ["FAQs"],
+        "summary": "دریافت سوال متداول",
+        "operationId": "getFaq",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "سوال متداول" }
+        }
+      },
+      "patch": {
+        "tags": ["FAQs"],
+        "summary": "به‌روزرسانی سوال متداول (مدیر/منشی)",
+        "operationId": "updateFaq",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "question": { "type": "string" },
+                  "answer": { "type": "string" },
+                  "order": { "type": "integer" },
+                  "published": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "سوال به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["FAQs"],
+        "summary": "حذف سوال متداول (مدیر/منشی)",
+        "operationId": "deleteFaq",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "سوال حذف شد" }
+        }
+      }
+    },
+    "/faqs/reorder": {
+      "post": {
+        "tags": ["FAQs"],
+        "summary": "ترتیب‌بندی سوالات متداول (مدیر/منشی)",
+        "operationId": "reorderFaqs",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["faqs"],
+                "properties": {
+                  "faqs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["id", "order"],
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "order": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "ترتیب سوالات به‌روزرسانی شد" }
+        }
+      }
+    },
+    "/gallery": {
+      "get": {
+        "tags": ["Gallery"],
+        "summary": "لیست تصاویر گالری",
+        "operationId": "getGalleryImages",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": { "description": "لیست تصاویر گالری" }
+        }
+      },
+      "post": {
+        "tags": ["Gallery"],
+        "summary": "آپلود تصویر گالری (مدیر/منشی)",
+        "operationId": "uploadImage",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["galleryImage"],
+                "properties": {
+                  "title": { "type": "string", "example": "تصویر کلینیک" },
+                  "description": { "type": "string", "example": "توضیحات تصویر" },
+                  "order": { "type": "integer", "example": 1 },
+                  "published": { "type": "string", "enum": ["true", "false"] },
+                  "galleryImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "تصویر آپلود شد" }
+        }
+      }
+    },
+    "/gallery/{id}": {
+      "get": {
+        "tags": ["Gallery"],
+        "summary": "دریافت تصویر گالری",
+        "operationId": "getGalleryImage",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "تصویر گالری" }
+        }
+      },
+      "patch": {
+        "tags": ["Gallery"],
+        "summary": "به‌روزرسانی تصویر گالری (مدیر/منشی)",
+        "operationId": "updateImage",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "order": { "type": "integer" },
+                  "published": { "type": "string", "enum": ["true", "false"] },
+                  "galleryImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "تصویر به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Gallery"],
+        "summary": "حذف تصویر گالری (مدیر/منشی)",
+        "operationId": "deleteImage",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "تصویر حذف شد" }
+        }
+      }
+    },
+    "/gallery/reorder": {
+      "post": {
+        "tags": ["Gallery"],
+        "summary": "ترتیب‌بندی تصاویر گالری (مدیر/منشی)",
+        "operationId": "reorderImages",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["images"],
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["id", "order"],
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "order": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "ترتیب تصاویر به‌روزرسانی شد" }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "دریافت تنظیمات سایت",
+        "operationId": "getSettings",
+        "responses": {
+          "200": { "description": "تنظیمات سایت" }
+        }
+      },
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "به‌روزرسانی تنظیمات سایت (فقط مدیر)",
+        "operationId": "updateSettings",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "siteName": { "type": "string", "example": "کلینیک دندانپزشکی تهران" },
+                  "siteTitle": { "type": "string" },
+                  "description": { "type": "string" },
+                  "logo": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "phoneNumber": { "type": "string" },
+                  "address": { "type": "string" },
+                  "instagram": { "type": "string", "format": "uri" },
+                  "telegram": { "type": "string", "format": "uri" },
+                  "whatsapp": { "type": "string" },
+                  "twitter": { "type": "string", "format": "uri" },
+                  "linkedin": { "type": "string", "format": "uri" },
+                  "facebook": { "type": "string", "format": "uri" },
+                  "youtube": { "type": "string", "format": "uri" },
+                  "workingHours": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "تنظیمات به‌روزرسانی شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/settings/social-media": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "دریافت لینک‌های شبکه‌های اجتماعی",
+        "operationId": "getSocialMedia",
+        "responses": {
+          "200": { "description": "لینک‌های شبکه‌های اجتماعی" }
+        }
+      },
+      "patch": {
+        "tags": ["Settings"],
+        "summary": "به‌روزرسانی لینک‌های شبکه‌های اجتماعی (فقط مدیر)",
+        "operationId": "updateSocialMedia",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "instagram": { "type": "string", "format": "uri" },
+                  "telegram": { "type": "string", "format": "uri" },
+                  "whatsapp": { "type": "string" },
+                  "twitter": { "type": "string", "format": "uri" },
+                  "linkedin": { "type": "string", "format": "uri" },
+                  "facebook": { "type": "string", "format": "uri" },
+                  "youtube": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "لینک‌های شبکه‌های اجتماعی به‌روزرسانی شد" }
+        }
+      }
+    },
+    "/insurance": {
+      "get": {
+        "tags": ["Insurance"],
+        "summary": "لیست سازمان‌های بیمه",
+        "operationId": "getInsuranceOrganizations",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": { "description": "لیست سازمان‌های بیمه" }
+        }
+      },
+      "post": {
+        "tags": ["Insurance"],
+        "summary": "ایجاد سازمان بیمه (فقط مدیر)",
+        "operationId": "createInsuranceOrganization",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "تأمین اجتماعی" },
+                  "description": { "type": "string", "example": "سازمان تأمین اجتماعی ایران" },
+                  "website": { "type": "string", "format": "uri", "example": "https://tamin.ir" },
+                  "phoneNumber": { "type": "string", "example": "021-12345678" },
+                  "email": { "type": "string", "format": "email", "example": "info@tamin.ir" },
+                  "logo": { "type": "string", "example": "tamin-logo.png" },
+                  "published": { "type": "boolean", "example": true },
+                  "order": { "type": "integer", "example": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "سازمان بیمه ایجاد شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/insurance/{id}": {
+      "get": {
+        "tags": ["Insurance"],
+        "summary": "دریافت سازمان بیمه",
+        "operationId": "getInsuranceOrganization",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "سازمان بیمه" }
+        }
+      },
+      "patch": {
+        "tags": ["Insurance"],
+        "summary": "به‌روزرسانی سازمان بیمه (فقط مدیر)",
+        "operationId": "updateInsuranceOrganization",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "website": { "type": "string", "format": "uri" },
+                  "phoneNumber": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "logo": { "type": "string" },
+                  "published": { "type": "boolean" },
+                  "order": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "سازمان بیمه به‌روزرسانی شد" }
+        }
+      },
+      "delete": {
+        "tags": ["Insurance"],
+        "summary": "حذف سازمان بیمه (فقط مدیر)",
+        "operationId": "deleteInsuranceOrganization",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "سازمان بیمه حذف شد" }
+        }
+      }
+    },
+    "/insurance/{id}/toggle-status": {
+      "patch": {
+        "tags": ["Insurance"],
+        "summary": "تغییر وضعیت انتشار سازمان بیمه (فقط مدیر)",
+        "operationId": "toggleInsuranceOrganizationStatus",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "وضعیت تغییر کرد" }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "بررسی وضعیت سرور",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "سرور در حال اجرا است",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "phoneNumber": { "type": "string" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "role": { "type": "string", "enum": ["ADMIN", "SECRETARY", "PATIENT"] },
+          "nationalCode": { "type": "string" },
+          "address": { "type": "string" },
+          "gender": { "type": "string", "enum": ["MALE", "FEMALE", "OTHER"] },
+          "clinicId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Clinic": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "description": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Doctor": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "profileImage": { "type": "string" },
+          "university": { "type": "string" },
+          "biography": { "type": "string" },
+          "skills": { "type": "array", "items": { "type": "string" } },
+          "medicalLicenseNo": { "type": "string" },
+          "clinics": { "type": "array", "items": { "$ref": "#/components/schemas/Clinic" } },
+          "averageRating": { "type": "number" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Article": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "slug": { "type": "string" },
+          "content": { "type": "string" },
+          "excerpt": { "type": "string" },
+          "coverImage": { "type": "string" },
+          "published": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string" },
+          "beforeTreatmentTips": { "type": "string" },
+          "afterTreatmentTips": { "type": "string" },
+          "price": { "type": "integer" },
+          "durationMinutes": { "type": "integer" },
+          "coverImage": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "content": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "user": { "$ref": "#/components/schemas/User" },
+          "doctorId": { "type": "string" },
+          "articleId": { "type": "string" },
+          "serviceId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "FAQ": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "question": { "type": "string" },
+          "answer": { "type": "string" },
+          "order": { "type": "integer" },
+          "published": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Gallery": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "image": { "type": "string" },
+          "order": { "type": "integer" },
+          "published": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "siteName": { "type": "string" },
+          "siteTitle": { "type": "string" },
+          "description": { "type": "string" },
+          "logo": { "type": "string" },
+          "email": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "address": { "type": "string" },
+          "instagram": { "type": "string" },
+          "telegram": { "type": "string" },
+          "whatsapp": { "type": "string" },
+          "twitter": { "type": "string" },
+          "linkedin": { "type": "string" },
+          "facebook": { "type": "string" },
+          "youtube": { "type": "string" },
+          "workingHours": { "type": "string" }
+        }
+      },
+      "InsuranceOrganization": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "website": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "email": { "type": "string" },
+          "logo": { "type": "string" },
+          "published": { "type": "boolean" },
+          "order": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string" },
+          "errors": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "شناسه یکتای رکورد"
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        },
+        "description": "شماره صفحه"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
+        },
+        "description": "تعداد رکوردها در هر صفحه"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "درخواست نامعتبر",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "دسترسی غیرمجاز - نیاز به احراز هویت",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "دسترسی ممنوع - نیاز به نقش مناسب",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "رکورد یافت نشد",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "dental.sid",
+        "description": "Session-based authentication using cookies"
+      }
+    }
+  }
+}
+
