@@ -59,7 +59,7 @@ router.patch(
     Joi.object({
       firstName: Joi.string().min(2).max(50),
       lastName: Joi.string().min(2).max(50),
-      nationalCode: schemas.nationalCode,
+      nationalCode: schemas.nationalCode.optional().allow(null).allow(''),
       address: Joi.string().max(500),
       gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
     })

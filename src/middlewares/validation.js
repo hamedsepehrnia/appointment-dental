@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { AppError } = require('./errorHandler');
+const { validateNationalCode } = require('../utils/helpers');
 
 /**
  * Validation middleware factory
@@ -47,10 +48,18 @@ const schemas = {
 
   // National code validation
   nationalCode: Joi.string()
-    .length(10)
     .pattern(/^\d+$/)
+    .custom((value, helpers) => {
+      if (!value || value === '') return value; // Allow empty for optional fields
+      if (value.length !== 10) {
+        return helpers.message('کد ملی باید ۱۰ رقم باشد');
+      }
+      if (!validateNationalCode(value)) {
+        return helpers.message('کد ملی نامعتبر است');
+      }
+      return value;
+    })
     .messages({
-      'string.length': 'کد ملی باید ۱۰ رقم باشد',
       'string.pattern.base': 'کد ملی فقط باید شامل اعداد باشد',
     }),
 
