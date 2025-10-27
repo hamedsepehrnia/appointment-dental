@@ -62,6 +62,12 @@ const requestOtp = async (req, res) => {
   const code = generateOtp();
   const expiresAt = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || 5) * 60 * 1000);
 
+  // Check if user exists before sending SMS
+  const user = await prisma.user.findUnique({
+    where: { phoneNumber: formattedPhone },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
   // Save OTP to database
   await prisma.otpCode.create({
     data: {
@@ -71,22 +77,21 @@ const requestOtp = async (req, res) => {
     },
   });
 
-// Send SMS (disabled pattern for now)
-// const smsResult = await smsService.sendOtp(formattedPhone, code);
-  const smsResult = await smsService.sendSimpleSms(
-      formattedPhone,
-      `کد تایید شما: ${code}`
-  );
+  // Prepare SMS message based on user existence
+  let smsMessage;
+  if (user) {
+    const fullName = `${user.firstName} ${user.lastName}`;
+    smsMessage = `سلام ${fullName} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
+  } else {
+    smsMessage = `به سامانه نوبت دهی کلینیک طاها خوش آمدید. کد ورود شما: ${code}`;
+  }
+
+  // Send SMS
+  const smsResult = await smsService.sendSimpleSms(formattedPhone, smsMessage);
 
   if (!smsResult.success) {
     throw new AppError('خطا در ارسال پیامک', 500);
   }
-
-  // Check if user exists
-  const user = await prisma.user.findUnique({
-    where: { phoneNumber: formattedPhone },
-    select: { id: true, firstName: true, lastName: true },
-  });
 
   res.json({
     success: true,
