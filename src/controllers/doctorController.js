@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta } = require('../utils/helpers');
+const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -122,11 +122,23 @@ const createDoctor = async (req, res) => {
 
   const profileImage = req.file ? `/uploads/doctors/${req.file.filename}` : null;
 
+  // Generate unique slug from firstName + lastName
+  let baseSlug = createSlug(`${firstName}-${lastName}`);
+  let slug = baseSlug;
+  let counter = 1;
+
+  // Ensure slug is unique
+  while (await prisma.doctor.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
   // Create doctor
   const doctor = await prisma.doctor.create({
     data: {
       firstName,
       lastName,
+      slug,
       profileImage,
       university,
       biography,
@@ -207,12 +219,30 @@ const updateDoctor = async (req, res) => {
     profileImage = `/uploads/doctors/${req.file.filename}`;
   }
 
+  // Generate new slug if firstName or lastName is being updated
+  let slug;
+  if (firstName || lastName) {
+    const fullName = `${firstName || currentDoctor.firstName}-${lastName || currentDoctor.lastName}`;
+    const baseSlug = createSlug(fullName);
+    slug = baseSlug;
+    let counter = 1;
+
+    // Ensure slug is unique
+    while (await prisma.doctor.findFirst({ 
+      where: { slug, id: { not: id } } 
+    })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+
   // Update doctor
   const doctor = await prisma.doctor.update({
     where: { id },
     data: {
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
+      ...(slug && { slug }),
       ...(profileImage && { profileImage }),
       ...(university && { university }),
       ...(biography !== undefined && { biography }),

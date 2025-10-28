@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta } = require('../utils/helpers');
+const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
 
 /**
  * Get all clinics
@@ -80,9 +80,21 @@ const getClinic = async (req, res) => {
 const createClinic = async (req, res) => {
   const { name, address, phoneNumber, description } = req.body;
 
+  // Generate unique slug
+  let baseSlug = createSlug(name);
+  let slug = baseSlug;
+  let counter = 1;
+
+  // Ensure slug is unique
+  while (await prisma.clinic.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
   const clinic = await prisma.clinic.create({
     data: {
       name,
+      slug,
       address,
       phoneNumber,
       description,
@@ -115,10 +127,28 @@ const updateClinic = async (req, res) => {
     }
   }
 
+  // Generate new slug if name is being updated
+  let slug;
+  if (name) {
+    const currentClinic = await prisma.clinic.findUnique({ where: { id } });
+    const baseSlug = createSlug(name);
+    slug = baseSlug;
+    let counter = 1;
+
+    // Ensure slug is unique
+    while (await prisma.clinic.findFirst({ 
+      where: { slug, id: { not: id } } 
+    })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
       ...(name && { name }),
+      ...(slug && { slug }),
       ...(address && { address }),
       ...(phoneNumber && { phoneNumber }),
       ...(description !== undefined && { description }),

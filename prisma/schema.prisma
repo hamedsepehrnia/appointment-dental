@@ -47,6 +47,7 @@ model User {
 model Clinic {
   id          String   @id @default(uuid())
   name        String
+  slug        String   @unique
   address     String
   phoneNumber String   @map("phone_number")
   description String?  @db.Text
@@ -65,6 +66,7 @@ model Doctor {
   id                String   @id @default(uuid())
   firstName         String   @map("first_name")
   lastName          String   @map("last_name")
+  slug              String   @unique
   profileImage      String?  @map("profile_image")
   university        String
   biography         String?  @db.Text
