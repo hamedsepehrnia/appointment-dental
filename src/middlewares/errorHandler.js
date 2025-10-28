@@ -44,39 +44,9 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400;
   }
 
-  // Logging error
-  try {
-    const logger = require('../config/logger');
-    
-    // فقط errors مهم را log کنید (نه validation errors عادی)
-    if (statusCode >= 500) {
-      logger.error('Server Error', {
-        message: err.message,
-        stack: err.stack,
-        statusCode,
-        url: req.url,
-        method: req.method,
-        ip: req.ip,
-        userId: req.session?.userId,
-        userAgent: req.get('user-agent'),
-        timestamp: new Date().toISOString(),
-      });
-    } else if (statusCode >= 400) {
-      logger.warn('Client Error', {
-        message: err.message,
-        statusCode,
-        url: req.url,
-        method: req.method,
-        ip: req.ip,
-        userId: req.session?.userId,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  } catch (loggerError) {
-    // اگر logger در دسترس نباشد، از console استفاده کنید
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error:', err);
-    }
+  // Log error in development
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error:', err);
   }
 
   res.status(statusCode).json({

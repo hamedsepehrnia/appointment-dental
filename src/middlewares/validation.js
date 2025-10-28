@@ -74,32 +74,6 @@ const schemas = {
     'string.guid': 'شناسه نامعتبر است',
     'any.required': 'شناسه الزامی است',
   }),
-
-  // String validation - جلوگیری از XSS
-  safeString: (min = 1, max = 500) => Joi.string()
-    .min(min)
-    .max(max)
-    .trim()
-    .pattern(/^[^<>]*$/, { name: 'safe' })
-    .messages({
-      'string.pattern.name': 'کاراکترهای خطرناک در متن یافت شد',
-    }),
-
-  // Email validation
-  email: Joi.string()
-    .email()
-    .lowercase()
-    .trim()
-    .messages({
-      'string.email': 'ایمیل نامعتبر است',
-    }),
-
-  // URL validation
-  url: Joi.string()
-    .uri()
-    .messages({
-      'string.uri': 'آدرس نامعتبر است',
-    }),
 };
 
 module.exports = {

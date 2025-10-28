@@ -11,38 +11,12 @@ const path = require('path');
 const sessionConfig = require('./src/config/session');
 const routes = require('./src/routes');
 const { errorHandler, notFound } = require('./src/middlewares/errorHandler');
-const { generateCsrfToken, validateCsrfToken } = require('./src/middlewares/csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware with CSP
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true,
-  },
-  frameguard: { action: 'deny' },
-  noSniff: true,
-  xssFilter: true,
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-}));
+// Security middleware
+app.use(helmet());
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
@@ -59,26 +33,11 @@ app.use(
   })
 );
 
-// Rate limiting - Improved version
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each user to 100 requests per windowMs
+  max: 100, // Limit each IP to 100 requests per windowMs
   message: 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    // ترکیب session user ID با IP برای دقت بیشتر
-    return req.session?.userId || req.ip;
-  },
-  skipSuccessfulRequests: false,
-  skipFailedRequests: false,
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message: 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
-    });
-  },
 });
 app.use('/api/', limiter);
 
@@ -87,16 +46,6 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: 'تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً بعداً تلاش کنید.',
-  standardHeaders: true,
-  keyGenerator: (req) => {
-    return req.ip; // برای auth از IP استفاده کنید
-  },
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message: 'تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً 15 دقیقه بعد تلاش کنید.',
-    });
-  },
 });
 app.use('/api/auth/request-otp', authLimiter);
 app.use('/api/auth/verify-otp', authLimiter);
@@ -117,10 +66,6 @@ app.use(compression());
 
 // Session
 app.use(session(sessionConfig));
-
-// CSRF token middleware
-app.use(generateCsrfToken);
-app.use(validateCsrfToken);
 
 // Static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -157,7 +102,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 http://localhost:${PORT}`);
@@ -168,15 +113,6 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
   server.close(() => {
     console.log('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
   });
 });
 

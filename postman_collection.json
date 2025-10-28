@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Dental Appointment API",
-    "description": "Complete API collection for Dental Appointment Management System\n\n## 🔐 CSRF Token Usage\n\nThis collection automatically handles CSRF tokens:\n\n1. **First Request**: The collection will automatically fetch a CSRF token\n2. **Using Token**: Add `{{csrfToken}}` as the value for `X-CSRF-Token` header in POST/PATCH/DELETE requests\n3. **Manual Refresh**: Go to Security > Get CSRF Token if needed\n\n## 📝 Important Notes\n\n- CSRF Token is **NOT required** for:\n  - All GET requests\n  - Auth endpoints (request-otp, verify-otp, login, logout)\n- CSRF Token **IS required** for:\n  - All POST/PATCH/DELETE requests (except auth)\n\nSee CSRF_REQUIRED_ENDPOINTS.md for the complete list.",
+    "description": "Complete API collection for Dental Appointment Management System",
     "version": "2.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -13,54 +13,9 @@
       "key": "baseUrl",
       "value": "http://localhost:4000/api",
       "type": "string"
-    },
-    {
-      "key": "csrfToken",
-      "value": "",
-      "type": "string"
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "// دریافت خودکار CSRF Token",
-          "if (!pm.variables.get('csrfToken')) {",
-          "    pm.sendRequest({",
-          "        url: pm.variables.get('baseUrl') + '/csrf-token',",
-          "        method: 'GET',",
-          "        header: {}",
-          "    }, function (err, res) {",
-          "        if (!err && res.json().success) {",
-          "            pm.variables.set('csrfToken', res.json().data.csrfToken);",
-          "        }",
-          "    });",
-          "}"
-        ]
-      }
     }
   ],
   "item": [
-    {
-      "name": "Security",
-      "item": [
-        {
-          "name": "Get CSRF Token",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/csrf-token",
-              "host": ["{{baseUrl}}"],
-              "path": ["csrf-token"]
-            },
-            "description": "دریافت CSRF token برای استفاده در header های درخواست های POST, PUT, DELETE, PATCH. باید Token را در header با نام X-CSRF-Token ارسال کنید."
-          }
-        }
-      ]
-    },
     {
       "name": "Authentication",
       "item": [
@@ -147,10 +102,6 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -393,10 +344,6 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
               }
             ],
             "body": {
