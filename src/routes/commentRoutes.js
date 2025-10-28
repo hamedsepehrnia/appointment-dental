@@ -5,6 +5,7 @@ const commentController = require('../controllers/commentController');
 const { isAuthenticated, isPatient } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get comments for a doctor (public)
 router.get(
@@ -17,6 +18,7 @@ router.get(
 router.post(
   '/doctor/:doctorId',
   isAuthenticated,
+  csrfProtection,
   validate(
     Joi.object({
       content: Joi.string().required().min(10).max(1000).messages({
@@ -42,6 +44,7 @@ router.get(
 router.post(
   '/article/:articleId',
   isAuthenticated,
+  csrfProtection,
   validate(
     Joi.object({
       content: Joi.string().required().min(10).max(1000).messages({
@@ -67,6 +70,7 @@ router.get(
 router.post(
   '/service/:serviceId',
   isAuthenticated,
+  csrfProtection,
   validate(
     Joi.object({
       content: Joi.string().required().min(10).max(1000).messages({
@@ -84,6 +88,7 @@ router.post(
 router.patch(
   '/:id',
   isAuthenticated,
+  csrfProtection,
   validate(
     Joi.object({
       content: Joi.string().min(10).max(1000),
@@ -94,7 +99,7 @@ router.patch(
 );
 
 // Delete comment (Owner or Admin)
-router.delete('/:id', isAuthenticated, asyncHandler(commentController.deleteComment));
+router.delete('/:id', isAuthenticated, csrfProtection, asyncHandler(commentController.deleteComment));
 
 module.exports = router;
 

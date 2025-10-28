@@ -6,6 +6,7 @@ const { isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all articles (public for published, admin/secretary for all)
 router.get(
@@ -26,6 +27,7 @@ router.get('/:identifier', asyncHandler(articleController.getArticle));
 router.post(
   '/',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('coverImage'),
   validate(
     Joi.object({
@@ -46,6 +48,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('coverImage'),
   validate(
     Joi.object({
@@ -59,7 +62,7 @@ router.patch(
 );
 
 // Delete article (Admin/Secretary)
-router.delete('/:id', isAdminOrSecretary, asyncHandler(articleController.deleteArticle));
+router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(articleController.deleteArticle));
 
 module.exports = router;
 

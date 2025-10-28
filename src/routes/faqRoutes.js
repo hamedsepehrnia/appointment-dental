@@ -5,6 +5,7 @@ const faqController = require('../controllers/faqController');
 const { isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all FAQs (published only for public)
 router.get(
@@ -25,6 +26,7 @@ router.get('/:id', asyncHandler(faqController.getFaq));
 router.post(
   '/',
   isAdminOrSecretary,
+  csrfProtection,
   validate(
     Joi.object({
       question: Joi.string().required().min(10).max(500).messages({
@@ -47,6 +49,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   validate(
     Joi.object({
       question: Joi.string().min(10).max(500),
@@ -59,12 +62,13 @@ router.patch(
 );
 
 // Delete FAQ (Admin/Secretary)
-router.delete('/:id', isAdminOrSecretary, asyncHandler(faqController.deleteFaq));
+router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(faqController.deleteFaq));
 
 // Reorder FAQs (Admin/Secretary)
 router.post(
   '/reorder',
   isAdminOrSecretary,
+  csrfProtection,
   validate(
     Joi.object({
       faqs: Joi.array()

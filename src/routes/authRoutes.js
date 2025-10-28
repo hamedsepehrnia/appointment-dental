@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Login with password (Admin/Secretary only)
 router.post(
@@ -19,6 +20,9 @@ router.post(
   ),
   asyncHandler(authController.loginWithPassword)
 );
+
+// Get CSRF Token
+router.get('/csrf-token', asyncHandler(authController.getCsrfToken));
 
 // Request OTP
 router.post(
@@ -46,7 +50,7 @@ router.post(
 );
 
 // Logout
-router.post('/logout', isAuthenticated, asyncHandler(authController.logout));
+router.post('/logout', isAuthenticated, csrfProtection, asyncHandler(authController.logout));
 
 // Get current user
 router.get('/me', isAuthenticated, asyncHandler(authController.getCurrentUser));
@@ -55,6 +59,7 @@ router.get('/me', isAuthenticated, asyncHandler(authController.getCurrentUser));
 router.patch(
   '/me',
   isAuthenticated,
+  csrfProtection,
   validate(
     Joi.object({
       firstName: Joi.string().min(2).max(50),

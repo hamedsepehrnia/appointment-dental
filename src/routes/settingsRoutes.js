@@ -5,6 +5,7 @@ const settingsController = require('../controllers/settingsController');
 const { isAdmin } = require('../middlewares/auth');
 const { validate } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all settings (public)
 router.get('/', asyncHandler(settingsController.getSettings));
@@ -16,6 +17,7 @@ router.get('/social-media', asyncHandler(settingsController.getSocialMedia));
 router.patch(
   '/',
   isAdmin,
+  csrfProtection,
   validate(
     Joi.object({
       siteName: Joi.string(),
@@ -42,6 +44,7 @@ router.patch(
 router.patch(
   '/social-media',
   isAdmin,
+  csrfProtection,
   validate(
     Joi.object({
       instagram: Joi.string().uri().allow(''),

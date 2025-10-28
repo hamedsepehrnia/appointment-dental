@@ -5,6 +5,7 @@ const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 const { validate } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const insuranceController = require('../controllers/insuranceController');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Public routes
 // Get all insurance organizations
@@ -25,6 +26,7 @@ router.post(
   '/',
   isAuthenticated,
   isAdmin,
+  csrfProtection,
   validate(
     Joi.object({
       name: Joi.string().required().min(2).max(100).messages({
@@ -49,6 +51,7 @@ router.patch(
   '/:id',
   isAuthenticated,
   isAdmin,
+  csrfProtection,
   validate(
     Joi.object({
       name: Joi.string().min(2).max(100),
@@ -69,6 +72,7 @@ router.delete(
   '/:id',
   isAuthenticated,
   isAdmin,
+  csrfProtection,
   asyncHandler(insuranceController.deleteInsuranceOrganization)
 );
 
@@ -77,6 +81,7 @@ router.patch(
   '/:id/toggle-status',
   isAuthenticated,
   isAdmin,
+  csrfProtection,
   asyncHandler(insuranceController.toggleInsuranceOrganizationStatus)
 );
 

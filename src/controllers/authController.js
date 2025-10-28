@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const smsService = require('../services/smsService');
 const { generateOtp, formatPhoneNumber, generateRandomPassword } = require('../utils/helpers');
 const { AppError } = require('../middlewares/errorHandler');
+const { generateCsrfToken } = require('../middlewares/csrf');
 
 /**
  * Login with password (Admin/Secretary only)
@@ -259,6 +260,20 @@ const updateProfile = async (req, res) => {
   });
 };
 
+/**
+ * Get CSRF token
+ */
+const getCsrfToken = async (req, res) => {
+  const token = generateCsrfToken(req, res);
+  
+  res.json({
+    success: true,
+    data: {
+      csrfToken: token,
+    },
+  });
+};
+
 module.exports = {
   loginWithPassword,
   requestOtp,
@@ -266,5 +281,6 @@ module.exports = {
   logout,
   getCurrentUser,
   updateProfile,
+  getCsrfToken,
 };
 

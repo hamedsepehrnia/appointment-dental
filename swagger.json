@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "سیستم مدیریت نوبت‌دهی کلینیک دندانپزشکی",
-    "description": "API کامل و حرفه‌ای برای مدیریت نوبت‌دهی دو کلینیک دندانپزشکی",
-    "version": "1.0.0",
+    "description": "API کامل و حرفه‌ای برای مدیریت نوبت‌دهی دو کلینیک دندانپزشکی\n\n⚠️ نکته مهم CSRF Protection:\n1. ابتدا از /auth/csrf-token یک token دریافت کنید\n2. در header درخواست‌های POST/PATCH/DELETE، X-CSRF-Token را با مقدار token ارسال کنید",
+    "version": "1.1.0",
     "contact": {
       "name": "Support"
     }
@@ -203,6 +203,39 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/csrf-token": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "دریافت CSRF Token",
+        "description": "برای دریافت CSRF token. این token باید در header درخواست‌های POST/PATCH/DELETE قرار گیرد.",
+        "operationId": "getCsrfToken",
+        "responses": {
+          "200": {
+            "description": "CSRF token دریافت شد",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "csrfToken": {
+                          "type": "string",
+                          "example": "XsGp2fKZQqK2Yb...",
+                          "description": "این token را در header به عنوان X-CSRF-Token ارسال کنید"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1697,6 +1730,12 @@
         "in": "cookie",
         "name": "dental.sid",
         "description": "Session-based authentication using cookies"
+      },
+      "csrfHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "CSRF token برای حفاظت در برابر حملات CSRF. ابتدا /auth/csrf-token را صدا کنید و token دریافتی را در این header ارسال کنید"
       }
     }
   }

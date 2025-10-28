@@ -6,6 +6,7 @@ const { isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all services (public)
 router.get(
@@ -21,6 +22,7 @@ router.get('/:identifier', asyncHandler(serviceController.getService));
 router.post(
   '/',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('coverImage'),
   validate(
     Joi.object({
@@ -43,6 +45,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('coverImage'),
   validate(
     Joi.object({
@@ -58,7 +61,7 @@ router.patch(
 );
 
 // Delete service (Admin/Secretary)
-router.delete('/:id', isAdminOrSecretary, asyncHandler(serviceController.deleteService));
+router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(serviceController.deleteService));
 
 module.exports = router;
 

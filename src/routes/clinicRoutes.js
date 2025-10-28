@@ -5,6 +5,7 @@ const clinicController = require('../controllers/clinicController');
 const { isAdminOrSecretary, isAdmin } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all clinics (public)
 router.get(
@@ -20,6 +21,7 @@ router.get('/:id', asyncHandler(clinicController.getClinic));
 router.post(
   '/',
   isAdmin,
+  csrfProtection,
   validate(
     Joi.object({
       name: Joi.string().required().messages({
@@ -41,6 +43,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   validate(
     Joi.object({
       name: Joi.string(),
@@ -53,7 +56,7 @@ router.patch(
 );
 
 // Delete clinic (Admin only)
-router.delete('/:id', isAdmin, asyncHandler(clinicController.deleteClinic));
+router.delete('/:id', isAdmin, csrfProtection, asyncHandler(clinicController.deleteClinic));
 
 module.exports = router;
 

@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "Dental Appointment API",
-    "description": "Complete API collection for Dental Appointment Management System",
-    "version": "2.0.0",
+    "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.",
+    "version": "2.1.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -12,6 +12,11 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:4000/api",
+      "type": "string"
+    },
+    {
+      "key": "csrfToken",
+      "value": "",
       "type": "string"
     }
   ],
@@ -83,6 +88,18 @@
           }
         },
         {
+          "name": "Get CSRF Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/csrf-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "csrf-token"]
+            }
+          }
+        },
+        {
           "name": "Get Current User",
           "request": {
             "method": "GET",
@@ -102,6 +119,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -119,7 +140,12 @@
           "name": "Logout",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
               "host": ["{{baseUrl}}"],
@@ -175,7 +201,13 @@
           "name": "Create Doctor",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "description": "Get CSRF token first from /auth/csrf-token"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -232,7 +264,12 @@
           "name": "Update Doctor",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -289,7 +326,12 @@
           "name": "Delete Doctor",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/doctors/:id",
               "host": ["{{baseUrl}}"],
@@ -344,6 +386,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -365,6 +411,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -382,7 +432,12 @@
           "name": "Delete Clinic",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/clinics/:id",
               "host": ["{{baseUrl}}"],

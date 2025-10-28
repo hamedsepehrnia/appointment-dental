@@ -6,6 +6,7 @@ const { isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all gallery images (published only for public)
 router.get(
@@ -26,6 +27,7 @@ router.get('/:id', asyncHandler(galleryController.getGalleryImage));
 router.post(
   '/',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('galleryImage'),
   validate(
     Joi.object({
@@ -42,6 +44,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('galleryImage'),
   validate(
     Joi.object({
@@ -55,12 +58,13 @@ router.patch(
 );
 
 // Delete gallery image (Admin/Secretary)
-router.delete('/:id', isAdminOrSecretary, asyncHandler(galleryController.deleteImage));
+router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(galleryController.deleteImage));
 
 // Reorder gallery images (Admin/Secretary)
 router.post(
   '/reorder',
   isAdminOrSecretary,
+  csrfProtection,
   validate(
     Joi.object({
       images: Joi.array()

@@ -7,6 +7,7 @@ const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
 const parseFormData = require('../middlewares/parseFormData');
+const { csrfProtection } = require('../middlewares/csrf');
 
 // Get all doctors (public)
 router.get(
@@ -27,6 +28,7 @@ router.get('/:id', asyncHandler(doctorController.getDoctor));
 router.post(
   '/',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('profileImage'),
   parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
   validate(
@@ -55,6 +57,7 @@ router.post(
 router.patch(
   '/:id',
   isAdminOrSecretary,
+  csrfProtection,
   upload.single('profileImage'),
   parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
   validate(
@@ -72,7 +75,7 @@ router.patch(
 );
 
 // Delete doctor (Admin only)
-router.delete('/:id', isAdmin, asyncHandler(doctorController.deleteDoctor));
+router.delete('/:id', isAdmin, csrfProtection, asyncHandler(doctorController.deleteDoctor));
 
 module.exports = router;
 
