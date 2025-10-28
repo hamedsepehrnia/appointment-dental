@@ -8,7 +8,7 @@ const path = require('path');
  * Get all doctors
  */
 const getDoctors = async (req, res) => {
-  const { page = 1, limit = 10, clinicId } = req.query;
+  const { page = 1, limit = 10, clinicId, search } = req.query;
   const { skip, take } = paginate(page, limit);
 
   const where = {};
@@ -16,6 +16,16 @@ const getDoctors = async (req, res) => {
     where.clinics = {
       some: { clinicId },
     };
+  }
+  
+  // Search functionality
+  if (search) {
+    where.OR = [
+      { firstName: { contains: search, mode: 'insensitive' } },
+      { lastName: { contains: search, mode: 'insensitive' } },
+      { university: { contains: search, mode: 'insensitive' } },
+      { biography: { contains: search, mode: 'insensitive' } },
+    ];
   }
 
   const [doctors, total] = await Promise.all([

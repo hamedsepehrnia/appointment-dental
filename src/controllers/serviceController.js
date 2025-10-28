@@ -9,11 +9,24 @@ const path = require('path');
  * Get all services
  */
 const getServices = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, search } = req.query;
   const { skip, take } = paginate(page, limit);
+
+  const where = {};
+  
+  // Search functionality
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+      { beforeTreatmentTips: { contains: search, mode: 'insensitive' } },
+      { afterTreatmentTips: { contains: search, mode: 'insensitive' } },
+    ];
+  }
 
   const [services, total] = await Promise.all([
     prisma.service.findMany({
+      where,
       skip,
       take,
       select: {
@@ -29,7 +42,7 @@ const getServices = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.service.count(),
+    prisma.service.count({ where }),
   ]);
 
   res.json({

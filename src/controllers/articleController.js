@@ -9,7 +9,7 @@ const path = require('path');
  * Get all articles (published only for public)
  */
 const getArticles = async (req, res) => {
-  const { page = 1, limit = 10, published } = req.query;
+  const { page = 1, limit = 10, published, search } = req.query;
   const { skip, take } = paginate(page, limit);
 
   const where = {};
@@ -19,6 +19,15 @@ const getArticles = async (req, res) => {
     where.published = true;
   } else if (published !== undefined) {
     where.published = published === 'true';
+  }
+  
+  // Search functionality
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { excerpt: { contains: search, mode: 'insensitive' } },
+      { content: { contains: search, mode: 'insensitive' } },
+    ];
   }
 
   const [articles, total] = await Promise.all([
