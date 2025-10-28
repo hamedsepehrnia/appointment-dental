@@ -11,6 +11,7 @@ const path = require('path');
 const sessionConfig = require('./src/config/session');
 const routes = require('./src/routes');
 const { errorHandler, notFound } = require('./src/middlewares/errorHandler');
+const { generateCsrfToken, validateCsrfToken } = require('./src/middlewares/csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -66,6 +67,10 @@ app.use(compression());
 
 // Session
 app.use(session(sessionConfig));
+
+// CSRF token middleware
+app.use(generateCsrfToken);
+app.use(validateCsrfToken);
 
 // Static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

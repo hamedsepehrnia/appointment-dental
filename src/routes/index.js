@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { getCsrfToken } = require('../middlewares/csrf');
 
 const authRoutes = require('./authRoutes');
 const clinicRoutes = require('./clinicRoutes');
@@ -23,6 +24,9 @@ router.use('/settings', settingsRoutes);
 router.use('/faqs', faqRoutes);
 router.use('/gallery', galleryRoutes);
 router.use('/insurance', insuranceRoutes);
+
+// CSRF token endpoint
+router.get('/csrf-token', getCsrfToken);
 
 // Health check
 router.get('/health', (req, res) => {
