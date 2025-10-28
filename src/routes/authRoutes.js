@@ -21,8 +21,8 @@ router.post(
   asyncHandler(authController.loginWithPassword)
 );
 
-// Get CSRF Token
-router.get('/csrf-token', asyncHandler(authController.getCsrfToken));
+// Get CSRF Token (requires authentication)
+router.get('/csrf-token', isAuthenticated, asyncHandler(authController.getCsrfToken));
 
 // Request OTP
 router.post(
