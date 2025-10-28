@@ -20,6 +20,10 @@
   ],
   "tags": [
     {
+      "name": "Security",
+      "description": "امنیت و CSRF Protection"
+    },
+    {
       "name": "Authentication",
       "description": "مدیریت احراز هویت و ورود کاربران"
     },
@@ -65,6 +69,43 @@
     }
   ],
   "paths": {
+    "/csrf-token": {
+      "get": {
+        "tags": ["Security"],
+        "summary": "دریافت CSRF Token",
+        "description": "این endpoint برای دریافت CSRF token مورد نیاز برای درخواست‌های POST, PUT, DELETE, PATCH استفاده می‌شود. باید در header به نام X-CSRF-Token ارسال شود.",
+        "operationId": "getCsrfToken",
+        "responses": {
+          "200": {
+            "description": "Token با موفقیت دریافت شد",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "csrfToken": {
+                          "type": "string",
+                          "example": "abc123...",
+                          "description": "Token یکتای CSRF که باید در header ارسال شود"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
     "/auth/login": {
       "post": {
         "tags": ["Authentication"],

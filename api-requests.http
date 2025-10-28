@@ -11,6 +11,9 @@
 ### Health Check
 GET {{baseUrl}}/health
 
+### Get CSRF Token
+GET {{baseUrl}}/csrf-token
+
 ### Login with Password (Admin/Secretary)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json

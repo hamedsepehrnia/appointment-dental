@@ -39,7 +39,9 @@
     "pg": "^8.11.3",
     "sanitize-html": "^2.11.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
