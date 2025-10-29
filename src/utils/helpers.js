@@ -1,27 +1,31 @@
+const crypto = require('crypto');
+
 /**
- * Generate random OTP code
+ * Generate random OTP code (cryptographically secure)
  * @param {number} length - Length of OTP code (default: 5)
  * @returns {string} - Random OTP code
  */
 const generateOtp = (length = 5) => {
   const digits = '0123456789';
+  const bytes = crypto.randomBytes(length);
   let otp = '';
   for (let i = 0; i < length; i++) {
-    otp += digits[Math.floor(Math.random() * 10)];
+    otp += digits[bytes[i] % digits.length];
   }
   return otp;
 };
 
 /**
- * Generate random password
+ * Generate random password (cryptographically secure)
  * @param {number} length - Length of password (default: 12)
  * @returns {string} - Random password
  */
 const generateRandomPassword = (length = 12) => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  const bytes = crypto.randomBytes(length);
   let password = '';
   for (let i = 0; i < length; i++) {
-    password += chars[Math.floor(Math.random() * chars.length)];
+    password += chars[bytes[i] % chars.length];
   }
   return password;
 };
@@ -42,19 +46,41 @@ const createSlug = (text) => {
 };
 
 /**
- * Format phone number to standard format
+ * Format phone number to standard format (Iranian mobile)
  * @param {string} phoneNumber - Input phone number
  * @returns {string} - Formatted phone number
+ * @throws {Error} - If phone number format is invalid
  */
 const formatPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber || typeof phoneNumber !== 'string') {
+    throw new Error('شماره تلفن نامعتبر است');
+  }
+
   // Remove all non-digit characters
   let cleaned = phoneNumber.replace(/\D/g, '');
+  
+  // Validate length
+  if (cleaned.length < 10 || cleaned.length > 12) {
+    throw new Error('طول شماره تلفن نامعتبر است');
+  }
   
   // Add country code if not present
   if (cleaned.length === 10 && cleaned.startsWith('9')) {
     cleaned = '98' + cleaned;
   } else if (cleaned.length === 11 && cleaned.startsWith('09')) {
     cleaned = '98' + cleaned.substring(1);
+  } else if (cleaned.length === 12 && !cleaned.startsWith('98')) {
+    throw new Error('کد کشور نامعتبر است');
+  }
+  
+  // Final validation: must be 12 digits and start with 98
+  if (cleaned.length !== 12 || !cleaned.startsWith('989')) {
+    throw new Error('شماره تلفن باید یک شماره موبایل ایرانی معتبر باشد');
+  }
+  
+  // Additional validation: second digit after 98 must be 9
+  if (cleaned[2] !== '9') {
+    throw new Error('شماره تلفن باید با 9 شروع شود');
   }
   
   return cleaned;

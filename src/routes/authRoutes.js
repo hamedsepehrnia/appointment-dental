@@ -13,8 +13,9 @@ router.post(
   validate(
     Joi.object({
       phoneNumber: schemas.phoneNumber,
-      password: Joi.string().required().messages({
+      password: Joi.string().required().min(8).messages({
         'any.required': 'رمز عبور الزامی است',
+        'string.min': 'رمز عبور باید حداقل ۸ کاراکتر باشد',
       }),
     })
   ),

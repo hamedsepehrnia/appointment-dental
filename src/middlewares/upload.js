@@ -24,12 +24,27 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter
+// File filter with strict validation
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = allowedTypes.test(file.mimetype);
 
+  // Check file extension
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  
+  if (!allowedExtensions.includes(ext)) {
+    return cb(new AppError('نوع فایل نامعتبر است. فقط تصاویر مجاز هستند', 400));
+  }
+
+  // Check MIME type
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return cb(new AppError('نوع MIME فایل نامعتبر است', 400));
+  }
+
+  // Double check extension matches MIME type
   if (mimetype && extname) {
     return cb(null, true);
   }

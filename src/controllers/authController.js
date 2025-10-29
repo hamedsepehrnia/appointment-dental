@@ -7,6 +7,7 @@ const { generateCsrfToken } = require('../middlewares/csrf');
 
 /**
  * Login with password (Admin/Secretary only)
+ * Fixes timing attack by always comparing password
  */
 const loginWithPassword = async (req, res) => {
   const { phoneNumber, password } = req.body;
@@ -17,19 +18,21 @@ const loginWithPassword = async (req, res) => {
     where: { phoneNumber: formattedPhone },
   });
 
-  if (!user) {
+  // Always perform bcrypt comparison to prevent timing attacks
+  // Even if user doesn't exist, we compare against a dummy hash
+  const dummyHash = '$2a$10$dummy.hash.to.prevent.timing.attack.vulnerability';
+  const compareHash = user ? user.password : dummyHash;
+  
+  const isPasswordValid = await bcrypt.compare(password, compareHash);
+
+  // Validate user and password after bcrypt comparison
+  if (!user || !isPasswordValid) {
     throw new AppError('شماره تلفن یا رمز عبور اشتباه است', 401);
   }
 
   // Check if user is admin or secretary
   if (user.role === 'PATIENT') {
     throw new AppError('این روش ورود فقط برای مدیر و منشی است', 403);
-  }
-
-  // Verify password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new AppError('شماره تلفن یا رمز عبور اشتباه است', 401);
   }
 
   // Create session
@@ -54,10 +57,32 @@ const loginWithPassword = async (req, res) => {
 
 /**
  * Request OTP code
+ * Prevents OTP spam by checking for recent valid OTPs
  */
 const requestOtp = async (req, res) => {
   const { phoneNumber } = req.body;
   const formattedPhone = formatPhoneNumber(phoneNumber);
+
+  // Check for recent unverified OTP (within last 1 minute)
+  const recentOtp = await prisma.otpCode.findFirst({
+    where: {
+      phoneNumber: formattedPhone,
+      verified: false,
+      expiresAt: { gte: new Date() },
+      createdAt: {
+        gte: new Date(Date.now() - 60 * 1000), // Last 1 minute
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (recentOtp) {
+    const remainingTime = Math.ceil((recentOtp.expiresAt.getTime() - Date.now()) / 1000);
+    throw new AppError(
+      `کد تأیید قبلاً ارسال شده است. لطفاً ${Math.ceil(remainingTime / 60)} دقیقه صبر کنید.`,
+      429
+    );
+  }
 
   // Generate OTP
   const code = generateOtp();

@@ -39,21 +39,40 @@ const errorHandler = (err, req, res, next) => {
     }
   }
 
-  // Validation errors
-  if (err.name === 'ValidationError') {
+  // Joi validation errors
+  if (err.isJoi || err.name === 'ValidationError') {
     statusCode = 400;
   }
 
-  // Log error in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', err);
+  // Rate limit errors (429)
+  if (statusCode === 429) {
+    // Keep the original rate limit message
   }
 
-  res.status(statusCode).json({
+  // Log error (but hide sensitive information)
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error:', {
+      message: err.message,
+      statusCode,
+      stack: err.stack,
+    });
+  } else {
+    // In production, only log error type
+    console.error(`Error ${statusCode}: ${err.message}`);
+  }
+
+  // Prepare response
+  const response = {
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
+  };
+
+  // Only show stack trace in development
+  if (process.env.NODE_ENV === 'development') {
+    response.stack = err.stack;
+  }
+
+  res.status(statusCode).json(response);
 };
 
 /**
