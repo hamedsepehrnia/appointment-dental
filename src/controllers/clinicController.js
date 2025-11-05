@@ -78,7 +78,7 @@ const getClinic = async (req, res) => {
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const { name, address, phoneNumber, description } = req.body;
+  const { name, address, phoneNumber, description, latitude, longitude } = req.body;
 
   // Generate unique slug
   let baseSlug = createSlug(name);
@@ -91,6 +91,10 @@ const createClinic = async (req, res) => {
     counter++;
   }
 
+  // Parse latitude and longitude if they are strings
+  const parsedLatitude = latitude ? parseFloat(latitude) : null;
+  const parsedLongitude = longitude ? parseFloat(longitude) : null;
+
   const clinic = await prisma.clinic.create({
     data: {
       name,
@@ -98,6 +102,8 @@ const createClinic = async (req, res) => {
       address,
       phoneNumber,
       description,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
     },
   });
 
@@ -113,7 +119,7 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const { name, address, phoneNumber, description } = req.body;
+  const { name, address, phoneNumber, description, latitude, longitude } = req.body;
 
   // If secretary, check if they belong to this clinic
   if (req.session.userRole === 'SECRETARY') {
@@ -144,6 +150,16 @@ const updateClinic = async (req, res) => {
     }
   }
 
+  // Parse latitude and longitude if they are strings
+  let parsedLatitude = undefined;
+  let parsedLongitude = undefined;
+  if (latitude !== undefined) {
+    parsedLatitude = latitude === null || latitude === '' ? null : parseFloat(latitude);
+  }
+  if (longitude !== undefined) {
+    parsedLongitude = longitude === null || longitude === '' ? null : parseFloat(longitude);
+  }
+
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
@@ -152,6 +168,8 @@ const updateClinic = async (req, res) => {
       ...(address && { address }),
       ...(phoneNumber && { phoneNumber }),
       ...(description !== undefined && { description }),
+      ...(latitude !== undefined && { latitude: parsedLatitude }),
+      ...(longitude !== undefined && { longitude: parsedLongitude }),
     },
   });
 

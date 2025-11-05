@@ -35,6 +35,10 @@ router.patch(
       facebook: Joi.string().uri().allow(''),
       youtube: Joi.string().uri().allow(''),
       workingHours: Joi.string().allow(''),
+      aboutUsImage: Joi.string().allow('', null),
+      aboutUsVideo: Joi.string().allow('', null),
+      contactUsImage: Joi.string().allow('', null),
+      contactUsVideo: Joi.string().allow('', null),
     })
   ),
   asyncHandler(settingsController.updateSettings)

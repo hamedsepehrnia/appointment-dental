@@ -136,7 +136,7 @@ KAVENEGAR_SENDER=your-sender-number
 OTP_TEMPLATE=verify
 
 # OTP Configuration
-OTP_EXPIRY_MINUTES=5
+OTP_EXPIRY_SECONDS=300
 
 # CORS
 ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3000

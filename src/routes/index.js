@@ -11,6 +11,7 @@ const settingsRoutes = require('./settingsRoutes');
 const faqRoutes = require('./faqRoutes');
 const galleryRoutes = require('./galleryRoutes');
 const insuranceRoutes = require('./insuranceRoutes');
+const contactRoutes = require('./contactRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -23,6 +24,7 @@ router.use('/settings', settingsRoutes);
 router.use('/faqs', faqRoutes);
 router.use('/gallery', galleryRoutes);
 router.use('/insurance', insuranceRoutes);
+router.use('/contact', contactRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

@@ -78,15 +78,17 @@ const requestOtp = async (req, res) => {
 
   if (recentOtp) {
     const remainingTime = Math.ceil((recentOtp.expiresAt.getTime() - Date.now()) / 1000);
+    const remainingMinutes = Math.ceil(remainingTime / 60);
     throw new AppError(
-      `کد تأیید قبلاً ارسال شده است. لطفاً ${Math.ceil(remainingTime / 60)} دقیقه صبر کنید.`,
+      `کد تأیید قبلاً ارسال شده است. لطفاً ${remainingMinutes} دقیقه صبر کنید.`,
       429
     );
   }
 
   // Generate OTP
   const code = generateOtp();
-  const expiresAt = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || 5) * 60 * 1000);
+  const expirySeconds = parseInt(process.env.OTP_EXPIRY_SECONDS || 300); // Default: 300 seconds (5 minutes)
+  const expiresAt = new Date(Date.now() + expirySeconds * 1000);
 
   // Check if user exists before sending SMS
   const user = await prisma.user.findUnique({
@@ -124,7 +126,7 @@ const requestOtp = async (req, res) => {
     message: 'کد تایید ارسال شد',
     data: {
       isNewUser: !user,
-      expiresIn: parseInt(process.env.OTP_EXPIRY_MINUTES || 5) * 60, // seconds
+      expiresIn: expirySeconds, // seconds
     },
   });
 };

@@ -1,14 +1,14 @@
 /**
  * Middleware to parse JSON strings in form-data
- * Useful for parsing arrays sent as strings in multipart/form-data
+ * Useful for parsing arrays and objects sent as strings in multipart/form-data
  */
 const parseFormData = (...fields) => {
   return (req, res, next) => {
     if (req.body) {
       fields.forEach((field) => {
         if (req.body[field]) {
-          // If it's already an array, skip it
-          if (Array.isArray(req.body[field])) {
+          // If it's already an array or object, skip it
+          if (Array.isArray(req.body[field]) || typeof req.body[field] === 'object') {
             return;
           }
           

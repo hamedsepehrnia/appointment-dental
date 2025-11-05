@@ -34,6 +34,14 @@ router.post(
         'any.required': 'شماره تلفن الزامی است',
       }),
       description: Joi.string().allow(''),
+      latitude: Joi.number().min(-90).max(90).allow(null).messages({
+        'number.min': 'عرض جغرافیایی باید بین -90 تا 90 باشد',
+        'number.max': 'عرض جغرافیایی باید بین -90 تا 90 باشد',
+      }),
+      longitude: Joi.number().min(-180).max(180).allow(null).messages({
+        'number.min': 'طول جغرافیایی باید بین -180 تا 180 باشد',
+        'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
+      }),
     })
   ),
   asyncHandler(clinicController.createClinic)
@@ -50,6 +58,14 @@ router.patch(
       address: Joi.string(),
       phoneNumber: Joi.string(),
       description: Joi.string().allow(''),
+      latitude: Joi.number().min(-90).max(90).allow(null).messages({
+        'number.min': 'عرض جغرافیایی باید بین -90 تا 90 باشد',
+        'number.max': 'عرض جغرافیایی باید بین -90 تا 90 باشد',
+      }),
+      longitude: Joi.number().min(-180).max(180).allow(null).messages({
+        'number.min': 'طول جغرافیایی باید بین -180 تا 180 باشد',
+        'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
+      }),
     })
   ),
   asyncHandler(clinicController.updateClinic)

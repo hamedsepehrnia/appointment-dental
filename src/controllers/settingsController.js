@@ -44,6 +44,10 @@ const updateSettings = async (req, res) => {
     facebook,
     youtube,
     workingHours,
+    aboutUsImage,
+    aboutUsVideo,
+    contactUsImage,
+    contactUsVideo,
   } = req.body;
 
   // Get existing settings or create new one
@@ -68,6 +72,10 @@ const updateSettings = async (req, res) => {
         facebook,
         youtube,
         workingHours,
+        aboutUsImage,
+        aboutUsVideo,
+        contactUsImage,
+        contactUsVideo,
       },
     });
   } else {
@@ -90,6 +98,10 @@ const updateSettings = async (req, res) => {
         ...(facebook !== undefined && { facebook }),
         ...(youtube !== undefined && { youtube }),
         ...(workingHours !== undefined && { workingHours }),
+        ...(aboutUsImage !== undefined && { aboutUsImage }),
+        ...(aboutUsVideo !== undefined && { aboutUsVideo }),
+        ...(contactUsImage !== undefined && { contactUsImage }),
+        ...(contactUsVideo !== undefined && { contactUsVideo }),
       },
     });
   }

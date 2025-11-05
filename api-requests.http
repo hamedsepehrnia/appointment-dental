@@ -115,7 +115,16 @@ Content-Type: application/json
   "biography": "Experienced dentist with 10+ years",
   "skills": ["Orthodontics", "Implants", "Root Canal"],
   "medicalLicenseNo": "12345",
-  "clinicIds": ["clinic-uuid-1", "clinic-uuid-2"]
+  "clinicIds": ["clinic-uuid-1", "clinic-uuid-2"],
+  "workingDays": {
+    "saturday": "14:00-15:00",
+    "sunday": null,
+    "monday": null,
+    "tuesday": null,
+    "wednesday": null,
+    "thursday": null,
+    "friday": "15:00-17:00"
+  }
 }
 
 ### Update Doctor (Admin/Secretary)
@@ -124,7 +133,16 @@ Content-Type: application/json
 
 {
   "biography": "Updated biography",
-  "skills": ["Orthodontics", "Implants"]
+  "skills": ["Orthodontics", "Implants"],
+  "workingDays": {
+    "saturday": "14:00-15:00",
+    "sunday": null,
+    "monday": null,
+    "tuesday": null,
+    "wednesday": null,
+    "thursday": null,
+    "friday": "15:00-17:00"
+  }
 }
 
 ### Delete Doctor (Admin only)

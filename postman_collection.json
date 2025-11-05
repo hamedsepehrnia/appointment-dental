@@ -247,6 +247,12 @@
                   "type": "text"
                 },
                 {
+                  "key": "workingDays",
+                  "value": "{\"saturday\": \"14:00-15:00\", \"sunday\": null, \"monday\": null, \"tuesday\": null, \"wednesday\": null, \"thursday\": null, \"friday\": \"15:00-17:00\"}",
+                  "type": "text",
+                  "description": "روزهای کاری به صورت JSON string"
+                },
+                {
                   "key": "profileImage",
                   "type": "file",
                   "src": []
@@ -307,6 +313,12 @@
                   "key": "clinicIds",
                   "value": "[\"uuid1\", \"uuid2\"]",
                   "type": "text"
+                },
+                {
+                  "key": "workingDays",
+                  "value": "{\"saturday\": \"14:00-15:00\", \"sunday\": null, \"monday\": null, \"tuesday\": null, \"wednesday\": null, \"thursday\": null, \"friday\": \"15:00-17:00\"}",
+                  "type": "text",
+                  "description": "روزهای کاری به صورت JSON string"
                 },
                 {
                   "key": "profileImage",
@@ -394,7 +406,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\"\n}"
+              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\",\n  \"latitude\": 35.6892,\n  \"longitude\": 51.3890\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/clinics",
@@ -419,7 +431,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\"\n}"
+              "raw": "{\n  \"name\": \"کلینیک دندانپزشکی تهران\",\n  \"address\": \"تهران، خیابان ولیعصر، پلاک 123\",\n  \"phoneNumber\": \"021-12345678\",\n  \"description\": \"کلینیک مجهز دندانپزشکی\",\n  \"latitude\": 35.6892,\n  \"longitude\": 51.3890\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/clinics/:id",
@@ -492,7 +504,12 @@
           "name": "Create Article",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -534,7 +551,12 @@
           "name": "Update Article",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -576,7 +598,12 @@
           "name": "Delete Article",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/articles/:id",
               "host": ["{{baseUrl}}"],
@@ -627,7 +654,12 @@
           "name": "Create Service",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -679,7 +711,12 @@
           "name": "Update Service",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -731,7 +768,12 @@
           "name": "Delete Service",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/services/:id",
               "host": ["{{baseUrl}}"],
@@ -774,6 +816,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -817,6 +863,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -860,6 +910,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -881,6 +935,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -898,7 +956,12 @@
           "name": "Delete Comment",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/comments/:id",
               "host": ["{{baseUrl}}"],
@@ -957,6 +1020,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -978,6 +1045,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -995,7 +1066,12 @@
           "name": "Delete FAQ",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/faqs/:id",
               "host": ["{{baseUrl}}"],
@@ -1011,6 +1087,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -1071,7 +1151,12 @@
           "name": "Upload Gallery Image",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -1113,7 +1198,12 @@
           "name": "Update Gallery Image",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -1155,7 +1245,12 @@
           "name": "Delete Gallery Image",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/gallery/:id",
               "host": ["{{baseUrl}}"],
@@ -1171,6 +1266,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -1221,11 +1320,15 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"siteName\": \"کلینیک دندانپزشکی تهران\",\n  \"siteTitle\": \"کلینیک دندانپزشکی\",\n  \"description\": \"بهترین خدمات دندانپزشکی\",\n  \"logo\": \"logo.png\",\n  \"email\": \"info@clinic.com\",\n  \"phoneNumber\": \"021-12345678\",\n  \"address\": \"تهران، خیابان ولیعصر\",\n  \"instagram\": \"https://instagram.com/clinic\",\n  \"telegram\": \"https://t.me/clinic\",\n  \"whatsapp\": \"09123456789\",\n  \"twitter\": \"https://twitter.com/clinic\",\n  \"linkedin\": \"https://linkedin.com/clinic\",\n  \"facebook\": \"https://facebook.com/clinic\",\n  \"youtube\": \"https://youtube.com/clinic\",\n  \"workingHours\": \"شنبه تا پنج‌شنبه: 9-18\"\n}"
+              "raw": "{\n  \"siteName\": \"کلینیک دندانپزشکی تهران\",\n  \"siteTitle\": \"کلینیک دندانپزشکی\",\n  \"description\": \"بهترین خدمات دندانپزشکی\",\n  \"logo\": \"logo.png\",\n  \"email\": \"info@clinic.com\",\n  \"phoneNumber\": \"021-12345678\",\n  \"address\": \"تهران، خیابان ولیعصر\",\n  \"instagram\": \"https://instagram.com/clinic\",\n  \"telegram\": \"https://t.me/clinic\",\n  \"whatsapp\": \"09123456789\",\n  \"twitter\": \"https://twitter.com/clinic\",\n  \"linkedin\": \"https://linkedin.com/clinic\",\n  \"facebook\": \"https://facebook.com/clinic\",\n  \"youtube\": \"https://youtube.com/clinic\",\n  \"workingHours\": \"شنبه تا پنج‌شنبه: 9-18\",\n  \"aboutUsImage\": \"/uploads/about-us.jpg\",\n  \"aboutUsVideo\": \"/uploads/about-us.mp4\",\n  \"contactUsImage\": \"/uploads/contact-us.jpg\",\n  \"contactUsVideo\": \"/uploads/contact-us.mp4\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/settings",
@@ -1242,6 +1345,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -1306,6 +1413,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -1327,6 +1438,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
               }
             ],
             "body": {
@@ -1344,7 +1459,12 @@
           "name": "Delete Insurance Organization",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/insurance/:id",
               "host": ["{{baseUrl}}"],
@@ -1356,11 +1476,153 @@
           "name": "Toggle Insurance Organization Status",
           "request": {
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/insurance/:id/toggle-status",
               "host": ["{{baseUrl}}"],
               "path": ["insurance", ":id", "toggle-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact Messages",
+      "item": [
+        {
+          "name": "Get All Contact Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact?page=1&limit=10&read=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "read",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Contact Messages Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Contact Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Contact Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"احمد احمدی\",\n  \"email\": \"ahmad@example.com\",\n  \"phoneNumber\": \"09123456789\",\n  \"subject\": \"سوال درباره خدمات\",\n  \"message\": \"سلام، می‌خواستم درباره خدمات کلینیک اطلاعات بیشتری بگیرم.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact"]
+            }
+          }
+        },
+        {
+          "name": "Mark Message as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/:id/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", ":id", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark Message as Unread",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/:id/unread",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", ":id", "unread"]
+            }
+          }
+        },
+        {
+          "name": "Delete Contact Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", ":id"]
             }
           }
         }

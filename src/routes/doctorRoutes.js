@@ -30,7 +30,7 @@ router.post(
   isAdminOrSecretary,
   csrfProtection,
   upload.single('profileImage'),
-  parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
+  parseFormData('skills', 'clinicIds', 'workingDays'), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string().required().messages({
@@ -48,6 +48,15 @@ router.post(
         'any.required': 'شماره نظام پزشکی الزامی است',
       }),
       clinicIds: Joi.array().items(Joi.string().uuid()),
+      workingDays: Joi.object({
+        saturday: Joi.string().allow('', null).optional(), // شنبه
+        sunday: Joi.string().allow('', null).optional(), // یکشنبه
+        monday: Joi.string().allow('', null).optional(), // دوشنبه
+        tuesday: Joi.string().allow('', null).optional(), // سه‌شنبه
+        wednesday: Joi.string().allow('', null).optional(), // چهارشنبه
+        thursday: Joi.string().allow('', null).optional(), // پنج‌شنبه
+        friday: Joi.string().allow('', null).optional(), // جمعه
+      }).optional(),
     })
   ),
   asyncHandler(doctorController.createDoctor)
@@ -59,7 +68,7 @@ router.patch(
   isAdminOrSecretary,
   csrfProtection,
   upload.single('profileImage'),
-  parseFormData('skills', 'clinicIds'), // Parse JSON strings to arrays
+  parseFormData('skills', 'clinicIds', 'workingDays'), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string(),
@@ -69,6 +78,15 @@ router.patch(
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string(),
       clinicIds: Joi.array().items(Joi.string().uuid()),
+      workingDays: Joi.object({
+        saturday: Joi.string().allow('', null).optional(), // شنبه
+        sunday: Joi.string().allow('', null).optional(), // یکشنبه
+        monday: Joi.string().allow('', null).optional(), // دوشنبه
+        tuesday: Joi.string().allow('', null).optional(), // سه‌شنبه
+        wednesday: Joi.string().allow('', null).optional(), // چهارشنبه
+        thursday: Joi.string().allow('', null).optional(), // پنج‌شنبه
+        friday: Joi.string().allow('', null).optional(), // جمعه
+      }).optional(),
     })
   ),
   asyncHandler(doctorController.updateDoctor)

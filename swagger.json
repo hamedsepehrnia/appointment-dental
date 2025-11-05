@@ -60,6 +60,10 @@
       "description": "سازمان‌های بیمه"
     },
     {
+      "name": "Contact",
+      "description": "پیام‌های تماس با ما"
+    },
+    {
       "name": "Health",
       "description": "وضعیت سرور"
     }
@@ -357,7 +361,9 @@
                   "name": { "type": "string", "example": "کلینیک دندانپزشکی تهران" },
                   "address": { "type": "string", "example": "تهران، خیابان ولیعصر، پلاک 123" },
                   "phoneNumber": { "type": "string", "example": "021-12345678" },
-                  "description": { "type": "string", "example": "کلینیک مجهز دندانپزشکی" }
+                  "description": { "type": "string", "example": "کلینیک مجهز دندانپزشکی" },
+                  "latitude": { "type": "number", "example": 35.6892, "description": "عرض جغرافیایی (X)" },
+                  "longitude": { "type": "number", "example": 51.3890, "description": "طول جغرافیایی (Y)" }
                 }
               }
             }
@@ -411,7 +417,9 @@
                   "name": { "type": "string" },
                   "address": { "type": "string" },
                   "phoneNumber": { "type": "string" },
-                  "description": { "type": "string" }
+                  "description": { "type": "string" },
+                  "latitude": { "type": "number", "description": "عرض جغرافیایی (X)" },
+                  "longitude": { "type": "number", "description": "طول جغرافیایی (Y)" }
                 }
               }
             }
@@ -491,6 +499,11 @@
                   "skills": { "type": "string", "example": "[\"جراحی\", \"ایمپلنت\"]" },
                   "medicalLicenseNo": { "type": "string", "example": "12345" },
                   "clinicIds": { "type": "string", "example": "[\"uuid1\", \"uuid2\"]" },
+                  "workingDays": {
+                    "type": "string",
+                    "example": "{\"saturday\": \"14:00-15:00\", \"sunday\": null, \"monday\": null, \"tuesday\": null, \"wednesday\": null, \"thursday\": null, \"friday\": \"15:00-17:00\"}",
+                    "description": "روزهای کاری به صورت JSON string: {\"saturday\": \"14:00-15:00\", \"friday\": \"15:00-17:00\"}"
+                  },
                   "profileImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -536,6 +549,11 @@
                   "skills": { "type": "string" },
                   "medicalLicenseNo": { "type": "string" },
                   "clinicIds": { "type": "string" },
+                  "workingDays": {
+                    "type": "string",
+                    "example": "{\"saturday\": \"14:00-15:00\", \"sunday\": null, \"monday\": null, \"tuesday\": null, \"wednesday\": null, \"thursday\": null, \"friday\": \"15:00-17:00\"}",
+                    "description": "روزهای کاری به صورت JSON string: {\"saturday\": \"14:00-15:00\", \"friday\": \"15:00-17:00\"}"
+                  },
                   "profileImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -1293,7 +1311,11 @@
                   "linkedin": { "type": "string", "format": "uri" },
                   "facebook": { "type": "string", "format": "uri" },
                   "youtube": { "type": "string", "format": "uri" },
-                  "workingHours": { "type": "string" }
+                  "workingHours": { "type": "string" },
+                  "aboutUsImage": { "type": "string", "description": "عکس صفحه درباره ما" },
+                  "aboutUsVideo": { "type": "string", "description": "فیلم صفحه درباره ما" },
+                  "contactUsImage": { "type": "string", "description": "عکس صفحه تماس با ما" },
+                  "contactUsVideo": { "type": "string", "description": "فیلم صفحه تماس با ما" }
                 }
               }
             }
@@ -1454,6 +1476,184 @@
         }
       }
     },
+    "/contact": {
+      "get": {
+        "tags": ["Contact"],
+        "summary": "لیست پیام‌های تماس (فقط مدیر)",
+        "operationId": "getContactMessages",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "read",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "فیلتر بر اساس وضعیت خوانده شده"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "جستجو در نام، ایمیل، موضوع و متن پیام"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست پیام‌ها",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "messages": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/ContactMessage" }
+                        }
+                      }
+                    },
+                    "meta": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Contact"],
+        "summary": "ارسال پیام تماس با ما (عموم)",
+        "operationId": "createContactMessage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "message"],
+                "properties": {
+                  "name": { "type": "string", "example": "احمد احمدی" },
+                  "email": { "type": "string", "format": "email", "example": "ahmad@example.com" },
+                  "phoneNumber": { "type": "string", "example": "09123456789" },
+                  "subject": { "type": "string", "example": "سوال درباره خدمات" },
+                  "message": { "type": "string", "example": "متن پیام..." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "پیام ارسال شد" },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/contact/stats": {
+      "get": {
+        "tags": ["Contact"],
+        "summary": "آمار پیام‌های تماس (فقط مدیر)",
+        "operationId": "getContactMessagesStats",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "آمار پیام‌ها",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer" },
+                        "unread": { "type": "integer" },
+                        "read": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/contact/{id}": {
+      "get": {
+        "tags": ["Contact"],
+        "summary": "دریافت پیام تماس (فقط مدیر)",
+        "operationId": "getContactMessage",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": {
+            "description": "پیام تماس",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": { "$ref": "#/components/schemas/ContactMessage" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Contact"],
+        "summary": "حذف پیام تماس (فقط مدیر)",
+        "operationId": "deleteContactMessage",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "پیام حذف شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/contact/{id}/read": {
+      "patch": {
+        "tags": ["Contact"],
+        "summary": "علامت‌گذاری پیام به عنوان خوانده شده (فقط مدیر)",
+        "operationId": "markContactMessageAsRead",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "پیام به عنوان خوانده شده علامت‌گذاری شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/contact/{id}/unread": {
+      "patch": {
+        "tags": ["Contact"],
+        "summary": "علامت‌گذاری پیام به عنوان خوانده نشده (فقط مدیر)",
+        "operationId": "markContactMessageAsUnread",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "پیام به عنوان خوانده نشده علامت‌گذاری شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": ["Health"],
@@ -1505,6 +1705,8 @@
           "address": { "type": "string" },
           "phoneNumber": { "type": "string" },
           "description": { "type": "string" },
+          "latitude": { "type": "number", "example": 35.6892, "description": "عرض جغرافیایی (X) برای نقشه" },
+          "longitude": { "type": "number", "example": 51.3890, "description": "طول جغرافیایی (Y) برای نقشه" },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
         }
@@ -1520,6 +1722,19 @@
           "biography": { "type": "string" },
           "skills": { "type": "array", "items": { "type": "string" } },
           "medicalLicenseNo": { "type": "string" },
+          "workingDays": {
+            "type": "object",
+            "description": "روزهای کاری و ساعات کاری دکتر",
+            "properties": {
+              "saturday": { "type": "string", "example": "14:00-15:00", "description": "شنبه" },
+              "sunday": { "type": "string", "example": null, "description": "یکشنبه" },
+              "monday": { "type": "string", "example": null, "description": "دوشنبه" },
+              "tuesday": { "type": "string", "example": null, "description": "سه‌شنبه" },
+              "wednesday": { "type": "string", "example": null, "description": "چهارشنبه" },
+              "thursday": { "type": "string", "example": null, "description": "پنج‌شنبه" },
+              "friday": { "type": "string", "example": "15:00-17:00", "description": "جمعه" }
+            }
+          },
           "clinics": { "type": "array", "items": { "$ref": "#/components/schemas/Clinic" } },
           "averageRating": { "type": "number" },
           "createdAt": { "type": "string", "format": "date-time" },
@@ -1612,7 +1827,11 @@
           "linkedin": { "type": "string" },
           "facebook": { "type": "string" },
           "youtube": { "type": "string" },
-          "workingHours": { "type": "string" }
+          "workingHours": { "type": "string" },
+          "aboutUsImage": { "type": "string", "description": "عکس صفحه درباره ما" },
+          "aboutUsVideo": { "type": "string", "description": "فیلم صفحه درباره ما" },
+          "contactUsImage": { "type": "string", "description": "عکس صفحه تماس با ما" },
+          "contactUsVideo": { "type": "string", "description": "فیلم صفحه تماس با ما" }
         }
       },
       "InsuranceOrganization": {
@@ -1629,6 +1848,19 @@
           "order": { "type": "integer" },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ContactMessage": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phoneNumber": { "type": "string" },
+          "subject": { "type": "string" },
+          "message": { "type": "string" },
+          "read": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
         }
       },
       "Pagination": {

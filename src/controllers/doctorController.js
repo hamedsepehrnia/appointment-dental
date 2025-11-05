@@ -128,6 +128,7 @@ const createDoctor = async (req, res) => {
     skills,
     medicalLicenseNo,
     clinicIds,
+    workingDays,
   } = req.body;
 
   const profileImage = req.file ? `/uploads/doctors/${req.file.filename}` : null;
@@ -143,6 +144,20 @@ const createDoctor = async (req, res) => {
     counter++;
   }
 
+  // Parse workingDays if it's a string (from form-data)
+  let parsedWorkingDays = null;
+  if (workingDays) {
+    if (typeof workingDays === 'string') {
+      try {
+        parsedWorkingDays = JSON.parse(workingDays);
+      } catch (error) {
+        throw new AppError('فرمت روزهای کاری معتبر نیست', 400);
+      }
+    } else {
+      parsedWorkingDays = workingDays;
+    }
+  }
+
   // Create doctor
   const doctor = await prisma.doctor.create({
     data: {
@@ -154,6 +169,7 @@ const createDoctor = async (req, res) => {
       biography,
       skills: skills || [],
       medicalLicenseNo,
+      workingDays: parsedWorkingDays,
     },
   });
 
@@ -203,6 +219,7 @@ const updateDoctor = async (req, res) => {
     skills,
     medicalLicenseNo,
     clinicIds,
+    workingDays,
   } = req.body;
 
   // Get current doctor
@@ -246,6 +263,22 @@ const updateDoctor = async (req, res) => {
     }
   }
 
+  // Parse workingDays if it's a string (from form-data)
+  let parsedWorkingDays = undefined;
+  if (workingDays !== undefined) {
+    if (workingDays === null || workingDays === '') {
+      parsedWorkingDays = null;
+    } else if (typeof workingDays === 'string') {
+      try {
+        parsedWorkingDays = JSON.parse(workingDays);
+      } catch (error) {
+        throw new AppError('فرمت روزهای کاری معتبر نیست', 400);
+      }
+    } else {
+      parsedWorkingDays = workingDays;
+    }
+  }
+
   // Update doctor
   const doctor = await prisma.doctor.update({
     where: { id },
@@ -258,6 +291,7 @@ const updateDoctor = async (req, res) => {
       ...(biography !== undefined && { biography }),
       ...(skills && { skills }),
       ...(medicalLicenseNo && { medicalLicenseNo }),
+      ...(workingDays !== undefined && { workingDays: parsedWorkingDays }),
     },
   });
 
