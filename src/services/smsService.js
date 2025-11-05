@@ -5,6 +5,8 @@ class SmsService {
     this.apiKey = process.env.KAVENEGAR_API_KEY;
     this.sender = process.env.KAVENEGAR_SENDER;
     this.baseUrl = `https://api.kavenegar.com/v1/${this.apiKey}`;
+    // Check if SMS should be logged instead of sent
+    this.logOnly = process.env.SMS_LOG_ONLY === 'true' || process.env.SMS_LOG_ONLY === '1';
   }
 
   /**
@@ -14,6 +16,22 @@ class SmsService {
    * @returns {Promise<Object>} - API response
    */
   async sendOtp(phoneNumber, code) {
+    // If SMS_LOG_ONLY is enabled, log instead of sending
+    if (this.logOnly) {
+      console.log('='.repeat(60));
+      console.log('📱 [SMS LOG MODE] OTP Code (Not Sent)');
+      console.log('='.repeat(60));
+      console.log(`📞 Phone Number: ${phoneNumber}`);
+      console.log(`🔐 OTP Code: ${code}`);
+      console.log(`⏰ Time: ${new Date().toLocaleString('fa-IR')}`);
+      console.log('='.repeat(60));
+      
+      return {
+        success: true,
+        data: { message: 'SMS logged instead of sent (SMS_LOG_ONLY enabled)' },
+      };
+    }
+
     try {
       const template = process.env.OTP_TEMPLATE || 'verify';
       const url = `${this.baseUrl}/verify/lookup.json`;
@@ -46,6 +64,22 @@ class SmsService {
    * @returns {Promise<Object>} - API response
    */
   async sendSimpleSms(phoneNumber, message) {
+    // If SMS_LOG_ONLY is enabled, log instead of sending
+    if (this.logOnly) {
+      console.log('='.repeat(60));
+      console.log('📱 [SMS LOG MODE] Simple SMS (Not Sent)');
+      console.log('='.repeat(60));
+      console.log(`📞 Phone Number: ${phoneNumber}`);
+      console.log(`💬 Message: ${message}`);
+      console.log(`⏰ Time: ${new Date().toLocaleString('fa-IR')}`);
+      console.log('='.repeat(60));
+      
+      return {
+        success: true,
+        data: { message: 'SMS logged instead of sent (SMS_LOG_ONLY enabled)' },
+      };
+    }
+
     try {
       const url = `${this.baseUrl}/sms/send.json`;
       
