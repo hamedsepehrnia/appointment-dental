@@ -108,8 +108,7 @@ const requestOtp = async (req, res) => {
   // Prepare SMS message based on user existence
   let smsMessage;
   if (user) {
-    const fullName = `${user.firstName} ${user.lastName}`;
-    smsMessage = `سلام ${fullName} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
+    smsMessage = `سلام ${user.firstName} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
   } else {
     smsMessage = `به سامانه نوبت دهی کلینیک طاها خوش آمدید. کد ورود شما: ${code}`;
   }
