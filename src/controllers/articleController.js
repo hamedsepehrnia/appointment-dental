@@ -9,7 +9,7 @@ const path = require('path');
  * Get all articles (published only for public)
  */
 const getArticles = async (req, res) => {
-  const { page = 1, limit = 10, published, search } = req.query;
+  const { page = 1, limit = 10, published, search, categoryId, categorySlug } = req.query;
   const { skip, take } = paginate(page, limit);
 
   const where = {};
@@ -19,6 +19,22 @@ const getArticles = async (req, res) => {
     where.published = true;
   } else if (published !== undefined) {
     where.published = published === 'true';
+  }
+  
+  // Category filter
+  if (categoryId || categorySlug) {
+    const categoryFilter = {};
+    if (categoryId) {
+      categoryFilter.id = categoryId;
+    }
+    if (categorySlug) {
+      categoryFilter.slug = categorySlug;
+    }
+    // Only show published categories to non-admin/secretary users
+    if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+      categoryFilter.published = true;
+    }
+    where.category = categoryFilter;
   }
   
   // Search functionality
@@ -42,6 +58,14 @@ const getArticles = async (req, res) => {
         excerpt: true,
         coverImage: true,
         published: true,
+        categoryId: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -71,6 +95,15 @@ const getArticle = async (req, res) => {
         { id: identifier },
       ],
     },
+    include: {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
   });
 
   if (!article) {
@@ -92,9 +125,9 @@ const getArticle = async (req, res) => {
  * Create article (Admin/Secretary)
  */
 const createArticle = async (req, res) => {
-  const { title, content, excerpt, published } = req.body;
+  const { title, content, excerpt, published, categoryId } = req.body;
   
-  const slug = createSlug(title);
+  let slug = createSlug(title);
   const coverImage = req.file ? `/uploads/images/${req.file.filename}` : null;
 
   // Check if slug already exists
@@ -107,6 +140,16 @@ const createArticle = async (req, res) => {
     slug = `${slug}-${Date.now()}`;
   }
 
+  // Validate category if provided
+  if (categoryId) {
+    const category = await prisma.articleCategory.findUnique({
+      where: { id: categoryId },
+    });
+    if (!category) {
+      throw new AppError('دسته‌بندی یافت نشد', 404);
+    }
+  }
+
   const article = await prisma.article.create({
     data: {
       title,
@@ -115,6 +158,7 @@ const createArticle = async (req, res) => {
       excerpt,
       coverImage,
       published: published || false,
+      categoryId: categoryId || null,
     },
   });
 
@@ -130,7 +174,7 @@ const createArticle = async (req, res) => {
  */
 const updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, content, excerpt, published } = req.body;
+  const { title, content, excerpt, published, categoryId } = req.body;
 
   const currentArticle = await prisma.article.findUnique({
     where: { id },
@@ -172,6 +216,18 @@ const updateArticle = async (req, res) => {
     coverImage = `/uploads/images/${req.file.filename}`;
   }
 
+  // Validate category if provided
+  if (categoryId !== undefined) {
+    if (categoryId) {
+      const category = await prisma.articleCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!category) {
+        throw new AppError('دسته‌بندی یافت نشد', 404);
+      }
+    }
+  }
+
   const article = await prisma.article.update({
     where: { id },
     data: {
@@ -180,6 +236,7 @@ const updateArticle = async (req, res) => {
       ...(excerpt !== undefined && { excerpt }),
       ...(coverImage && { coverImage }),
       ...(published !== undefined && { published }),
+      ...(categoryId !== undefined && { categoryId: categoryId || null }),
     },
   });
 

@@ -101,6 +101,23 @@ model DoctorClinic {
   @@map("doctor_clinics")
 }
 
+model ArticleCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  order       Int      @default(0) // Display order (lower number = higher priority)
+  published   Boolean  @default(true)
+  
+  // Relations
+  articles    Article[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("article_categories")
+}
+
 model Article {
   id          String   @id @default(uuid())
   title       String
@@ -111,12 +128,31 @@ model Article {
   published   Boolean  @default(false)
   
   // Relations
+  categoryId  String?  @map("category_id")
+  category    ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   comments    Comment[]
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("articles")
+}
+
+model ServiceCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  order       Int      @default(0) // Display order (lower number = higher priority)
+  published   Boolean  @default(true)
+  
+  // Relations
+  services    Service[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("service_categories")
 }
 
 model Service {
@@ -131,7 +167,9 @@ model Service {
   coverImage            String?  @map("cover_image")
   
   // Relations
-  comments              Comment[]
+  categoryId  String?   @map("category_id")
+  category    ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  comments    Comment[]
   
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")

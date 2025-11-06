@@ -14,6 +14,9 @@ router.get(
   validate(
     schemas.pagination.keys({
       published: Joi.string().valid('true', 'false'),
+      search: Joi.string().allow(''),
+      categoryId: Joi.string().uuid(),
+      categorySlug: Joi.string().allow(''),
     }),
     'query'
   ),
@@ -39,6 +42,7 @@ router.post(
       }),
       excerpt: Joi.string().allow(''),
       published: Joi.boolean(),
+      categoryId: Joi.string().uuid().allow(null),
     })
   ),
   asyncHandler(articleController.createArticle)
@@ -56,6 +60,7 @@ router.patch(
       content: Joi.string(),
       excerpt: Joi.string().allow(''),
       published: Joi.boolean(),
+      categoryId: Joi.string().uuid().allow(null),
     })
   ),
   asyncHandler(articleController.updateArticle)

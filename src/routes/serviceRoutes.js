@@ -11,7 +11,14 @@ const { csrfProtection } = require('../middlewares/csrf');
 // Get all services (public)
 router.get(
   '/',
-  validate(schemas.pagination, 'query'),
+  validate(
+    schemas.pagination.keys({
+      search: Joi.string().allow(''),
+      categoryId: Joi.string().uuid(),
+      categorySlug: Joi.string().allow(''),
+    }),
+    'query'
+  ),
   asyncHandler(serviceController.getServices)
 );
 
@@ -36,6 +43,7 @@ router.post(
       afterTreatmentTips: Joi.string().allow(''),
       price: Joi.number().integer().min(0),
       durationMinutes: Joi.number().integer().min(0),
+      categoryId: Joi.string().uuid().allow(null),
     })
   ),
   asyncHandler(serviceController.createService)
@@ -55,6 +63,7 @@ router.patch(
       afterTreatmentTips: Joi.string().allow(''),
       price: Joi.number().integer().min(0),
       durationMinutes: Joi.number().integer().min(0),
+      categoryId: Joi.string().uuid().allow(null),
     })
   ),
   asyncHandler(serviceController.updateService)

@@ -9,10 +9,26 @@ const path = require('path');
  * Get all services
  */
 const getServices = async (req, res) => {
-  const { page = 1, limit = 10, search } = req.query;
+  const { page = 1, limit = 10, search, categoryId, categorySlug } = req.query;
   const { skip, take } = paginate(page, limit);
 
   const where = {};
+  
+  // Category filter
+  if (categoryId || categorySlug) {
+    const categoryFilter = {};
+    if (categoryId) {
+      categoryFilter.id = categoryId;
+    }
+    if (categorySlug) {
+      categoryFilter.slug = categorySlug;
+    }
+    // Only show published categories to non-admin/secretary users
+    if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+      categoryFilter.published = true;
+    }
+    where.category = categoryFilter;
+  }
   
   // Search functionality
   if (search) {
@@ -37,6 +53,14 @@ const getServices = async (req, res) => {
         price: true,
         durationMinutes: true,
         coverImage: true,
+        categoryId: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -65,6 +89,15 @@ const getService = async (req, res) => {
         { id: identifier },
       ],
     },
+    include: {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
   });
 
   if (!service) {
@@ -88,6 +121,7 @@ const createService = async (req, res) => {
     afterTreatmentTips,
     price,
     durationMinutes,
+    categoryId,
   } = req.body;
 
   const slug = createSlug(title);
@@ -103,6 +137,16 @@ const createService = async (req, res) => {
     finalSlug = `${slug}-${Date.now()}`;
   }
 
+  // Validate category if provided
+  if (categoryId) {
+    const category = await prisma.serviceCategory.findUnique({
+      where: { id: categoryId },
+    });
+    if (!category) {
+      throw new AppError('دسته‌بندی یافت نشد', 404);
+    }
+  }
+
   const service = await prisma.service.create({
     data: {
       title,
@@ -113,6 +157,7 @@ const createService = async (req, res) => {
       price: price ? parseInt(price) : null,
       durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
       coverImage,
+      categoryId: categoryId || null,
     },
   });
 
@@ -135,6 +180,7 @@ const updateService = async (req, res) => {
     afterTreatmentTips,
     price,
     durationMinutes,
+    categoryId,
   } = req.body;
 
   const currentService = await prisma.service.findUnique({
@@ -175,6 +221,18 @@ const updateService = async (req, res) => {
     coverImage = `/uploads/images/${req.file.filename}`;
   }
 
+  // Validate category if provided
+  if (categoryId !== undefined) {
+    if (categoryId) {
+      const category = await prisma.serviceCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!category) {
+        throw new AppError('دسته‌بندی یافت نشد', 404);
+      }
+    }
+  }
+
   const service = await prisma.service.update({
     where: { id },
     data: {
@@ -189,6 +247,7 @@ const updateService = async (req, res) => {
       ...(price !== undefined && { price: price ? parseInt(price) : null }),
       ...(durationMinutes !== undefined && { durationMinutes: durationMinutes ? parseInt(durationMinutes) : null }),
       ...(coverImage && { coverImage }),
+      ...(categoryId !== undefined && { categoryId: categoryId || null }),
     },
   });
 

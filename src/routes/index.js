@@ -12,6 +12,7 @@ const faqRoutes = require('./faqRoutes');
 const galleryRoutes = require('./galleryRoutes');
 const insuranceRoutes = require('./insuranceRoutes');
 const contactRoutes = require('./contactRoutes');
+const categoryRoutes = require('./categoryRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -25,6 +26,7 @@ router.use('/faqs', faqRoutes);
 router.use('/gallery', galleryRoutes);
 router.use('/insurance', insuranceRoutes);
 router.use('/contact', contactRoutes);
+router.use('/categories', categoryRoutes);
 
 // Health check
 router.get('/health', (req, res) => {
