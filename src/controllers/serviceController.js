@@ -14,20 +14,24 @@ const getServices = async (req, res) => {
 
   const where = {};
   
-  // Category filter
+  // Category filter (Many-to-Many)
   if (categoryId || categorySlug) {
-    const categoryFilter = {};
+    const categoryWhere = {};
     if (categoryId) {
-      categoryFilter.id = categoryId;
+      categoryWhere.id = categoryId;
     }
     if (categorySlug) {
-      categoryFilter.slug = categorySlug;
+      categoryWhere.slug = categorySlug;
     }
     // Only show published categories to non-admin/secretary users
     if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
-      categoryFilter.published = true;
+      categoryWhere.published = true;
     }
-    where.category = categoryFilter;
+    where.categories = {
+      some: {
+        category: categoryWhere,
+      },
+    };
   }
   
   // Search functionality
@@ -53,12 +57,15 @@ const getServices = async (req, res) => {
         price: true,
         durationMinutes: true,
         coverImage: true,
-        categoryId: true,
-        category: {
+        categories: {
           select: {
-            id: true,
-            name: true,
-            slug: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
           },
         },
         createdAt: true,
@@ -69,9 +76,15 @@ const getServices = async (req, res) => {
     prisma.service.count({ where }),
   ]);
 
+  // Transform categories to simpler format
+  const transformedServices = services.map(service => ({
+    ...service,
+    categories: service.categories.map(rel => rel.category),
+  }));
+
   res.json({
     success: true,
-    data: { services },
+    data: { services: transformedServices },
     meta: createPaginationMeta(total, page, limit),
   });
 };
@@ -90,15 +103,24 @@ const getService = async (req, res) => {
       ],
     },
     include: {
-      category: {
+      categories: {
         select: {
-          id: true,
-          name: true,
-          slug: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       },
     },
   });
+
+  // Transform categories
+  if (service) {
+    service.categories = service.categories.map(rel => rel.category);
+  }
 
   if (!service) {
     throw new AppError('خدمت یافت نشد', 404);
@@ -121,7 +143,7 @@ const createService = async (req, res) => {
     afterTreatmentTips,
     price,
     durationMinutes,
-    categoryId,
+    categoryIds,
   } = req.body;
 
   const slug = createSlug(title);
@@ -137,13 +159,18 @@ const createService = async (req, res) => {
     finalSlug = `${slug}-${Date.now()}`;
   }
 
-  // Validate category if provided
-  if (categoryId) {
-    const category = await prisma.serviceCategory.findUnique({
-      where: { id: categoryId },
+  // Validate categories if provided
+  let categoryIdsArray = [];
+  if (categoryIds) {
+    categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+    
+    // Validate all categories exist
+    const categories = await prisma.serviceCategory.findMany({
+      where: { id: { in: categoryIdsArray } },
     });
-    if (!category) {
-      throw new AppError('دسته‌بندی یافت نشد', 404);
+    
+    if (categories.length !== categoryIdsArray.length) {
+      throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
     }
   }
 
@@ -157,9 +184,29 @@ const createService = async (req, res) => {
       price: price ? parseInt(price) : null,
       durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
       coverImage,
-      categoryId: categoryId || null,
+      categories: {
+        create: categoryIdsArray.map(categoryId => ({
+          categoryId,
+        })),
+      },
+    },
+    include: {
+      categories: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  // Transform categories
+  service.categories = service.categories.map(rel => rel.category);
 
   res.status(201).json({
     success: true,
@@ -180,7 +227,7 @@ const updateService = async (req, res) => {
     afterTreatmentTips,
     price,
     durationMinutes,
-    categoryId,
+    categoryIds,
   } = req.body;
 
   const currentService = await prisma.service.findUnique({
@@ -221,35 +268,65 @@ const updateService = async (req, res) => {
     coverImage = `/uploads/images/${req.file.filename}`;
   }
 
-  // Validate category if provided
-  if (categoryId !== undefined) {
-    if (categoryId) {
-      const category = await prisma.serviceCategory.findUnique({
-        where: { id: categoryId },
+  // Handle categories update
+  let updateData = {
+    ...(title && { title, slug }),
+    ...(description && { description: sanitizeContent(description) }),
+    ...(beforeTreatmentTips !== undefined && { 
+      beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null 
+    }),
+    ...(afterTreatmentTips !== undefined && { 
+      afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null 
+    }),
+    ...(price !== undefined && { price: price ? parseInt(price) : null }),
+    ...(durationMinutes !== undefined && { durationMinutes: durationMinutes ? parseInt(durationMinutes) : null }),
+    ...(coverImage && { coverImage }),
+  };
+
+  if (categoryIds !== undefined) {
+    let categoryIdsArray = [];
+    if (categoryIds) {
+      categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+      
+      // Validate all categories exist
+      const categories = await prisma.serviceCategory.findMany({
+        where: { id: { in: categoryIdsArray } },
       });
-      if (!category) {
-        throw new AppError('دسته‌بندی یافت نشد', 404);
+      
+      if (categories.length !== categoryIdsArray.length) {
+        throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
       }
     }
+
+    // Delete existing relations and create new ones
+    updateData.categories = {
+      deleteMany: {},
+      create: categoryIdsArray.map(categoryId => ({
+        categoryId,
+      })),
+    };
   }
 
   const service = await prisma.service.update({
     where: { id },
-    data: {
-      ...(title && { title, slug }),
-      ...(description && { description: sanitizeContent(description) }),
-      ...(beforeTreatmentTips !== undefined && { 
-        beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null 
-      }),
-      ...(afterTreatmentTips !== undefined && { 
-        afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null 
-      }),
-      ...(price !== undefined && { price: price ? parseInt(price) : null }),
-      ...(durationMinutes !== undefined && { durationMinutes: durationMinutes ? parseInt(durationMinutes) : null }),
-      ...(coverImage && { coverImage }),
-      ...(categoryId !== undefined && { categoryId: categoryId || null }),
+    data: updateData,
+    include: {
+      categories: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  // Transform categories
+  service.categories = service.categories.map(rel => rel.category);
 
   res.json({
     success: true,

@@ -42,7 +42,10 @@ router.post(
       }),
       excerpt: Joi.string().allow(''),
       published: Joi.boolean(),
-      categoryId: Joi.string().uuid().allow(null),
+      categoryIds: Joi.alternatives().try(
+        Joi.array().items(Joi.string().uuid()),
+        Joi.string().uuid()
+      ).allow(null),
     })
   ),
   asyncHandler(articleController.createArticle)
@@ -60,7 +63,10 @@ router.patch(
       content: Joi.string(),
       excerpt: Joi.string().allow(''),
       published: Joi.boolean(),
-      categoryId: Joi.string().uuid().allow(null),
+      categoryIds: Joi.alternatives().try(
+        Joi.array().items(Joi.string().uuid()),
+        Joi.string().uuid()
+      ).allow(null),
     })
   ),
   asyncHandler(articleController.updateArticle)

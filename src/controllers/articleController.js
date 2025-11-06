@@ -21,20 +21,24 @@ const getArticles = async (req, res) => {
     where.published = published === 'true';
   }
   
-  // Category filter
+  // Category filter (Many-to-Many)
   if (categoryId || categorySlug) {
-    const categoryFilter = {};
+    const categoryWhere = {};
     if (categoryId) {
-      categoryFilter.id = categoryId;
+      categoryWhere.id = categoryId;
     }
     if (categorySlug) {
-      categoryFilter.slug = categorySlug;
+      categoryWhere.slug = categorySlug;
     }
     // Only show published categories to non-admin/secretary users
     if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
-      categoryFilter.published = true;
+      categoryWhere.published = true;
     }
-    where.category = categoryFilter;
+    where.categories = {
+      some: {
+        category: categoryWhere,
+      },
+    };
   }
   
   // Search functionality
@@ -58,12 +62,15 @@ const getArticles = async (req, res) => {
         excerpt: true,
         coverImage: true,
         published: true,
-        categoryId: true,
-        category: {
+        categories: {
           select: {
-            id: true,
-            name: true,
-            slug: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
           },
         },
         createdAt: true,
@@ -74,9 +81,15 @@ const getArticles = async (req, res) => {
     prisma.article.count({ where }),
   ]);
 
+  // Transform categories to simpler format
+  const transformedArticles = articles.map(article => ({
+    ...article,
+    categories: article.categories.map(rel => rel.category),
+  }));
+
   res.json({
     success: true,
-    data: { articles },
+    data: { articles: transformedArticles },
     meta: createPaginationMeta(total, page, limit),
   });
 };
@@ -96,15 +109,24 @@ const getArticle = async (req, res) => {
       ],
     },
     include: {
-      category: {
+      categories: {
         select: {
-          id: true,
-          name: true,
-          slug: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       },
     },
   });
+
+  // Transform categories
+  if (article) {
+    article.categories = article.categories.map(rel => rel.category);
+  }
 
   if (!article) {
     throw new AppError('مقاله یافت نشد', 404);
@@ -125,7 +147,7 @@ const getArticle = async (req, res) => {
  * Create article (Admin/Secretary)
  */
 const createArticle = async (req, res) => {
-  const { title, content, excerpt, published, categoryId } = req.body;
+  const { title, content, excerpt, published, categoryIds } = req.body;
   
   let slug = createSlug(title);
   const coverImage = req.file ? `/uploads/images/${req.file.filename}` : null;
@@ -140,13 +162,18 @@ const createArticle = async (req, res) => {
     slug = `${slug}-${Date.now()}`;
   }
 
-  // Validate category if provided
-  if (categoryId) {
-    const category = await prisma.articleCategory.findUnique({
-      where: { id: categoryId },
+  // Validate categories if provided
+  let categoryIdsArray = [];
+  if (categoryIds) {
+    categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+    
+    // Validate all categories exist
+    const categories = await prisma.articleCategory.findMany({
+      where: { id: { in: categoryIdsArray } },
     });
-    if (!category) {
-      throw new AppError('دسته‌بندی یافت نشد', 404);
+    
+    if (categories.length !== categoryIdsArray.length) {
+      throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
     }
   }
 
@@ -158,9 +185,29 @@ const createArticle = async (req, res) => {
       excerpt,
       coverImage,
       published: published || false,
-      categoryId: categoryId || null,
+      categories: {
+        create: categoryIdsArray.map(categoryId => ({
+          categoryId,
+        })),
+      },
+    },
+    include: {
+      categories: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  // Transform categories
+  article.categories = article.categories.map(rel => rel.category);
 
   res.status(201).json({
     success: true,
@@ -174,7 +221,7 @@ const createArticle = async (req, res) => {
  */
 const updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, content, excerpt, published, categoryId } = req.body;
+  const { title, content, excerpt, published, categoryIds } = req.body;
 
   const currentArticle = await prisma.article.findUnique({
     where: { id },
@@ -216,29 +263,59 @@ const updateArticle = async (req, res) => {
     coverImage = `/uploads/images/${req.file.filename}`;
   }
 
-  // Validate category if provided
-  if (categoryId !== undefined) {
-    if (categoryId) {
-      const category = await prisma.articleCategory.findUnique({
-        where: { id: categoryId },
+  // Handle categories update
+  let updateData = {
+    ...(title && { title, slug }),
+    ...(content && { content: sanitizeContent(content) }),
+    ...(excerpt !== undefined && { excerpt }),
+    ...(coverImage && { coverImage }),
+    ...(published !== undefined && { published }),
+  };
+
+  if (categoryIds !== undefined) {
+    let categoryIdsArray = [];
+    if (categoryIds) {
+      categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+      
+      // Validate all categories exist
+      const categories = await prisma.articleCategory.findMany({
+        where: { id: { in: categoryIdsArray } },
       });
-      if (!category) {
-        throw new AppError('دسته‌بندی یافت نشد', 404);
+      
+      if (categories.length !== categoryIdsArray.length) {
+        throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
       }
     }
+
+    // Delete existing relations and create new ones
+    updateData.categories = {
+      deleteMany: {},
+      create: categoryIdsArray.map(categoryId => ({
+        categoryId,
+      })),
+    };
   }
 
   const article = await prisma.article.update({
     where: { id },
-    data: {
-      ...(title && { title, slug }),
-      ...(content && { content: sanitizeContent(content) }),
-      ...(excerpt !== undefined && { excerpt }),
-      ...(coverImage && { coverImage }),
-      ...(published !== undefined && { published }),
-      ...(categoryId !== undefined && { categoryId: categoryId || null }),
+    data: updateData,
+    include: {
+      categories: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  // Transform categories
+  article.categories = article.categories.map(rel => rel.category);
 
   res.json({
     success: true,

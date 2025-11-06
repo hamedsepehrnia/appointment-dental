@@ -3,7 +3,7 @@
   "info": {
     "title": "سیستم مدیریت نوبت‌دهی کلینیک دندانپزشکی",
     "description": "API کامل و حرفه‌ای برای مدیریت نوبت‌دهی دو کلینیک دندانپزشکی\n\n⚠️ نکته مهم CSRF Protection:\n1. ابتدا از /auth/csrf-token یک token دریافت کنید\n2. در header درخواست‌های POST/PATCH/DELETE، X-CSRF-Token را با مقدار token ارسال کنید",
-    "version": "1.1.0",
+    "version": "1.3.0",
     "contact": {
       "name": "Support"
     }
@@ -62,6 +62,10 @@
     {
       "name": "Contact",
       "description": "پیام‌های تماس با ما"
+    },
+    {
+      "name": "Categories",
+      "description": "دسته‌بندی مقالات و خدمات"
     },
     {
       "name": "Health",
@@ -586,7 +590,26 @@
           {
             "name": "published",
             "in": "query",
-            "schema": { "type": "string", "enum": ["true", "false"] }
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "فقط مقالات منتشر شده"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "جستجو در عنوان، خلاصه و محتوا"
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "فیلتر بر اساس ID دسته‌بندی"
+          },
+          {
+            "name": "categorySlug",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "فیلتر بر اساس slug دسته‌بندی"
           }
         ],
         "responses": {
@@ -626,6 +649,11 @@
                   "content": { "type": "string", "example": "محتوا مقاله..." },
                   "excerpt": { "type": "string", "example": "خلاصه مقاله" },
                   "published": { "type": "boolean" },
+                  "categoryIds": { 
+                    "type": "array", 
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "آرایه ID دسته‌بندی‌ها (اختیاری) - می‌تواند یک UUID یا آرایه باشد"
+                  },
                   "coverImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -675,6 +703,11 @@
                   "content": { "type": "string" },
                   "excerpt": { "type": "string" },
                   "published": { "type": "boolean" },
+                  "categoryIds": { 
+                    "type": "array", 
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "آرایه ID دسته‌بندی‌ها (اختیاری) - می‌تواند یک UUID، آرایه یا [] برای حذف همه باشد"
+                  },
                   "coverImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -703,7 +736,25 @@
         "operationId": "getServices",
         "parameters": [
           { "$ref": "#/components/parameters/Page" },
-          { "$ref": "#/components/parameters/Limit" }
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "جستجو در عنوان، توضیحات و نکات"
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "فیلتر بر اساس ID دسته‌بندی"
+          },
+          {
+            "name": "categorySlug",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "فیلتر بر اساس slug دسته‌بندی"
+          }
         ],
         "responses": {
           "200": {
@@ -744,6 +795,11 @@
                   "afterTreatmentTips": { "type": "string", "example": "نکات بعد از درمان" },
                   "price": { "type": "integer", "example": 5000000 },
                   "durationMinutes": { "type": "integer", "example": 120 },
+                  "categoryIds": { 
+                    "type": "array", 
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "آرایه ID دسته‌بندی‌ها (اختیاری) - می‌تواند یک UUID یا آرایه باشد"
+                  },
                   "coverImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -793,6 +849,11 @@
                   "afterTreatmentTips": { "type": "string" },
                   "price": { "type": "integer" },
                   "durationMinutes": { "type": "integer" },
+                  "categoryIds": { 
+                    "type": "array", 
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "آرایه ID دسته‌بندی‌ها (اختیاری) - می‌تواند یک UUID، آرایه یا [] برای حذف همه باشد"
+                  },
                   "coverImage": { "type": "string", "format": "binary" }
                 }
               }
@@ -1654,6 +1715,258 @@
         }
       }
     },
+    "/categories/articles": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "لیست دسته‌بندی‌های مقالات",
+        "operationId": "getArticleCategories",
+        "parameters": [
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "فقط دسته‌بندی‌های منتشر شده"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست دسته‌بندی‌های مقالات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/ArticleCategory" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Categories"],
+        "summary": "ایجاد دسته‌بندی مقاله (مدیر/منشی)",
+        "operationId": "createArticleCategory",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "سلامت دهان و دندان" },
+                  "description": { "type": "string", "example": "مقالات مربوط به سلامت دهان و دندان" },
+                  "order": { "type": "integer", "example": 1 },
+                  "published": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "دسته‌بندی ایجاد شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/categories/articles/{identifier}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "دریافت دسته‌بندی مقاله (با slug یا ID)",
+        "operationId": "getArticleCategory",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "دسته‌بندی مقاله" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/categories/articles/{id}": {
+      "patch": {
+        "tags": ["Categories"],
+        "summary": "به‌روزرسانی دسته‌بندی مقاله (مدیر/منشی)",
+        "operationId": "updateArticleCategory",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "order": { "type": "integer" },
+                  "published": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "دسته‌بندی به‌روزرسانی شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "delete": {
+        "tags": ["Categories"],
+        "summary": "حذف دسته‌بندی مقاله (مدیر/منشی)",
+        "operationId": "deleteArticleCategory",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "دسته‌بندی حذف شد" },
+          "400": { "description": "دسته‌بندی دارای مقاله است" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/categories/services": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "لیست دسته‌بندی‌های خدمات",
+        "operationId": "getServiceCategories",
+        "parameters": [
+          {
+            "name": "published",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "فقط دسته‌بندی‌های منتشر شده"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست دسته‌بندی‌های خدمات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/ServiceCategory" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Categories"],
+        "summary": "ایجاد دسته‌بندی خدمت (مدیر/منشی)",
+        "operationId": "createServiceCategory",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "جراحی" },
+                  "description": { "type": "string", "example": "خدمات جراحی دندانپزشکی" },
+                  "order": { "type": "integer", "example": 1 },
+                  "published": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "دسته‌بندی ایجاد شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/categories/services/{identifier}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "دریافت دسته‌بندی خدمت (با slug یا ID)",
+        "operationId": "getServiceCategory",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "دسته‌بندی خدمت" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/categories/services/{id}": {
+      "patch": {
+        "tags": ["Categories"],
+        "summary": "به‌روزرسانی دسته‌بندی خدمت (مدیر/منشی)",
+        "operationId": "updateServiceCategory",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "order": { "type": "integer" },
+                  "published": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "دسته‌بندی به‌روزرسانی شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "delete": {
+        "tags": ["Categories"],
+        "summary": "حذف دسته‌بندی خدمت (مدیر/منشی)",
+        "operationId": "deleteServiceCategory",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "دسته‌بندی حذف شد" },
+          "400": { "description": "دسته‌بندی دارای خدمت است" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": ["Health"],
@@ -1751,6 +2064,37 @@
           "excerpt": { "type": "string" },
           "coverImage": { "type": "string" },
           "published": { "type": "boolean" },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "format": "uuid" },
+                "name": { "type": "string" },
+                "slug": { "type": "string" }
+              }
+            },
+            "description": "لیست دسته‌بندی‌های مقاله"
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArticleCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "order": { "type": "integer" },
+          "published": { "type": "boolean" },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "articles": { "type": "integer" }
+            }
+          },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
         }
@@ -1767,6 +2111,37 @@
           "price": { "type": "integer" },
           "durationMinutes": { "type": "integer" },
           "coverImage": { "type": "string" },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "format": "uuid" },
+                "name": { "type": "string" },
+                "slug": { "type": "string" }
+              }
+            },
+            "description": "لیست دسته‌بندی‌های خدمت"
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ServiceCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "order": { "type": "integer" },
+          "published": { "type": "boolean" },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "services": { "type": "integer" }
+            }
+          },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
         }

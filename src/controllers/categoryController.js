@@ -329,7 +329,7 @@ const deleteArticleCategory = async (req, res) => {
     include: {
       _count: {
         select: {
-          articles: true,
+          articles: true, // This counts ArticleCategoryRelation
         },
       },
     },
@@ -365,7 +365,7 @@ const deleteServiceCategory = async (req, res) => {
     include: {
       _count: {
         select: {
-          services: true,
+          services: true, // This counts ServiceCategoryRelation
         },
       },
     },

@@ -43,7 +43,10 @@ router.post(
       afterTreatmentTips: Joi.string().allow(''),
       price: Joi.number().integer().min(0),
       durationMinutes: Joi.number().integer().min(0),
-      categoryId: Joi.string().uuid().allow(null),
+      categoryIds: Joi.alternatives().try(
+        Joi.array().items(Joi.string().uuid()),
+        Joi.string().uuid()
+      ).allow(null),
     })
   ),
   asyncHandler(serviceController.createService)
@@ -63,7 +66,10 @@ router.patch(
       afterTreatmentTips: Joi.string().allow(''),
       price: Joi.number().integer().min(0),
       durationMinutes: Joi.number().integer().min(0),
-      categoryId: Joi.string().uuid().allow(null),
+      categoryIds: Joi.alternatives().try(
+        Joi.array().items(Joi.string().uuid()),
+        Joi.string().uuid()
+      ).allow(null),
     })
   ),
   asyncHandler(serviceController.updateService)

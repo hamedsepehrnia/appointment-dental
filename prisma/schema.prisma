@@ -109,13 +109,28 @@ model ArticleCategory {
   order       Int      @default(0) // Display order (lower number = higher priority)
   published   Boolean  @default(true)
   
-  // Relations
-  articles    Article[]
+  // Relations - Many-to-Many
+  articles    ArticleCategoryRelation[]
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("article_categories")
+}
+
+// Many-to-Many relation between Article and ArticleCategory
+model ArticleCategoryRelation {
+  id          String   @id @default(uuid())
+  articleId   String   @map("article_id")
+  categoryId  String   @map("category_id")
+  
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category    ArticleCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([articleId, categoryId])
+  @@map("article_category_relations")
 }
 
 model Article {
@@ -127,9 +142,8 @@ model Article {
   coverImage  String?  @map("cover_image")
   published   Boolean  @default(false)
   
-  // Relations
-  categoryId  String?  @map("category_id")
-  category    ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  // Relations - Many-to-Many
+  categories  ArticleCategoryRelation[]
   comments    Comment[]
   
   createdAt   DateTime @default(now()) @map("created_at")
@@ -146,13 +160,28 @@ model ServiceCategory {
   order       Int      @default(0) // Display order (lower number = higher priority)
   published   Boolean  @default(true)
   
-  // Relations
-  services    Service[]
+  // Relations - Many-to-Many
+  services    ServiceCategoryRelation[]
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("service_categories")
+}
+
+// Many-to-Many relation between Service and ServiceCategory
+model ServiceCategoryRelation {
+  id          String   @id @default(uuid())
+  serviceId   String   @map("service_id")
+  categoryId  String   @map("category_id")
+  
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([serviceId, categoryId])
+  @@map("service_category_relations")
 }
 
 model Service {
@@ -166,9 +195,8 @@ model Service {
   durationMinutes       Int?     @map("duration_minutes")
   coverImage            String?  @map("cover_image")
   
-  // Relations
-  categoryId  String?   @map("category_id")
-  category    ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  // Relations - Many-to-Many
+  categories  ServiceCategoryRelation[]
   comments    Comment[]
   
   createdAt             DateTime @default(now()) @map("created_at")
