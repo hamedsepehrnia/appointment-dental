@@ -2,7 +2,7 @@
   "info": {
     "name": "Dental Appointment API",
     "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -1683,6 +1683,174 @@
               "raw": "{{baseUrl}}/contact/:id",
               "host": ["{{baseUrl}}"],
               "path": ["contact", ":id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctor Applications",
+      "item": [
+        {
+          "name": "Get All Doctor Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications?page=1&limit=10&read=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "read",
+                  "value": "false",
+                  "description": "فقط درخواست‌های خوانده نشده",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "جستجو در نام، ایمیل، شماره تلفن و اطلاعات",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Applications Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Doctor Application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Doctor Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "احمد",
+                  "type": "text"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "ahmad@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "09123456789",
+                  "type": "text"
+                },
+                {
+                  "key": "doctorInfo",
+                  "value": "متخصص دندانپزشکی با ۱۰ سال سابقه کار در زمینه ایمپلنت و جراحی",
+                  "type": "text",
+                  "description": "اطلاعات پزشک (حداقل ۲۰ کاراکتر)"
+                },
+                {
+                  "key": "documents",
+                  "type": "file",
+                  "src": [],
+                  "description": "مدارک پزشک (PDF، تصاویر یا Word) - می‌تواند چند فایل باشد"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Application as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications/:id/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications", ":id", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark Application as Unread",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications/:id/unread",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications", ":id", "unread"]
+            }
+          }
+        },
+        {
+          "name": "Delete Doctor Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctor-applications/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctor-applications", ":id"]
             }
           }
         }

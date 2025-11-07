@@ -13,6 +13,7 @@ const galleryRoutes = require('./galleryRoutes');
 const insuranceRoutes = require('./insuranceRoutes');
 const contactRoutes = require('./contactRoutes');
 const categoryRoutes = require('./categoryRoutes');
+const doctorApplicationRoutes = require('./doctorApplicationRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -27,6 +28,7 @@ router.use('/gallery', galleryRoutes);
 router.use('/insurance', insuranceRoutes);
 router.use('/contact', contactRoutes);
 router.use('/categories', categoryRoutes);
+router.use('/doctor-applications', doctorApplicationRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

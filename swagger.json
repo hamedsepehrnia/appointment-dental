@@ -3,7 +3,7 @@
   "info": {
     "title": "سیستم مدیریت نوبت‌دهی کلینیک دندانپزشکی",
     "description": "API کامل و حرفه‌ای برای مدیریت نوبت‌دهی دو کلینیک دندانپزشکی\n\n⚠️ نکته مهم CSRF Protection:\n1. ابتدا از /auth/csrf-token یک token دریافت کنید\n2. در header درخواست‌های POST/PATCH/DELETE، X-CSRF-Token را با مقدار token ارسال کنید",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "contact": {
       "name": "Support"
     }
@@ -62,6 +62,10 @@
     {
       "name": "Contact",
       "description": "پیام‌های تماس با ما"
+    },
+    {
+      "name": "Doctor Applications",
+      "description": "درخواست‌های همکاری پزشکان (پزشک شوید)"
     },
     {
       "name": "Categories",
@@ -1715,6 +1719,175 @@
         }
       }
     },
+    "/doctor-applications": {
+      "get": {
+        "tags": ["Doctor Applications"],
+        "summary": "لیست درخواست‌های همکاری پزشکان (فقط مدیر)",
+        "operationId": "getDoctorApplications",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "read",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["true", "false"] },
+            "description": "فیلتر بر اساس وضعیت خوانده شده"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "جستجو در نام، ایمیل، شماره تلفن و اطلاعات"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "لیست درخواست‌های همکاری",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "applications": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/DoctorApplication" }
+                        }
+                      }
+                    },
+                    "meta": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Doctor Applications"],
+        "summary": "ارسال درخواست همکاری (عمومی)",
+        "operationId": "createDoctorApplication",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["firstName", "lastName", "email", "phoneNumber", "doctorInfo"],
+                "properties": {
+                  "firstName": { "type": "string", "example": "احمد" },
+                  "lastName": { "type": "string", "example": "احمدی" },
+                  "email": { "type": "string", "format": "email", "example": "ahmad@example.com" },
+                  "phoneNumber": { "type": "string", "example": "09123456789" },
+                  "doctorInfo": { 
+                    "type": "string", 
+                    "example": "متخصص دندانپزشکی با ۱۰ سال سابقه کار",
+                    "description": "اطلاعات پزشک (حداقل ۲۰ کاراکتر)"
+                  },
+                  "documents": { 
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" },
+                    "description": "مدارک پزشک (PDF، تصاویر یا Word) - می‌تواند چند فایل باشد"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "درخواست با موفقیت ارسال شد" },
+          "400": { "description": "خطا در اعتبارسنجی" }
+        }
+      }
+    },
+    "/doctor-applications/stats": {
+      "get": {
+        "tags": ["Doctor Applications"],
+        "summary": "آمار درخواست‌های همکاری (فقط مدیر)",
+        "operationId": "getDoctorApplicationsStats",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "آمار درخواست‌ها",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer" },
+                        "unread": { "type": "integer" },
+                        "read": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/doctor-applications/{id}": {
+      "get": {
+        "tags": ["Doctor Applications"],
+        "summary": "دریافت درخواست همکاری (فقط مدیر)",
+        "operationId": "getDoctorApplication",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "درخواست همکاری" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Doctor Applications"],
+        "summary": "حذف درخواست همکاری (فقط مدیر)",
+        "operationId": "deleteDoctorApplication",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "درخواست حذف شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/doctor-applications/{id}/read": {
+      "patch": {
+        "tags": ["Doctor Applications"],
+        "summary": "علامت‌گذاری درخواست به عنوان خوانده شده (فقط مدیر)",
+        "operationId": "markDoctorApplicationAsRead",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "درخواست به عنوان خوانده شده علامت‌گذاری شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/doctor-applications/{id}/unread": {
+      "patch": {
+        "tags": ["Doctor Applications"],
+        "summary": "علامت‌گذاری درخواست به عنوان خوانده نشده (فقط مدیر)",
+        "operationId": "markDoctorApplicationAsUnread",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "description": "درخواست به عنوان خوانده نشده علامت‌گذاری شد" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
     "/categories/articles": {
       "get": {
         "tags": ["Categories"],
@@ -2234,6 +2407,24 @@
           "phoneNumber": { "type": "string" },
           "subject": { "type": "string" },
           "message": { "type": "string" },
+          "read": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "DoctorApplication": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phoneNumber": { "type": "string" },
+          "doctorInfo": { "type": "string" },
+          "documents": { 
+            "type": "string",
+            "nullable": true,
+            "description": "JSON array of document paths"
+          },
           "read": { "type": "boolean" },
           "createdAt": { "type": "string", "format": "date-time" }
         }
