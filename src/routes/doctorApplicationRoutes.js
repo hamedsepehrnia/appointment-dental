@@ -45,8 +45,15 @@ router.post(
       lastName: Joi.string().required().messages({
         'any.required': 'نام خانوادگی الزامی است',
       }),
-      email: Joi.string().email().required().messages({
-        'any.required': 'ایمیل الزامی است',
+      email: Joi.string().allow('', null).optional().custom((value, helpers) => {
+        if (value && value.trim() !== '') {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+            return helpers.error('string.email');
+          }
+        }
+        return value;
+      }).messages({
         'string.email': 'فرمت ایمیل معتبر نیست',
       }),
       phoneNumber: Joi.string()

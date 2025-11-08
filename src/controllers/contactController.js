@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta } = require('../utils/helpers');
+const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('../utils/helpers');
 
 /**
  * Get all contact messages (Admin only)
@@ -69,11 +69,17 @@ const getContactMessage = async (req, res) => {
 const createContactMessage = async (req, res) => {
   const { name, email, phoneNumber, subject, message } = req.body;
 
+  // Normalize phone number if provided
+  const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
+  
+  // Normalize email - set to null if empty
+  const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
+
   const contactMessage = await prisma.contactMessage.create({
     data: {
       name,
-      email,
-      phoneNumber,
+      email: normalizedEmail,
+      phoneNumber: normalizedPhoneNumber,
       subject,
       message,
     },

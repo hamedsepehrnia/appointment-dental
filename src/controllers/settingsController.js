@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
+const { formatPhoneNumberOptional } = require('../utils/helpers');
 
 /**
  * Get site settings (public)
@@ -53,6 +54,9 @@ const updateSettings = async (req, res) => {
   // Get existing settings or create new one
   let settings = await prisma.siteSettings.findFirst();
 
+  // Normalize phone number if provided
+  const normalizedPhoneNumber = phoneNumber !== undefined ? formatPhoneNumberOptional(phoneNumber) : undefined;
+
   if (!settings) {
     // Create new settings
     settings = await prisma.siteSettings.create({
@@ -62,7 +66,7 @@ const updateSettings = async (req, res) => {
         description,
         logo,
         email,
-        phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         address,
         instagram,
         telegram,
@@ -88,7 +92,7 @@ const updateSettings = async (req, res) => {
         ...(description !== undefined && { description }),
         ...(logo !== undefined && { logo }),
         ...(email !== undefined && { email }),
-        ...(phoneNumber !== undefined && { phoneNumber }),
+        ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
         ...(address !== undefined && { address }),
         ...(instagram !== undefined && { instagram }),
         ...(telegram !== undefined && { telegram }),

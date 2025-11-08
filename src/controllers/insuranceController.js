@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta } = require('../utils/helpers');
+const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('../utils/helpers');
 
 /**
  * Get all insurance organizations (Public)
@@ -66,12 +66,15 @@ const createInsuranceOrganization = async (req, res) => {
     throw new AppError('سازمان بیمه با این نام قبلاً ثبت شده است', 400);
   }
 
+  // Normalize phone number if provided
+  const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
+
   const organization = await prisma.insuranceOrganization.create({
     data: {
       name,
       description,
       website,
-      phoneNumber,
+      phoneNumber: normalizedPhoneNumber,
       email,
       logo,
       published: published === 'true' || published === true,
@@ -112,13 +115,19 @@ const updateInsuranceOrganization = async (req, res) => {
     }
   }
 
+  // Normalize phone number if provided
+  let normalizedPhoneNumber = undefined;
+  if (phoneNumber !== undefined) {
+    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
+  }
+
   const organization = await prisma.insuranceOrganization.update({
     where: { id },
     data: {
       ...(name && { name }),
       ...(description !== undefined && { description }),
       ...(website !== undefined && { website }),
-      ...(phoneNumber !== undefined && { phoneNumber }),
+      ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
       ...(email !== undefined && { email }),
       ...(logo !== undefined && { logo }),
       ...(published !== undefined && { published: published === 'true' || published === true }),

@@ -330,7 +330,7 @@ model InsuranceOrganization {
 model ContactMessage {
   id          String   @id @default(uuid())
   name        String
-  email       String
+  email       String?
   phoneNumber String?  @map("phone_number")
   subject     String?
   message     String   @db.Text
@@ -345,7 +345,7 @@ model DoctorApplication {
   id          String   @id @default(uuid())
   firstName   String   @map("first_name")
   lastName    String   @map("last_name")
-  email       String
+  email       String?
   phoneNumber String   @map("phone_number")
   doctorInfo  String   @db.Text @map("doctor_info") // اطلاعات پزشک
   documents   String?  // مسیر فایل مدارک (ممکن است چند فایل باشد، به صورت JSON array ذخیره می‌شود)

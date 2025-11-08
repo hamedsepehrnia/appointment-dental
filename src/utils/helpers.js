@@ -47,8 +47,9 @@ const createSlug = (text) => {
 
 /**
  * Format phone number to standard format (Iranian mobile)
- * @param {string} phoneNumber - Input phone number
- * @returns {string} - Formatted phone number
+ * Converts Persian digits to English and normalizes to 98913... format
+ * @param {string} phoneNumber - Input phone number (can be in any format: 0913, 913, 98913, or with Persian digits)
+ * @returns {string} - Formatted phone number in standard format (98913...)
  * @throws {Error} - If phone number format is invalid
  */
 const formatPhoneNumber = (phoneNumber) => {
@@ -56,34 +57,65 @@ const formatPhoneNumber = (phoneNumber) => {
     throw new Error('شماره تلفن نامعتبر است');
   }
 
+  // Convert Persian digits to English digits
+  const persianToEnglish = {
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+  };
+  
+  let converted = phoneNumber;
+  for (const [persian, english] of Object.entries(persianToEnglish)) {
+    converted = converted.replace(new RegExp(persian, 'g'), english);
+  }
+
   // Remove all non-digit characters
-  let cleaned = phoneNumber.replace(/\D/g, '');
+  let cleaned = converted.replace(/\D/g, '');
   
   // Validate length
   if (cleaned.length < 10 || cleaned.length > 12) {
     throw new Error('طول شماره تلفن نامعتبر است');
   }
   
-  // Add country code if not present
-  if (cleaned.length === 10 && cleaned.startsWith('9')) {
-    cleaned = '98' + cleaned;
-  } else if (cleaned.length === 11 && cleaned.startsWith('09')) {
+  // Normalize to standard format: 98913...
+  // Handle different input formats:
+  // - 0913... (11 digits) -> 98913...
+  // - 913... (10 digits starting with 9) -> 98913...
+  // - 98913... (12 digits) -> keep as is
+  if (cleaned.length === 11 && cleaned.startsWith('09')) {
+    // Format: 0913... -> 98913...
     cleaned = '98' + cleaned.substring(1);
+  } else if (cleaned.length === 10 && cleaned.startsWith('9')) {
+    // Format: 913... -> 98913...
+    cleaned = '98' + cleaned;
   } else if (cleaned.length === 12 && !cleaned.startsWith('98')) {
     throw new Error('کد کشور نامعتبر است');
   }
   
-  // Final validation: must be 12 digits and start with 98
+  // Final validation: must be 12 digits and start with 989
   if (cleaned.length !== 12 || !cleaned.startsWith('989')) {
     throw new Error('شماره تلفن باید یک شماره موبایل ایرانی معتبر باشد');
   }
   
-  // Additional validation: second digit after 98 must be 9
+  // Additional validation: third digit after 98 must be 9
   if (cleaned[2] !== '9') {
     throw new Error('شماره تلفن باید با 9 شروع شود');
   }
   
   return cleaned;
+};
+
+/**
+ * Format phone number to standard format (optional version)
+ * Returns null if phoneNumber is empty/null/undefined, otherwise formats it
+ * @param {string|null|undefined} phoneNumber - Input phone number (can be optional)
+ * @returns {string|null} - Formatted phone number or null if input is empty
+ * @throws {Error} - If phone number format is invalid (when provided)
+ */
+const formatPhoneNumberOptional = (phoneNumber) => {
+  if (!phoneNumber || (typeof phoneNumber === 'string' && phoneNumber.trim() === '')) {
+    return null;
+  }
+  return formatPhoneNumber(phoneNumber);
 };
 
 /**
@@ -146,6 +178,7 @@ module.exports = {
   generateRandomPassword,
   createSlug,
   formatPhoneNumber,
+  formatPhoneNumberOptional,
   validateNationalCode,
   paginate,
   createPaginationMeta,

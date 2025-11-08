@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta } = require('../utils/helpers');
+const { paginate, createPaginationMeta, formatPhoneNumber } = require('../utils/helpers');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -72,6 +72,12 @@ const getDoctorApplication = async (req, res) => {
 const createDoctorApplication = async (req, res) => {
   const { firstName, lastName, email, phoneNumber, doctorInfo } = req.body;
 
+  // Normalize phone number
+  const normalizedPhoneNumber = formatPhoneNumber(phoneNumber);
+  
+  // Normalize email - set to null if empty
+  const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
+
   // Handle documents upload (can be multiple files)
   let documents = null;
   if (req.files && req.files.length > 0) {
@@ -86,8 +92,8 @@ const createDoctorApplication = async (req, res) => {
     data: {
       firstName,
       lastName,
-      email,
-      phoneNumber,
+      email: normalizedEmail,
+      phoneNumber: normalizedPhoneNumber,
       doctorInfo,
       documents,
     },
