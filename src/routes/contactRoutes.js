@@ -34,7 +34,6 @@ router.get('/:id', isAdmin, asyncHandler(contactController.getContactMessage));
 // Create contact message (Public)
 router.post(
   '/',
-  csrfProtection,
   validate(
     Joi.object({
       name: Joi.string().required().messages({

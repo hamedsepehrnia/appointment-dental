@@ -35,7 +35,6 @@ router.get('/:id', isAdmin, asyncHandler(doctorApplicationController.getDoctorAp
 // Create doctor application (Public)
 router.post(
   '/',
-  csrfProtection,
   uploadDocuments.array('documents', 10), // حداکثر ۱۰ فایل
   validate(
     Joi.object({
