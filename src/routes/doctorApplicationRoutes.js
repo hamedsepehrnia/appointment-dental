@@ -56,6 +56,13 @@ router.post(
       }).messages({
         'string.email': 'فرمت ایمیل معتبر نیست',
       }),
+      clinicId: Joi.string()
+        .uuid({ version: 'uuidv4' })
+        .allow('', null)
+        .optional()
+        .messages({
+          'string.guid': 'کلینیک انتخاب شده معتبر نیست',
+        }),
       phoneNumber: Joi.string()
         .pattern(/^(\+98|0)?9\d{9}$/)
         .required()

@@ -32,6 +32,14 @@ const getContactMessages = async (req, res) => {
       skip,
       take,
       orderBy: { createdAt: 'desc' },
+      include: {
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     }),
     prisma.contactMessage.count({ where }),
   ]);
@@ -51,6 +59,14 @@ const getContactMessage = async (req, res) => {
 
   const message = await prisma.contactMessage.findUnique({
     where: { id },
+    include: {
+      clinic: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
   });
 
   if (!message) {
@@ -67,13 +83,28 @@ const getContactMessage = async (req, res) => {
  * Create contact message (Public)
  */
 const createContactMessage = async (req, res) => {
-  const { name, email, phoneNumber, subject, message } = req.body;
+  const { name, email, phoneNumber, subject, message, clinicId } = req.body;
 
   // Normalize phone number if provided
   const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
   
   // Normalize email - set to null if empty
   const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
+
+  // Validate clinic if provided
+  let validatedClinicId = null;
+  if (clinicId && typeof clinicId === 'string' && clinicId.trim() !== '') {
+    const clinic = await prisma.clinic.findUnique({
+      where: { id: clinicId.trim() },
+      select: { id: true },
+    });
+
+    if (!clinic) {
+      throw new AppError('کلینیک انتخاب شده معتبر نیست', 400);
+    }
+
+    validatedClinicId = clinic.id;
+  }
 
   const contactMessage = await prisma.contactMessage.create({
     data: {
@@ -82,6 +113,7 @@ const createContactMessage = async (req, res) => {
       phoneNumber: normalizedPhoneNumber,
       subject,
       message,
+      clinicId: validatedClinicId,
     },
   });
 

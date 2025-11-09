@@ -35,6 +35,14 @@ const getDoctorApplications = async (req, res) => {
       skip,
       take,
       orderBy: { createdAt: 'desc' },
+      include: {
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     }),
     prisma.doctorApplication.count({ where }),
   ]);
@@ -54,6 +62,14 @@ const getDoctorApplication = async (req, res) => {
 
   const application = await prisma.doctorApplication.findUnique({
     where: { id },
+    include: {
+      clinic: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
   });
 
   if (!application) {
@@ -70,13 +86,28 @@ const getDoctorApplication = async (req, res) => {
  * Create doctor application (Public)
  */
 const createDoctorApplication = async (req, res) => {
-  const { firstName, lastName, email, phoneNumber, doctorInfo } = req.body;
+  const { firstName, lastName, email, phoneNumber, doctorInfo, clinicId } = req.body;
 
   // Normalize phone number
   const normalizedPhoneNumber = formatPhoneNumber(phoneNumber);
   
   // Normalize email - set to null if empty
   const normalizedEmail = email && email.trim() !== '' ? email.trim() : null;
+
+  // Validate clinic if provided
+  let validatedClinicId = null;
+  if (clinicId && typeof clinicId === 'string' && clinicId.trim() !== '') {
+    const clinic = await prisma.clinic.findUnique({
+      where: { id: clinicId.trim() },
+      select: { id: true },
+    });
+
+    if (!clinic) {
+      throw new AppError('کلینیک انتخاب شده معتبر نیست', 400);
+    }
+
+    validatedClinicId = clinic.id;
+  }
 
   // Handle documents upload (can be multiple files)
   let documents = null;
@@ -96,6 +127,7 @@ const createDoctorApplication = async (req, res) => {
       phoneNumber: normalizedPhoneNumber,
       doctorInfo,
       documents,
+      clinicId: validatedClinicId,
     },
   });
 

@@ -55,8 +55,10 @@ model Clinic {
   longitude   Float?   // مختصات Y (عرض جغرافیایی) برای نقشه
   
   // Relations
-  secretaries User[]
-  doctors     DoctorClinic[]
+  secretaries        User[]
+  doctors            DoctorClinic[]
+  contactMessages    ContactMessage[]
+  doctorApplications DoctorApplication[]
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -335,6 +337,8 @@ model ContactMessage {
   subject     String?
   message     String   @db.Text
   read        Boolean  @default(false) // آیا پیام خوانده شده است
+  clinicId    String?  @map("clinic_id")
+  clinic      Clinic?  @relation(fields: [clinicId], references: [id])
   
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -350,6 +354,8 @@ model DoctorApplication {
   doctorInfo  String   @db.Text @map("doctor_info") // اطلاعات پزشک
   documents   String?  // مسیر فایل مدارک (ممکن است چند فایل باشد، به صورت JSON array ذخیره می‌شود)
   read        Boolean  @default(false) // آیا درخواست خوانده شده است
+  clinicId    String?  @map("clinic_id")
+  clinic      Clinic?  @relation(fields: [clinicId], references: [id])
   
   createdAt   DateTime @default(now()) @map("created_at")
 
