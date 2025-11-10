@@ -27,12 +27,15 @@ const validate = (schema, property = 'body') => {
 // Common validation schemas
 const schemas = {
   // Phone number validation (Iranian format)
+  // Accepts both Persian and English digits, validation will be done in controller
   phoneNumber: Joi.string()
-    .pattern(/^(\+98|0)?9\d{9}$/)
     .required()
+    .min(10)
+    .max(15)
     .messages({
-      'string.pattern.base': 'شماره تلفن نامعتبر است',
       'any.required': 'شماره تلفن الزامی است',
+      'string.min': 'شماره تلفن باید حداقل ۱۰ کاراکتر باشد',
+      'string.max': 'شماره تلفن باید حداکثر ۱۵ کاراکتر باشد',
     }),
 
   // OTP code validation

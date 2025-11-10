@@ -63,11 +63,13 @@ router.post(
           'string.guid': 'کلینیک انتخاب شده معتبر نیست',
         }),
       phoneNumber: Joi.string()
-        .pattern(/^(\+98|0)?9\d{9}$/)
         .required()
+        .min(10)
+        .max(15)
         .messages({
           'any.required': 'شماره تلفن الزامی است',
-          'string.pattern.base': 'شماره تلفن نامعتبر است',
+          'string.min': 'شماره تلفن باید حداقل ۱۰ کاراکتر باشد',
+          'string.max': 'شماره تلفن باید حداکثر ۱۵ کاراکتر باشد',
         }),
       doctorInfo: Joi.string().required().min(20).messages({
         'any.required': 'اطلاعات پزشک الزامی است',

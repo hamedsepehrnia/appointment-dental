@@ -35,14 +35,20 @@ const createUser = async (role) => {
       process.exit(1);
     }
 
-    const phoneNumber = await question('Phone Number (09xxxxxxxxx): ');
-    if (!phoneNumber || !phoneNumber.match(/^09\d{9}$/)) {
-      console.error('Error: Invalid phone number format');
+    const phoneNumber = await question('Phone Number (09xxxxxxxxx or Persian digits): ');
+    if (!phoneNumber || phoneNumber.trim().length < 10) {
+      console.error('Error: Phone number is required and must be at least 10 characters');
       process.exit(1);
     }
 
-    // Format phone number to standard format
-    const formattedPhone = formatPhoneNumber(phoneNumber);
+    // Format phone number to standard format (handles both Persian and English digits)
+    let formattedPhone;
+    try {
+      formattedPhone = formatPhoneNumber(phoneNumber);
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
+    }
 
     const password = await question('Password (min 6 characters): ');
     if (!password || password.length < 6) {
