@@ -21,8 +21,8 @@ router.get(
   asyncHandler(doctorController.getDoctors)
 );
 
-// Get single doctor (public)
-router.get('/:id', asyncHandler(doctorController.getDoctor));
+// Get single doctor by slug or ID (public)
+router.get('/:identifier', asyncHandler(doctorController.getDoctor));
 
 // Create doctor (Admin/Secretary)
 router.post(

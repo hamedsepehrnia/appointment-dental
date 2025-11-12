@@ -18,13 +18,14 @@ const getDoctors = async (req, res) => {
     };
   }
   
-  // Search functionality
-  if (search) {
+  // Search functionality - باید trim شود و خالی نباشد
+  if (search && search.trim().length > 0) {
+    const searchTerm = search.trim();
     where.OR = [
-      { firstName: { contains: search, mode: 'insensitive' } },
-      { lastName: { contains: search, mode: 'insensitive' } },
-      { university: { contains: search, mode: 'insensitive' } },
-      { biography: { contains: search, mode: 'insensitive' } },
+      { firstName: { contains: searchTerm, mode: 'insensitive' } },
+      { lastName: { contains: searchTerm, mode: 'insensitive' } },
+      { university: { contains: searchTerm, mode: 'insensitive' } },
+      { biography: { contains: searchTerm, mode: 'insensitive' } },
     ];
   }
 
@@ -61,13 +62,19 @@ const getDoctors = async (req, res) => {
 };
 
 /**
- * Get single doctor
+ * Get single doctor by slug or ID
  */
 const getDoctor = async (req, res) => {
-  const { id } = req.params;
+  const { identifier } = req.params;
 
-  const doctor = await prisma.doctor.findUnique({
-    where: { id },
+  // Try to find by slug first, then by ID
+  const doctor = await prisma.doctor.findFirst({
+    where: {
+      OR: [
+        { slug: identifier },
+        { id: identifier },
+      ],
+    },
     include: {
       clinics: {
         include: {
