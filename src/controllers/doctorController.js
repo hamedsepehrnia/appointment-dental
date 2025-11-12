@@ -12,6 +12,8 @@ const getDoctors = async (req, res) => {
   const { skip, take } = paginate(page, limit);
 
   const where = {};
+  
+  // Filter by clinic
   if (clinicId) {
     where.clinics = {
       some: { clinicId },
@@ -19,14 +21,51 @@ const getDoctors = async (req, res) => {
   }
   
   // Search functionality - باید trim شود و خالی نباشد
-  if (search && search.trim().length > 0) {
+  if (search && typeof search === 'string' && search.trim().length > 0) {
     const searchTerm = search.trim();
-    where.OR = [
-      { firstName: { contains: searchTerm, mode: 'insensitive' } },
-      { lastName: { contains: searchTerm, mode: 'insensitive' } },
-      { university: { contains: searchTerm, mode: 'insensitive' } },
-      { biography: { contains: searchTerm, mode: 'insensitive' } },
-    ];
+    const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
+    
+    const searchConditions = [];
+    
+    // اگر چند کلمه وجود دارد، سعی می‌کنیم آنها را به firstName و lastName تقسیم کنیم
+    if (searchWords.length >= 2) {
+      // حالت اول: کلمه اول در firstName و بقیه در lastName (اولویت بالاتر)
+      const firstNameTerm = searchWords[0];
+      const lastNameTerm = searchWords.slice(1).join(' ');
+      searchConditions.push({
+        AND: [
+          { firstName: { contains: firstNameTerm } },
+          { lastName: { contains: lastNameTerm } },
+        ],
+      });
+    }
+    
+    // جستجو در هر فیلد به صورت جداگانه
+    searchConditions.push(
+      { firstName: { contains: searchTerm } },
+      { lastName: { contains: searchTerm } },
+      { university: { contains: searchTerm } },
+      { biography: { contains: searchTerm } }
+    );
+    
+    // اگر clinicId هم وجود دارد، باید از AND استفاده کنیم
+    if (clinicId) {
+      where.AND = [
+        { clinics: { some: { clinicId } } },
+        { OR: searchConditions },
+      ];
+      // clinics را حذف کن چون در AND است
+      delete where.clinics;
+    } else {
+      // اگر فقط search وجود دارد
+      where.OR = searchConditions;
+    }
+  }
+
+  // Debug: بررسی ساختار where
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Search query:', search);
+    console.log('Where clause:', JSON.stringify(where, null, 2));
   }
 
   const [doctors, total] = await Promise.all([

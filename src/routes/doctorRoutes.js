@@ -15,6 +15,7 @@ router.get(
   validate(
     schemas.pagination.keys({
       clinicId: Joi.string().uuid(),
+      search: Joi.string().allow(''),
     }),
     'query'
   ),
