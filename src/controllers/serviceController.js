@@ -54,6 +54,8 @@ const getServices = async (req, res) => {
         title: true,
         slug: true,
         description: true,
+        beforeTreatmentTips: true,
+        afterTreatmentTips: true,
         price: true,
         durationMinutes: true,
         coverImage: true,

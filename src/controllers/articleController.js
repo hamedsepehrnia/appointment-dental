@@ -59,6 +59,7 @@ const getArticles = async (req, res) => {
         id: true,
         title: true,
         slug: true,
+        content: true,
         excerpt: true,
         coverImage: true,
         published: true,
