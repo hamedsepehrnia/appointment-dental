@@ -43,6 +43,7 @@ router.post(
         'any.required': 'محتوا الزامی است',
       }),
       excerpt: Joi.string().allow(''),
+      author: Joi.string().allow(''),
       published: Joi.alternatives().try(
         Joi.boolean(),
         Joi.string().valid('true', 'false').custom((value) => value === 'true')
@@ -92,6 +93,7 @@ router.patch(
       title: Joi.string(),
       content: Joi.string(),
       excerpt: Joi.string().allow(''),
+      author: Joi.string().allow(''),
       published: Joi.alternatives().try(
         Joi.boolean(),
         Joi.string().valid('true', 'false').custom((value) => value === 'true')

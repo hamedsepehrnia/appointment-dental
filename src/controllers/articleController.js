@@ -185,7 +185,7 @@ const createArticle = async (req, res) => {
       slug,
       content: sanitizeContent(content),
       excerpt,
-      author,
+      author: author && author.trim() !== '' ? author.trim() : null,
       coverImage,
       published: published || false,
       categories: {
@@ -271,7 +271,7 @@ const updateArticle = async (req, res) => {
     ...(title && { title, slug }),
     ...(content && { content: sanitizeContent(content) }),
     ...(excerpt !== undefined && { excerpt }),
-    ...(author !== undefined && { author }),
+    ...(author !== undefined && { author: author && author.trim() !== '' ? author.trim() : null }),
     ...(coverImage && { coverImage }),
     ...(published !== undefined && { published }),
   };
