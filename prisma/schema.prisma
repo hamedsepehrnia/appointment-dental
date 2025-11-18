@@ -142,6 +142,7 @@ model Article {
   content     String   @db.Text
   excerpt     String?  @db.Text
   coverImage  String?  @map("cover_image")
+  author      String?  // نویسنده مقاله
   published   Boolean  @default(false)
   
   // Relations - Many-to-Many

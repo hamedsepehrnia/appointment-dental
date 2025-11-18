@@ -62,6 +62,7 @@ const getArticles = async (req, res) => {
         content: true,
         excerpt: true,
         coverImage: true,
+        author: true,
         published: true,
         categories: {
           select: {
@@ -148,7 +149,7 @@ const getArticle = async (req, res) => {
  * Create article (Admin/Secretary)
  */
 const createArticle = async (req, res) => {
-  const { title, content, excerpt, published, categoryIds } = req.body;
+  const { title, content, excerpt, author, published, categoryIds } = req.body;
   
   let slug = createSlug(title);
   const coverImage = req.file ? `/uploads/images/${req.file.filename}` : null;
@@ -184,6 +185,7 @@ const createArticle = async (req, res) => {
       slug,
       content: sanitizeContent(content),
       excerpt,
+      author,
       coverImage,
       published: published || false,
       categories: {
@@ -222,7 +224,7 @@ const createArticle = async (req, res) => {
  */
 const updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, content, excerpt, published, categoryIds } = req.body;
+  const { title, content, excerpt, author, published, categoryIds } = req.body;
 
   const currentArticle = await prisma.article.findUnique({
     where: { id },
@@ -269,6 +271,7 @@ const updateArticle = async (req, res) => {
     ...(title && { title, slug }),
     ...(content && { content: sanitizeContent(content) }),
     ...(excerpt !== undefined && { excerpt }),
+    ...(author !== undefined && { author }),
     ...(coverImage && { coverImage }),
     ...(published !== undefined && { published }),
   };
