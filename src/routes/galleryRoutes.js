@@ -60,26 +60,5 @@ router.patch(
 // Delete gallery image (Admin/Secretary)
 router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(galleryController.deleteImage));
 
-// Reorder gallery images (Admin/Secretary)
-router.post(
-  '/reorder',
-  isAdminOrSecretary,
-  csrfProtection,
-  validate(
-    Joi.object({
-      images: Joi.array()
-        .items(
-          Joi.object({
-            id: Joi.string().uuid().required(),
-            order: Joi.number().integer().min(0).required(),
-          })
-        )
-        .min(1)
-        .required(),
-    })
-  ),
-  asyncHandler(galleryController.reorderImages)
-);
-
 module.exports = router;
 

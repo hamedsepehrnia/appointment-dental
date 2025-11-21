@@ -172,38 +172,11 @@ const deleteImage = async (req, res) => {
   });
 };
 
-/**
- * Reorder gallery images (Admin/Secretary)
- */
-const reorderImages = async (req, res) => {
-  const { images } = req.body; // Array of { id, order }
-
-  if (!Array.isArray(images) || images.length === 0) {
-    throw new AppError('لیست تصاویر معتبر نیست', 400);
-  }
-
-  // Update all images in a transaction
-  await prisma.$transaction(
-    images.map((image) =>
-      prisma.gallery.update({
-        where: { id: image.id },
-        data: { order: image.order },
-      })
-    )
-  );
-
-  res.json({
-    success: true,
-    message: 'ترتیب تصاویر با موفقیت به‌روزرسانی شد',
-  });
-};
-
 module.exports = {
   getGalleryImages,
   getGalleryImage,
   uploadImage,
   updateImage,
   deleteImage,
-  reorderImages,
 };
 

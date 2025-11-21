@@ -7,15 +7,10 @@ const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
 
-// Get all FAQs (published only for public)
+// Get all FAQs
 router.get(
   '/',
-  validate(
-    schemas.pagination.keys({
-      published: Joi.string().valid('true', 'false'),
-    }),
-    'query'
-  ),
+  validate(schemas.pagination, 'query'),
   asyncHandler(faqController.getFaqs)
 );
 
@@ -39,7 +34,6 @@ router.post(
         'string.min': 'پاسخ باید حداقل ۱۰ کاراکتر باشد',
       }),
       order: Joi.number().integer().min(0).default(0),
-      published: Joi.boolean().default(true),
     })
   ),
   asyncHandler(faqController.createFaq)
@@ -55,7 +49,6 @@ router.patch(
       question: Joi.string().min(10).max(500),
       answer: Joi.string().min(10),
       order: Joi.number().integer().min(0),
-      published: Joi.boolean(),
     })
   ),
   asyncHandler(faqController.updateFaq)
@@ -63,27 +56,6 @@ router.patch(
 
 // Delete FAQ (Admin/Secretary)
 router.delete('/:id', isAdminOrSecretary, csrfProtection, asyncHandler(faqController.deleteFaq));
-
-// Reorder FAQs (Admin/Secretary)
-router.post(
-  '/reorder',
-  isAdminOrSecretary,
-  csrfProtection,
-  validate(
-    Joi.object({
-      faqs: Joi.array()
-        .items(
-          Joi.object({
-            id: Joi.string().uuid().required(),
-            order: Joi.number().integer().min(0).required(),
-          })
-        )
-        .min(1)
-        .required(),
-    })
-  ),
-  asyncHandler(faqController.reorderFaqs)
-);
 
 module.exports = router;
 

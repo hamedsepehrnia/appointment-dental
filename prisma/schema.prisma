@@ -20,12 +20,13 @@ enum Gender {
 }
 
 model User {
-  id          String    @id @default(uuid())
-  phoneNumber String    @unique @map("phone_number")
-  firstName   String    @map("first_name")
-  lastName    String    @map("last_name")
-  password    String
-  role        Role      @default(PATIENT)
+  id           String    @id @default(uuid())
+  phoneNumber  String    @unique @map("phone_number")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  password     String
+  role         Role      @default(PATIENT)
+  profileImage String?   @map("profile_image") // عکس پروفایل کاربر
   
   // Patient-specific fields (nullable for non-patients)
   nationalCode String?   @map("national_code")
@@ -212,6 +213,7 @@ model Comment {
   id        String   @id @default(uuid())
   content   String   @db.Text
   rating    Int?     // امتیاز از ۱ تا ۵ (اختیاری)
+  published Boolean  @default(false) // وضعیت انتشار کامنت
   
   // Relations
   userId    String   @map("user_id")
@@ -291,7 +293,6 @@ model Faq {
   question  String   @db.Text
   answer    String   @db.Text
   order     Int      @default(0) // Display order (lower number = higher priority)
-  published Boolean  @default(true)
   
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

@@ -2,10 +2,59 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const commentController = require('../controllers/commentController');
-const { isAuthenticated, isPatient } = require('../middlewares/auth');
+const { isAuthenticated, isPatient, isAdmin, isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
+
+// Admin routes - Get all comments by type
+router.get(
+  '/all/doctors',
+  isAuthenticated,
+  isAdminOrSecretary,
+  validate(
+    schemas.pagination.keys({
+      published: Joi.string().valid('true', 'false'),
+    }),
+    'query'
+  ),
+  asyncHandler(commentController.getAllDoctorComments)
+);
+
+router.get(
+  '/all/articles',
+  isAuthenticated,
+  isAdminOrSecretary,
+  validate(
+    schemas.pagination.keys({
+      published: Joi.string().valid('true', 'false'),
+    }),
+    'query'
+  ),
+  asyncHandler(commentController.getAllArticleComments)
+);
+
+router.get(
+  '/all/services',
+  isAuthenticated,
+  isAdminOrSecretary,
+  validate(
+    schemas.pagination.keys({
+      published: Joi.string().valid('true', 'false'),
+    }),
+    'query'
+  ),
+  asyncHandler(commentController.getAllServiceComments)
+);
+
+// Toggle comment published status (Admin only)
+router.patch(
+  '/:id/toggle-status',
+  isAuthenticated,
+  isAdminOrSecretary,
+  csrfProtection,
+  asyncHandler(commentController.toggleCommentStatus)
+);
 
 // Get comments for a doctor (public)
 router.get(
@@ -84,7 +133,7 @@ router.post(
   asyncHandler(commentController.createServiceComment)
 );
 
-// Update comment (Owner only)
+// Update comment (Owner or Admin)
 router.patch(
   '/:id',
   isAuthenticated,
@@ -93,6 +142,7 @@ router.patch(
     Joi.object({
       content: Joi.string().min(10).max(1000),
       rating: Joi.number().integer().min(1).max(5),
+      published: Joi.boolean(),
     })
   ),
   asyncHandler(commentController.updateComment)
