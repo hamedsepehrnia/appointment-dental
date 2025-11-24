@@ -50,13 +50,6 @@ const getArticles = async (req, res) => {
     ];
   }
 
-  // Build category filter for select based on user role
-  const categorySelectFilter = {};
-  // Only show published categories to non-admin/secretary users
-  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
-    categorySelectFilter.published = true;
-  }
-
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
       where,
@@ -72,9 +65,6 @@ const getArticles = async (req, res) => {
         author: true,
         published: true,
         categories: {
-          where: {
-            category: categorySelectFilter,
-          },
           select: {
             category: {
               select: {
@@ -93,10 +83,10 @@ const getArticles = async (req, res) => {
     prisma.article.count({ where }),
   ]);
 
-  // Transform categories to simpler format
+  // Transform categories to simpler format - ensure it's always an array
   const transformedArticles = articles.map(article => ({
     ...article,
-    categories: article.categories.map(rel => rel.category),
+    categories: (article.categories || []).map(rel => rel.category),
   }));
 
   res.json({
@@ -112,13 +102,6 @@ const getArticles = async (req, res) => {
 const getArticle = async (req, res) => {
   const { identifier } = req.params;
 
-  // Build category filter based on user role
-  const categoryFilter = {};
-  // Only show published categories to non-admin/secretary users
-  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
-    categoryFilter.published = true;
-  }
-
   // Try to find by slug first, then by ID
   const article = await prisma.article.findFirst({
     where: {
@@ -129,9 +112,6 @@ const getArticle = async (req, res) => {
     },
     include: {
       categories: {
-        where: {
-          category: categoryFilter,
-        },
         select: {
           category: {
             select: {
@@ -145,14 +125,12 @@ const getArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  if (article) {
-    article.categories = article.categories.map(rel => rel.category);
-  }
-
   if (!article) {
     throw new AppError('مقاله یافت نشد', 404);
   }
+
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   // Check if article is published (for non-admin/secretary)
   if (!article.published && req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
@@ -229,8 +207,8 @@ const createArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  article.categories = article.categories.map(rel => rel.category);
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   res.status(201).json({
     success: true,
@@ -338,8 +316,8 @@ const updateArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  article.categories = article.categories.map(rel => rel.category);
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   res.json({
     success: true,
