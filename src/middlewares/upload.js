@@ -17,6 +17,9 @@ const storage = multer.diskStorage({
       uploadPath += 'documents/';
     } else if (file.fieldname === 'logo') {
       uploadPath += 'insurance/';
+    } else if (file.fieldname === 'upload') {
+      // For CKEditor image uploads
+      uploadPath += 'images/';
     }
     
     cb(null, uploadPath);

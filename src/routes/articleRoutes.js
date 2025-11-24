@@ -24,6 +24,15 @@ router.get(
   asyncHandler(articleController.getArticles)
 );
 
+// Upload image for article content (CKEditor) (Admin/Secretary)
+router.post(
+  '/upload-image',
+  isAdminOrSecretary,
+  csrfProtection,
+  upload.single('upload'),
+  asyncHandler(articleController.uploadContentImage)
+);
+
 // Get single article (public)
 router.get('/:identifier', asyncHandler(articleController.getArticle));
 
