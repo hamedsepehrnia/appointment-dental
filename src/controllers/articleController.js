@@ -362,11 +362,33 @@ const deleteArticle = async (req, res) => {
   });
 };
 
+/**
+ * Upload image for article content (CKEditor) (Admin/Secretary)
+ */
+const uploadContentImage = async (req, res) => {
+  if (!req.file) {
+    throw new AppError('لطفاً یک تصویر انتخاب کنید', 400);
+  }
+
+  const imageUrl = `/uploads/images/${req.file.filename}`;
+  // استفاده از URL نسبی برای سازگاری با production
+  // فرانت‌اند این URL را به URL کامل تبدیل می‌کند
+  const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+
+  // CKEditor expects a specific response format
+  // برگرداندن URL کامل برای CKEditor (که در ادیتور نیاز دارد)
+  // اما در نمایش، فرانت‌اند URL را تبدیل می‌کند
+  res.json({
+    url: fullImageUrl,
+  });
+};
+
 module.exports = {
   getArticles,
   getArticle,
   createArticle,
   updateArticle,
   deleteArticle,
+  uploadContentImage,
 };
 

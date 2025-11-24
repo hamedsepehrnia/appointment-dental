@@ -3,29 +3,16 @@ const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta } = require('../utils/helpers');
 
 /**
- * Get all comments (Admin only)
+ * Get all doctor comments (Admin only)
  */
-const getAllComments = async (req, res) => {
-  const { page = 1, limit = 10, search = '', type = '' } = req.query;
+const getAllDoctorComments = async (req, res) => {
+  const { page = 1, limit = 10, published } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = {};
-
-  // Filter by type (doctor, article, service)
-  if (type === 'doctor') {
-    where.doctorId = { not: null };
-  } else if (type === 'article') {
-    where.articleId = { not: null };
-  } else if (type === 'service') {
-    where.serviceId = { not: null };
-  }
-
-  // Search in content
-  if (search) {
-    where.content = {
-      contains: search,
-      mode: 'insensitive',
-    };
+  const where = { doctorId: { not: null } };
+  
+  if (published !== undefined) {
+    where.published = published === 'true';
   }
 
   const [comments, total] = await Promise.all([
@@ -42,20 +29,93 @@ const getAllComments = async (req, res) => {
         },
         doctor: {
           select: {
-            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.comment.count({ where }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { comments },
+    meta: createPaginationMeta(total, page, limit),
+  });
+};
+
+/**
+ * Get all article comments (Admin only)
+ */
+const getAllArticleComments = async (req, res) => {
+  const { page = 1, limit = 10, published } = req.query;
+  const { skip, take } = paginate(page, limit);
+
+  const where = { articleId: { not: null } };
+  
+  if (published !== undefined) {
+    where.published = published === 'true';
+  }
+
+  const [comments, total] = await Promise.all([
+    prisma.comment.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
             firstName: true,
             lastName: true,
           },
         },
         article: {
           select: {
-            id: true,
             title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.comment.count({ where }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { comments },
+    meta: createPaginationMeta(total, page, limit),
+  });
+};
+
+/**
+ * Get all service comments (Admin only)
+ */
+const getAllServiceComments = async (req, res) => {
+  const { page = 1, limit = 10, published } = req.query;
+  const { skip, take } = paginate(page, limit);
+
+  const where = { serviceId: { not: null } };
+  
+  if (published !== undefined) {
+    where.published = published === 'true';
+  }
+
+  const [comments, total] = await Promise.all([
+    prisma.comment.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
           },
         },
         service: {
           select: {
-            id: true,
             title: true,
           },
         },
@@ -80,9 +140,16 @@ const getDoctorComments = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const { skip, take } = paginate(page, limit);
 
+  const where = { doctorId };
+  
+  // Only show published comments to non-admin users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    where.published = true;
+  }
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
-      where: { doctorId },
+      where,
       skip,
       take,
       include: {
@@ -95,7 +162,7 @@ const getDoctorComments = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.comment.count({ where: { doctorId } }),
+    prisma.comment.count({ where }),
   ]);
 
   res.json({
@@ -113,9 +180,16 @@ const getArticleComments = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const { skip, take } = paginate(page, limit);
 
+  const where = { articleId };
+  
+  // Only show published comments to non-admin users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    where.published = true;
+  }
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
-      where: { articleId },
+      where,
       skip,
       take,
       include: {
@@ -128,7 +202,7 @@ const getArticleComments = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.comment.count({ where: { articleId } }),
+    prisma.comment.count({ where }),
   ]);
 
   res.json({
@@ -146,9 +220,16 @@ const getServiceComments = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const { skip, take } = paginate(page, limit);
 
+  const where = { serviceId };
+  
+  // Only show published comments to non-admin users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    where.published = true;
+  }
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
-      where: { serviceId },
+      where,
       skip,
       take,
       include: {
@@ -161,7 +242,7 @@ const getServiceComments = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.comment.count({ where: { serviceId } }),
+    prisma.comment.count({ where }),
   ]);
 
   res.json({
@@ -307,11 +388,11 @@ const createServiceComment = async (req, res) => {
 };
 
 /**
- * Update comment (Owner only)
+ * Update comment (Owner or Admin)
  */
 const updateComment = async (req, res) => {
   const { id } = req.params;
-  const { content, rating } = req.body;
+  const { content, rating, published } = req.body;
 
   const existingComment = await prisma.comment.findUnique({
     where: { id },
@@ -321,9 +402,17 @@ const updateComment = async (req, res) => {
     throw new AppError('نظر یافت نشد', 404);
   }
 
-  // Check ownership
-  if (existingComment.userId !== req.session.userId) {
-    throw new AppError('شما فقط می‌توانید نظر خود را ویرایش کنید', 403);
+  // Check ownership or admin
+  const isOwner = existingComment.userId === req.session.userId;
+  const isAdmin = req.session.userRole === 'ADMIN' || req.session.userRole === 'SECRETARY';
+  
+  if (!isOwner && !isAdmin) {
+    throw new AppError('شما دسترسی لازم را ندارید', 403);
+  }
+
+  // Only admin can change published status
+  if (published !== undefined && !isAdmin) {
+    throw new AppError('فقط ادمین می‌تواند وضعیت انتشار را تغییر دهد', 403);
   }
 
   // Validate rating if provided
@@ -336,6 +425,7 @@ const updateComment = async (req, res) => {
     data: {
       ...(content && { content }),
       ...(rating !== undefined && { rating: rating ? parseInt(rating) : null }),
+      ...(published !== undefined && isAdmin && { published }),
     },
     include: {
       user: {
@@ -351,6 +441,42 @@ const updateComment = async (req, res) => {
     success: true,
     message: 'نظر با موفقیت به‌روزرسانی شد',
     data: { comment },
+  });
+};
+
+/**
+ * Toggle comment published status (Admin only)
+ */
+const toggleCommentStatus = async (req, res) => {
+  const { id } = req.params;
+
+  const comment = await prisma.comment.findUnique({
+    where: { id },
+  });
+
+  if (!comment) {
+    throw new AppError('نظر یافت نشد', 404);
+  }
+
+  const updatedComment = await prisma.comment.update({
+    where: { id },
+    data: {
+      published: !comment.published,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  res.json({
+    success: true,
+    message: `نظر ${updatedComment.published ? 'منتشر' : 'پنهان'} شد`,
+    data: { comment: updatedComment },
   });
 };
 
@@ -384,7 +510,9 @@ const deleteComment = async (req, res) => {
 };
 
 module.exports = {
-  getAllComments,
+  getAllDoctorComments,
+  getAllArticleComments,
+  getAllServiceComments,
   getDoctorComments,
   getArticleComments,
   getServiceComments,
@@ -392,6 +520,7 @@ module.exports = {
   createArticleComment,
   createServiceComment,
   updateComment,
+  toggleCommentStatus,
   deleteComment,
 };
 

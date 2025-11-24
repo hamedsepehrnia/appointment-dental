@@ -1,10 +1,6 @@
-const prisma = require("../config/database");
-const { AppError } = require("../middlewares/errorHandler");
-const {
-  paginate,
-  createPaginationMeta,
-  createSlug,
-} = require("../utils/helpers");
+const prisma = require('../config/database');
+const { AppError } = require('../middlewares/errorHandler');
+const { paginate, createPaginationMeta, createSlug, formatPhoneNumberOptional } = require('../utils/helpers');
 
 /**
  * Get all clinics
@@ -82,14 +78,10 @@ const getClinic = async (req, res) => {
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const { name, address, phoneNumber, description, latitude, longitude } =
-    req.body;
-  const sanitizedPhoneNumber =
-    phoneNumber === undefined || phoneNumber === null
-      ? ""
-      : typeof phoneNumber === "string"
-      ? phoneNumber.trim()
-      : String(phoneNumber);
+  const { name, address, phoneNumber, description, latitude, longitude } = req.body;
+  
+  // Normalize phone number if provided
+  const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
 
   // Generate unique slug
   let baseSlug = createSlug(name);
@@ -111,7 +103,7 @@ const createClinic = async (req, res) => {
       name,
       slug,
       address,
-      phoneNumber: sanitizedPhoneNumber,
+      phoneNumber: normalizedPhoneNumber || '',
       description,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
@@ -176,20 +168,19 @@ const updateClinic = async (req, res) => {
       longitude === null || longitude === "" ? null : parseFloat(longitude);
   }
 
+  // Normalize phone number if provided
+  let normalizedPhoneNumber = undefined;
+  if (phoneNumber !== undefined) {
+    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || '';
+  }
+
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
       ...(name && { name }),
       ...(slug && { slug }),
       ...(address && { address }),
-      ...(phoneNumber !== undefined && {
-        phoneNumber:
-          phoneNumber === null
-            ? ""
-            : typeof phoneNumber === "string"
-            ? phoneNumber.trim()
-            : String(phoneNumber),
-      }),
+      ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
       ...(description !== undefined && { description }),
       ...(latitude !== undefined && { latitude: parsedLatitude }),
       ...(longitude !== undefined && { longitude: parsedLongitude }),

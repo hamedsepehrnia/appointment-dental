@@ -847,145 +847,271 @@
       "name": "Comments",
       "item": [
         {
-          "name": "Get Doctor Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/doctor/:doctorId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "doctor", ":doctorId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+          "name": "Public APIs",
+          "item": [
+            {
+              "name": "Get Doctor Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/doctor/:doctorId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "doctor", ":doctorId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
                 },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Doctor Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
+                "description": "دریافت کامنت‌های یک پزشک (فقط کامنت‌های منتشر شده برای کاربران عادی)"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"پزشک بسیار حرفه‌ای و دلسوزی هستند\",\n  \"rating\": 5\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/comments/doctor/:doctorId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "doctor", ":doctorId"]
-            }
-          }
-        },
-        {
-          "name": "Get Article Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/article/:articleId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "article", ":articleId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+            {
+              "name": "Get Article Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/article/:articleId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "article", ":articleId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
                 },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Article Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
+                "description": "دریافت کامنت‌های یک مقاله (فقط کامنت‌های منتشر شده برای کاربران عادی)"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"مقاله بسیار مفیدی بود، ممنون\",\n  \"rating\": 5\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/comments/article/:articleId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "article", ":articleId"]
-            }
-          }
-        },
-        {
-          "name": "Get Service Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/service/:serviceId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "service", ":serviceId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+            {
+              "name": "Get Service Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/service/:serviceId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "service", ":serviceId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
                 },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
+                "description": "دریافت کامنت‌های یک سرویس (فقط کامنت‌های منتشر شده برای کاربران عادی)"
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Create Service Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
+          "name": "Admin APIs",
+          "item": [
+            {
+              "name": "Get All Doctor Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/all/doctors?page=1&limit=10&published=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "all", "doctors"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "published",
+                      "value": "",
+                      "description": "فیلتر بر اساس وضعیت انتشار: true یا false (اختیاری)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "دریافت همه کامنت‌های پزشکان (نیاز به احراز هویت Admin یا Secretary)"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"خدمات عالی ارائه می‌دهند\",\n  \"rating\": 4\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/comments/service/:serviceId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "service", ":serviceId"]
+            {
+              "name": "Get All Article Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/all/articles?page=1&limit=10&published=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "all", "articles"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "published",
+                      "value": "",
+                      "description": "فیلتر بر اساس وضعیت انتشار: true یا false (اختیاری)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "دریافت همه کامنت‌های مقالات (نیاز به احراز هویت Admin یا Secretary)"
+              }
+            },
+            {
+              "name": "Get All Service Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/all/services?page=1&limit=10&published=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "all", "services"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "published",
+                      "value": "",
+                      "description": "فیلتر بر اساس وضعیت انتشار: true یا false (اختیاری)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "دریافت همه کامنت‌های سرویس‌ها (نیاز به احراز هویت Admin یا Secretary)"
+              }
+            },
+            {
+              "name": "Toggle Comment Status",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/:id/toggle-status",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", ":id", "toggle-status"]
+                },
+                "description": "تغییر وضعیت انتشار کامنت (نیاز به احراز هویت Admin یا Secretary)"
+              }
             }
-          }
+          ]
+        },
+        {
+          "name": "Create Comment",
+          "item": [
+            {
+              "name": "Create Doctor Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"پزشک بسیار حرفه‌ای و دلسوزی هستند\",\n  \"rating\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comments/doctor/:doctorId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "doctor", ":doctorId"]
+                },
+                "description": "ایجاد کامنت برای پزشک (نیاز به احراز هویت)"
+              }
+            },
+            {
+              "name": "Create Article Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"مقاله بسیار مفیدی بود، ممنون\",\n  \"rating\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comments/article/:articleId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "article", ":articleId"]
+                },
+                "description": "ایجاد کامنت برای مقاله (نیاز به احراز هویت)"
+              }
+            },
+            {
+              "name": "Create Service Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"خدمات عالی ارائه می‌دهند\",\n  \"rating\": 4\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comments/service/:serviceId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "service", ":serviceId"]
+                },
+                "description": "ایجاد کامنت برای سرویس (نیاز به احراز هویت)"
+              }
+            }
+          ]
         },
         {
           "name": "Update Comment",
@@ -1009,7 +1135,8 @@
               "raw": "{{baseUrl}}/comments/:id",
               "host": ["{{baseUrl}}"],
               "path": ["comments", ":id"]
-            }
+            },
+            "description": "به‌روزرسانی کامنت (مالک یا Admin می‌تواند به‌روزرسانی کند)"
           }
         },
         {
@@ -1026,7 +1153,8 @@
               "raw": "{{baseUrl}}/comments/:id",
               "host": ["{{baseUrl}}"],
               "path": ["comments", ":id"]
-            }
+            },
+            "description": "حذف کامنت (مالک یا Admin می‌تواند حذف کند)"
           }
         }
       ]

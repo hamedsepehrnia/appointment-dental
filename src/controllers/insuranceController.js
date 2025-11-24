@@ -55,7 +55,7 @@ const getInsuranceOrganization = async (req, res) => {
  * Create insurance organization (Admin only)
  */
 const createInsuranceOrganization = async (req, res) => {
-  const { name, description, website, phoneNumber, email, logo, published = true, order = 0 } = req.body;
+  const { name, description, website, phoneNumber, email, published = true, order = 0 } = req.body;
 
   // Check if organization with same name exists
   const existingOrg = await prisma.insuranceOrganization.findUnique({
@@ -69,6 +69,12 @@ const createInsuranceOrganization = async (req, res) => {
   // Normalize phone number if provided
   const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
 
+  // Handle logo upload
+  let logoPath = null;
+  if (req.file) {
+    logoPath = `/uploads/insurance/${req.file.filename}`;
+  }
+
   const organization = await prisma.insuranceOrganization.create({
     data: {
       name,
@@ -76,7 +82,7 @@ const createInsuranceOrganization = async (req, res) => {
       website,
       phoneNumber: normalizedPhoneNumber,
       email,
-      logo,
+      logo: logoPath,
       published: published === 'true' || published === true,
       order: parseInt(order) || 0,
     },
@@ -94,7 +100,7 @@ const createInsuranceOrganization = async (req, res) => {
  */
 const updateInsuranceOrganization = async (req, res) => {
   const { id } = req.params;
-  const { name, description, website, phoneNumber, email, logo, published, order } = req.body;
+  const { name, description, website, phoneNumber, email, published, order } = req.body;
 
   const existingOrg = await prisma.insuranceOrganization.findUnique({
     where: { id },
@@ -121,6 +127,13 @@ const updateInsuranceOrganization = async (req, res) => {
     normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
   }
 
+  // Handle logo upload
+  let logoPath = undefined;
+  if (req.file) {
+    logoPath = `/uploads/insurance/${req.file.filename}`;
+    // TODO: Delete old logo file if exists
+  }
+
   const organization = await prisma.insuranceOrganization.update({
     where: { id },
     data: {
@@ -129,7 +142,7 @@ const updateInsuranceOrganization = async (req, res) => {
       ...(website !== undefined && { website }),
       ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
       ...(email !== undefined && { email }),
-      ...(logo !== undefined && { logo }),
+      ...(logoPath !== undefined && { logo: logoPath }),
       ...(published !== undefined && { published: published === 'true' || published === true }),
       ...(order !== undefined && { order: parseInt(order) || 0 }),
     },
