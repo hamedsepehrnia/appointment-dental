@@ -2,10 +2,24 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const commentController = require('../controllers/commentController');
-const { isAuthenticated, isPatient } = require('../middlewares/auth');
+const { isAuthenticated, isPatient, isAdmin } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
+
+// Get all comments (Admin only)
+router.get(
+  '/',
+  isAdmin,
+  validate(
+    schemas.pagination.keys({
+      search: Joi.string(),
+      type: Joi.string().valid('doctor', 'article', 'service'),
+    }),
+    'query'
+  ),
+  asyncHandler(commentController.getAllComments)
+);
 
 // Get comments for a doctor (public)
 router.get(

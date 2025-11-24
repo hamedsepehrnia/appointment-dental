@@ -1,8 +1,12 @@
-const prisma = require('../config/database');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
-const fs = require('fs').promises;
-const path = require('path');
+const prisma = require("../config/database");
+const { AppError } = require("../middlewares/errorHandler");
+const {
+  paginate,
+  createPaginationMeta,
+  createSlug,
+} = require("../utils/helpers");
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Get all doctors
@@ -12,26 +16,28 @@ const getDoctors = async (req, res) => {
   const { skip, take } = paginate(page, limit);
 
   const where = {};
-  
+
   // Filter by clinic
   if (clinicId) {
     where.clinics = {
       some: { clinicId },
     };
   }
-  
+
   // Search functionality - باید trim شود و خالی نباشد
-  if (search && typeof search === 'string' && search.trim().length > 0) {
+  if (search && typeof search === "string" && search.trim().length > 0) {
     const searchTerm = search.trim();
-    const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
-    
+    const searchWords = searchTerm
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+
     const searchConditions = [];
-    
+
     // اگر چند کلمه وجود دارد، سعی می‌کنیم آنها را به firstName و lastName تقسیم کنیم
     if (searchWords.length >= 2) {
       // حالت اول: کلمه اول در firstName و بقیه در lastName (اولویت بالاتر)
       const firstNameTerm = searchWords[0];
-      const lastNameTerm = searchWords.slice(1).join(' ');
+      const lastNameTerm = searchWords.slice(1).join(" ");
       searchConditions.push({
         AND: [
           { firstName: { contains: firstNameTerm } },
@@ -39,7 +45,7 @@ const getDoctors = async (req, res) => {
         ],
       });
     }
-    
+
     // جستجو در هر فیلد به صورت جداگانه
     searchConditions.push(
       { firstName: { contains: searchTerm } },
@@ -47,7 +53,7 @@ const getDoctors = async (req, res) => {
       { university: { contains: searchTerm } },
       { biography: { contains: searchTerm } }
     );
-    
+
     // اگر clinicId هم وجود دارد، باید از AND استفاده کنیم
     if (clinicId) {
       where.AND = [
@@ -63,9 +69,9 @@ const getDoctors = async (req, res) => {
   }
 
   // Debug: بررسی ساختار where
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Search query:', search);
-    console.log('Where clause:', JSON.stringify(where, null, 2));
+  if (process.env.NODE_ENV === "development") {
+    console.log("Search query:", search);
+    console.log("Where clause:", JSON.stringify(where, null, 2));
   }
 
   const [doctors, total] = await Promise.all([
@@ -88,7 +94,7 @@ const getDoctors = async (req, res) => {
           select: { comments: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.doctor.count({ where }),
   ]);
@@ -109,10 +115,7 @@ const getDoctor = async (req, res) => {
   // Try to find by slug first, then by ID
   const doctor = await prisma.doctor.findFirst({
     where: {
-      OR: [
-        { slug: identifier },
-        { id: identifier },
-      ],
+      OR: [{ slug: identifier }, { id: identifier }],
     },
     include: {
       clinics: {
@@ -136,19 +139,21 @@ const getDoctor = async (req, res) => {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       },
     },
   });
 
   if (!doctor) {
-    throw new AppError('پزشک یافت نشد', 404);
+    throw new AppError("پزشک یافت نشد", 404);
   }
 
   // Calculate average rating
-  const avgRating = doctor.comments.length > 0
-    ? doctor.comments.reduce((sum, c) => sum + (c.rating || 0), 0) / doctor.comments.filter(c => c.rating).length
-    : null;
+  const avgRating =
+    doctor.comments.length > 0
+      ? doctor.comments.reduce((sum, c) => sum + (c.rating || 0), 0) /
+        doctor.comments.filter((c) => c.rating).length
+      : null;
 
   res.json({
     success: true,
@@ -177,7 +182,9 @@ const createDoctor = async (req, res) => {
     workingDays,
   } = req.body;
 
-  const profileImage = req.file ? `/uploads/doctors/${req.file.filename}` : null;
+  const profileImage = req.file
+    ? `/uploads/doctors/${req.file.filename}`
+    : null;
 
   // Generate unique slug from firstName + lastName
   let baseSlug = createSlug(`${firstName}-${lastName}`);
@@ -193,11 +200,11 @@ const createDoctor = async (req, res) => {
   // Parse workingDays if it's a string (from form-data)
   let parsedWorkingDays = null;
   if (workingDays) {
-    if (typeof workingDays === 'string') {
+    if (typeof workingDays === "string") {
       try {
         parsedWorkingDays = JSON.parse(workingDays);
       } catch (error) {
-        throw new AppError('فرمت روزهای کاری معتبر نیست', 400);
+        throw new AppError("فرمت روزهای کاری معتبر نیست", 400);
       }
     } else {
       parsedWorkingDays = workingDays;
@@ -247,7 +254,7 @@ const createDoctor = async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'پزشک با موفقیت ایجاد شد',
+    message: "پزشک با موفقیت ایجاد شد",
     data: { doctor: doctorWithClinics },
   });
 };
@@ -274,7 +281,7 @@ const updateDoctor = async (req, res) => {
   });
 
   if (!currentDoctor) {
-    throw new AppError('پزشک یافت نشد', 404);
+    throw new AppError("پزشک یافت نشد", 404);
   }
 
   // Handle profile image
@@ -286,7 +293,7 @@ const updateDoctor = async (req, res) => {
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error('Error deleting old image:', err);
+        console.error("Error deleting old image:", err);
       }
     }
     profileImage = `/uploads/doctors/${req.file.filename}`;
@@ -295,15 +302,19 @@ const updateDoctor = async (req, res) => {
   // Generate new slug if firstName or lastName is being updated
   let slug;
   if (firstName || lastName) {
-    const fullName = `${firstName || currentDoctor.firstName}-${lastName || currentDoctor.lastName}`;
+    const fullName = `${firstName || currentDoctor.firstName}-${
+      lastName || currentDoctor.lastName
+    }`;
     const baseSlug = createSlug(fullName);
     slug = baseSlug;
     let counter = 1;
 
     // Ensure slug is unique
-    while (await prisma.doctor.findFirst({ 
-      where: { slug, id: { not: id } } 
-    })) {
+    while (
+      await prisma.doctor.findFirst({
+        where: { slug, id: { not: id } },
+      })
+    ) {
       slug = `${baseSlug}-${counter}`;
       counter++;
     }
@@ -312,13 +323,13 @@ const updateDoctor = async (req, res) => {
   // Parse workingDays if it's a string (from form-data)
   let parsedWorkingDays = undefined;
   if (workingDays !== undefined) {
-    if (workingDays === null || workingDays === '') {
+    if (workingDays === null || workingDays === "") {
       parsedWorkingDays = null;
-    } else if (typeof workingDays === 'string') {
+    } else if (typeof workingDays === "string") {
       try {
         parsedWorkingDays = JSON.parse(workingDays);
       } catch (error) {
-        throw new AppError('فرمت روزهای کاری معتبر نیست', 400);
+        throw new AppError("فرمت روزهای کاری معتبر نیست", 400);
       }
     } else {
       parsedWorkingDays = workingDays;
@@ -377,7 +388,7 @@ const updateDoctor = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'پزشک با موفقیت به‌روزرسانی شد',
+    message: "پزشک با موفقیت به‌روزرسانی شد",
     data: { doctor: updatedDoctor },
   });
 };
@@ -393,7 +404,7 @@ const deleteDoctor = async (req, res) => {
   });
 
   if (!doctor) {
-    throw new AppError('پزشک یافت نشد', 404);
+    throw new AppError("پزشک یافت نشد", 404);
   }
 
   // Delete profile image if exists
@@ -402,7 +413,7 @@ const deleteDoctor = async (req, res) => {
     try {
       await fs.unlink(imagePath);
     } catch (err) {
-      console.error('Error deleting image:', err);
+      console.error("Error deleting image:", err);
     }
   }
 
@@ -412,7 +423,7 @@ const deleteDoctor = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'پزشک با موفقیت حذف شد',
+    message: "پزشک با موفقیت حذف شد",
   });
 };
 
@@ -423,4 +434,3 @@ module.exports = {
   updateDoctor,
   deleteDoctor,
 };
-

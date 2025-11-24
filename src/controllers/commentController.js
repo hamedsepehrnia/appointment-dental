@@ -3,6 +3,76 @@ const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta } = require('../utils/helpers');
 
 /**
+ * Get all comments (Admin only)
+ */
+const getAllComments = async (req, res) => {
+  const { page = 1, limit = 10, search = '', type = '' } = req.query;
+  const { skip, take } = paginate(page, limit);
+
+  const where = {};
+
+  // Filter by type (doctor, article, service)
+  if (type === 'doctor') {
+    where.doctorId = { not: null };
+  } else if (type === 'article') {
+    where.articleId = { not: null };
+  } else if (type === 'service') {
+    where.serviceId = { not: null };
+  }
+
+  // Search in content
+  if (search) {
+    where.content = {
+      contains: search,
+      mode: 'insensitive',
+    };
+  }
+
+  const [comments, total] = await Promise.all([
+    prisma.comment.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        article: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        service: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.comment.count({ where }),
+  ]);
+
+  res.json({
+    success: true,
+    data: { comments },
+    meta: createPaginationMeta(total, page, limit),
+  });
+};
+
+/**
  * Get comments for a doctor
  */
 const getDoctorComments = async (req, res) => {
@@ -314,6 +384,7 @@ const deleteComment = async (req, res) => {
 };
 
 module.exports = {
+  getAllComments,
   getDoctorComments,
   getArticleComments,
   getServiceComments,
