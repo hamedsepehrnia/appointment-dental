@@ -289,7 +289,11 @@ const updateDoctor = async (req, res) => {
   if (req.file) {
     // Delete old image if exists
     if (currentDoctor.profileImage) {
-      const oldImagePath = path.join(process.cwd(), currentDoctor.profileImage);
+      // Remove leading slash if present to make it relative
+      const imagePath = currentDoctor.profileImage.startsWith('/')
+        ? currentDoctor.profileImage.slice(1)
+        : currentDoctor.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
@@ -409,9 +413,13 @@ const deleteDoctor = async (req, res) => {
 
   // Delete profile image if exists
   if (doctor.profileImage) {
-    const imagePath = path.join(process.cwd(), doctor.profileImage);
+    // Remove leading slash if present to make it relative
+    const imagePath = doctor.profileImage.startsWith('/')
+      ? doctor.profileImage.slice(1)
+      : doctor.profileImage;
+    const fullImagePath = path.join(process.cwd(), imagePath);
     try {
-      await fs.unlink(imagePath);
+      await fs.unlink(fullImagePath);
     } catch (err) {
       console.error("Error deleting image:", err);
     }
