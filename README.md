@@ -210,7 +210,8 @@ appointment-dental/
 │   │   ├── faqController.js
 │   │   ├── galleryController.js
 │   │   ├── settingsController.js
-│   │   └── insuranceController.js
+│   │   ├── insuranceController.js
+│   │   └── uploadController.js
 │   ├── middlewares/
 │   │   ├── auth.js          # Authentication middleware
 │   │   ├── csrf.js          # CSRF protection
@@ -230,6 +231,7 @@ appointment-dental/
 │   │   ├── galleryRoutes.js
 │   │   ├── settingsRoutes.js
 │   │   ├── insuranceRoutes.js
+│   │   ├── uploadRoutes.js
 │   │   └── index.js
 │   ├── services/
 │   │   └── smsService.js     # Kavenegar SMS
@@ -240,9 +242,12 @@ appointment-dental/
 ├── uploads/                 # فایل‌های آپلود شده
 │   ├── doctors/             # تصاویر پزشکان
 │   ├── gallery/             # تصاویر گالری
-│   └── images/              # تصاویر مقالات و خدمات
+│   ├── images/              # تصاویر مقالات، خدمات و CKEditor
+│   ├── documents/           # اسناد
+│   └── insurance/           # لوگوهای بیمه
 ├── logs/                    # فایل‌های لاگ
 ├── docs/                    # مستندات
+│   ├── CKEDITOR_UPLOAD.md   # راهنمای آپلود تصویر CKEditor
 ├── .env                     # متغیرهای محیطی
 ├── .gitignore
 ├── package.json
@@ -1056,6 +1061,34 @@ X-CSRF-Token: your-csrf-token
 PATCH /api/insurance/:id/toggle-status
 X-CSRF-Token: your-csrf-token
 ```
+
+---
+
+## Upload Endpoints
+
+### آپلود تصویر برای CKEditor
+
+```http
+POST /api/upload
+Content-Type: multipart/form-data
+
+file: <image-file>
+```
+
+**Response (200):**
+```json
+{
+  "url": "http://localhost:4000/uploads/images/file-1234567890-987654321.jpg"
+}
+```
+
+**نکات:**
+- این endpoint عمومی است و نیاز به authentication ندارد
+- فقط فایل‌های تصویری مجاز هستند (jpg, jpeg, png, webp)
+- حداکثر حجم فایل: 5MB (قابل تنظیم در `.env`)
+- فایل‌ها در `uploads/images/` ذخیره می‌شوند
+
+**مستندات کامل:** برای راهنمای کامل پیاده‌سازی در Frontend، به [مستندات CKEditor Upload](./docs/CKEDITOR_UPLOAD.md) مراجعه کنید.
 
 ---
 
