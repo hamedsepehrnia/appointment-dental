@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const uploadController = require('../controllers/uploadController');
-const upload = require('../middlewares/upload');
-const asyncHandler = require('../middlewares/asyncHandler');
+const uploadController = require("../controllers/uploadController");
+const upload = require("../middlewares/upload");
+const asyncHandler = require("../middlewares/asyncHandler");
 
 /**
  * @swagger
@@ -36,10 +36,30 @@ const asyncHandler = require('../middlewares/asyncHandler');
  *         description: Server error
  */
 router.post(
-  '/',
-  upload.single('file'),
+  "/",
+  (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+      if (err) {
+        // Handle multer errors
+        if (err.name === "MulterError") {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({
+              success: false,
+              message: "حجم فایل بیش از حد مجاز است",
+            });
+          }
+          return res.status(400).json({
+            success: false,
+            message: err.message || "خطا در آپلود فایل",
+          });
+        }
+        // Handle other errors (like AppError from fileFilter)
+        return next(err);
+      }
+      next();
+    });
+  },
   asyncHandler(uploadController.uploadImage)
 );
 
 module.exports = router;
-

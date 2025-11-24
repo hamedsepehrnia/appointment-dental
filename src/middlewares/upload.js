@@ -1,25 +1,31 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const { AppError } = require("./errorHandler");
 
 // Storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let uploadPath = 'uploads/';
-    
-    if (file.fieldname === 'profileImage') {
-      uploadPath += 'doctors/';
-    } else if (file.fieldname === 'coverImage') {
-      uploadPath += 'images/';
-    } else if (file.fieldname === 'galleryImage') {
-      uploadPath += 'gallery/';
-    } else if (file.fieldname === 'documents') {
-      uploadPath += 'documents/';
-    } else if (file.fieldname === 'logo') {
-      uploadPath += 'insurance/';
-    } else if (file.fieldname === 'upload' || file.fieldname === 'file') {
+    let uploadPath = "uploads/";
+
+    if (file.fieldname === "profileImage") {
+      uploadPath += "doctors/";
+    } else if (file.fieldname === "coverImage") {
+      uploadPath += "images/";
+    } else if (file.fieldname === "galleryImage") {
+      uploadPath += "gallery/";
+    } else if (file.fieldname === "documents") {
+      uploadPath += "documents/";
+    } else if (file.fieldname === "logo") {
+      uploadPath += "insurance/";
+    } else if (file.fieldname === "upload" || file.fieldname === "file") {
       // For CKEditor image uploads
-      uploadPath += 'images/';
+      uploadPath += "images/";
+    }
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
 
     cb(null, uploadPath);
