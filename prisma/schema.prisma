@@ -229,6 +229,11 @@ model Comment {
   serviceId String?  @map("service_id")
   service   Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   
+  // Reply relation - only replies to main comments (no nested replies)
+  parentId  String?  @map("parent_id")
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

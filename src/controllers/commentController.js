@@ -9,7 +9,7 @@ const getAllDoctorComments = async (req, res) => {
   const { page = 1, limit = 10, published, search } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = { doctorId: { not: null } };
+  const where = { doctorId: { not: null }, parentId: null };
 
   if (published !== undefined) {
     where.published = published === "true";
@@ -56,6 +56,17 @@ const getAllDoctorComments = async (req, res) => {
             lastName: true,
           },
         },
+        replies: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -76,7 +87,7 @@ const getAllArticleComments = async (req, res) => {
   const { page = 1, limit = 10, published, search } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = { articleId: { not: null } };
+  const where = { articleId: { not: null }, parentId: null };
 
   if (published !== undefined) {
     where.published = published === "true";
@@ -115,6 +126,17 @@ const getAllArticleComments = async (req, res) => {
             title: true,
           },
         },
+        replies: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -135,7 +157,7 @@ const getAllServiceComments = async (req, res) => {
   const { page = 1, limit = 10, published, search } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = { serviceId: { not: null } };
+  const where = { serviceId: { not: null }, parentId: null };
 
   if (published !== undefined) {
     where.published = published === "true";
@@ -174,6 +196,17 @@ const getAllServiceComments = async (req, res) => {
             title: true,
           },
         },
+        replies: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -205,6 +238,14 @@ const getDoctorComments = async (req, res) => {
     where.published = true;
   }
 
+  // Only get main comments (not replies)
+  where.parentId = null;
+
+  // Filter replies by published status for non-admin users
+  const isAdminOrSecretary =
+    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
+  const repliesWhere = isAdminOrSecretary ? {} : { published: true };
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
       where,
@@ -216,6 +257,18 @@ const getDoctorComments = async (req, res) => {
             firstName: true,
             lastName: true,
           },
+        },
+        replies: {
+          where: repliesWhere,
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -248,6 +301,14 @@ const getArticleComments = async (req, res) => {
     where.published = true;
   }
 
+  // Only get main comments (not replies)
+  where.parentId = null;
+
+  // Filter replies by published status for non-admin users
+  const isAdminOrSecretary =
+    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
+  const repliesWhere = isAdminOrSecretary ? {} : { published: true };
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
       where,
@@ -259,6 +320,18 @@ const getArticleComments = async (req, res) => {
             firstName: true,
             lastName: true,
           },
+        },
+        replies: {
+          where: repliesWhere,
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -291,6 +364,14 @@ const getServiceComments = async (req, res) => {
     where.published = true;
   }
 
+  // Only get main comments (not replies)
+  where.parentId = null;
+
+  // Filter replies by published status for non-admin users
+  const isAdminOrSecretary =
+    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
+  const repliesWhere = isAdminOrSecretary ? {} : { published: true };
+
   const [comments, total] = await Promise.all([
     prisma.comment.findMany({
       where,
@@ -302,6 +383,18 @@ const getServiceComments = async (req, res) => {
             firstName: true,
             lastName: true,
           },
+        },
+        replies: {
+          where: repliesWhere,
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -452,6 +545,66 @@ const createServiceComment = async (req, res) => {
 };
 
 /**
+ * Reply to a comment (Authenticated users)
+ * Only replies to main comments (no nested replies)
+ */
+const replyToComment = async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  // Find the parent comment
+  const parentComment = await prisma.comment.findUnique({
+    where: { id },
+  });
+
+  if (!parentComment) {
+    throw new AppError("نظر یافت نشد", 404);
+  }
+
+  // Only allow replies to main comments (not to replies)
+  if (parentComment.parentId) {
+    throw new AppError("فقط به کامنت اصلی می‌توان پاسخ داد", 400);
+  }
+
+  // Create reply with same entity reference as parent
+  const reply = await prisma.comment.create({
+    data: {
+      content,
+      userId: req.session.userId,
+      parentId: id,
+      // Copy entity reference from parent
+      doctorId: parentComment.doctorId,
+      articleId: parentComment.articleId,
+      serviceId: parentComment.serviceId,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      parent: {
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "پاسخ شما با موفقیت ثبت شد",
+    data: { reply },
+  });
+};
+
+/**
  * Update comment (Owner or Admin)
  */
 const updateComment = async (req, res) => {
@@ -587,6 +740,7 @@ module.exports = {
   createDoctorComment,
   createArticleComment,
   createServiceComment,
+  replyToComment,
   updateComment,
   toggleCommentStatus,
   deleteComment,
