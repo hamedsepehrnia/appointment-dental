@@ -50,6 +50,13 @@ const getArticles = async (req, res) => {
     ];
   }
 
+  // Build category filter for select based on user role
+  const categorySelectFilter = {};
+  // Only show published categories to non-admin/secretary users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    categorySelectFilter.published = true;
+  }
+
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
       where,
@@ -65,6 +72,9 @@ const getArticles = async (req, res) => {
         author: true,
         published: true,
         categories: {
+          where: {
+            category: categorySelectFilter,
+          },
           select: {
             category: {
               select: {
@@ -102,6 +112,13 @@ const getArticles = async (req, res) => {
 const getArticle = async (req, res) => {
   const { identifier } = req.params;
 
+  // Build category filter based on user role
+  const categoryFilter = {};
+  // Only show published categories to non-admin/secretary users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    categoryFilter.published = true;
+  }
+
   // Try to find by slug first, then by ID
   const article = await prisma.article.findFirst({
     where: {
@@ -112,6 +129,9 @@ const getArticle = async (req, res) => {
     },
     include: {
       categories: {
+        where: {
+          category: categoryFilter,
+        },
         select: {
           category: {
             select: {
