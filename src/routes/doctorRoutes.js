@@ -43,6 +43,7 @@ router.post(
       university: Joi.string().required().messages({
         'any.required': 'دانشگاه الزامی است',
       }),
+      shortDescription: Joi.string().allow(''),
       biography: Joi.string().allow(''),
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string().required().messages({
@@ -75,6 +76,7 @@ router.patch(
       firstName: Joi.string(),
       lastName: Joi.string(),
       university: Joi.string(),
+      shortDescription: Joi.string().allow(''),
       biography: Joi.string().allow(''),
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string(),

@@ -73,6 +73,7 @@ model Doctor {
   lastName          String   @map("last_name")
   slug              String   @unique
   profileImage      String?  @map("profile_image")
+  shortDescription  String?  @db.Text @map("short_description") // توضیحات کوتاه پزشک
   university        String
   biography         String?  @db.Text
   skills            String[] // Array of skills
