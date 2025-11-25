@@ -1,0 +1,385 @@
+### Dental Appointment API - REST Client File
+### Use this file with VS Code REST Client extension
+### Change the baseUrl if needed
+
+@baseUrl = http://localhost:4000/api
+
+###############################################
+# AUTHENTICATION
+###############################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Login with Password (Admin/Secretary)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "phoneNumber": "09123456789",
+  "password": "your-password"
+}
+
+### Request OTP (Patient or Admin/Secretary)
+POST {{baseUrl}}/auth/request-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "09123456789"
+}
+
+### Verify OTP (Login/Register)
+POST {{baseUrl}}/auth/verify-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "09123456789",
+  "code": "12345",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+### Get Current User
+GET {{baseUrl}}/auth/me
+
+### Update Profile
+PATCH {{baseUrl}}/auth/me
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "nationalCode": "1234567890",
+  "address": "Tehran, Iran",
+  "gender": "MALE"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+
+###############################################
+# CLINICS
+###############################################
+
+### Get All Clinics
+GET {{baseUrl}}/clinics?page=1&limit=10
+
+### Get Single Clinic
+GET {{baseUrl}}/clinics/clinic-uuid-here
+
+### Create Clinic (Admin only)
+POST {{baseUrl}}/clinics
+Content-Type: application/json
+
+{
+  "name": "Dental Clinic 1",
+  "address": "Tehran, Vanak Square",
+  "phoneNumber": "02188776655",
+  "description": "A professional dental clinic"
+}
+
+### Update Clinic (Admin/Secretary)
+PATCH {{baseUrl}}/clinics/clinic-uuid-here
+Content-Type: application/json
+
+{
+  "name": "Updated Clinic Name",
+  "description": "Updated description"
+}
+
+### Delete Clinic (Admin only)
+DELETE {{baseUrl}}/clinics/clinic-uuid-here
+
+###############################################
+# DOCTORS
+###############################################
+
+### Get All Doctors
+GET {{baseUrl}}/doctors?page=1&limit=10
+
+### Get Doctors by Clinic
+GET {{baseUrl}}/doctors?clinicId=clinic-uuid-here
+
+### Get Single Doctor
+GET {{baseUrl}}/doctors/doctor-uuid-here
+
+### Create Doctor (Admin/Secretary) - multipart/form-data
+# Note: Use Postman or Thunder Client for file uploads
+POST {{baseUrl}}/doctors
+Content-Type: application/json
+
+{
+  "firstName": "Ali",
+  "lastName": "Ahmadi",
+  "university": "Tehran University of Medical Sciences",
+  "biography": "Experienced dentist with 10+ years",
+  "skills": ["Orthodontics", "Implants", "Root Canal"],
+  "medicalLicenseNo": "12345",
+  "clinicIds": ["clinic-uuid-1", "clinic-uuid-2"],
+  "workingDays": {
+    "saturday": "14:00-15:00",
+    "sunday": null,
+    "monday": null,
+    "tuesday": null,
+    "wednesday": null,
+    "thursday": null,
+    "friday": "15:00-17:00"
+  }
+}
+
+### Update Doctor (Admin/Secretary)
+PATCH {{baseUrl}}/doctors/doctor-uuid-here
+Content-Type: application/json
+
+{
+  "biography": "Updated biography",
+  "skills": ["Orthodontics", "Implants"],
+  "workingDays": {
+    "saturday": "14:00-15:00",
+    "sunday": null,
+    "monday": null,
+    "tuesday": null,
+    "wednesday": null,
+    "thursday": null,
+    "friday": "15:00-17:00"
+  }
+}
+
+### Delete Doctor (Admin only)
+DELETE {{baseUrl}}/doctors/doctor-uuid-here
+
+###############################################
+# ARTICLES
+###############################################
+
+### Get All Articles (Published)
+GET {{baseUrl}}/articles?page=1&limit=10&published=true
+
+### Get All Articles (Admin/Secretary - including drafts)
+GET {{baseUrl}}/articles?page=1&limit=10
+
+### Get Single Article (by slug or ID)
+GET {{baseUrl}}/articles/article-slug-or-uuid
+
+### Create Article (Admin/Secretary)
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "title": "How to Care for Your Teeth",
+  "content": "Complete guide about dental care...",
+  "excerpt": "Short summary of the article",
+  "published": true
+}
+
+### Update Article (Admin/Secretary)
+PATCH {{baseUrl}}/articles/article-uuid-here
+Content-Type: application/json
+
+{
+  "title": "Updated Title",
+  "published": false
+}
+
+### Delete Article (Admin/Secretary)
+DELETE {{baseUrl}}/articles/article-uuid-here
+
+###############################################
+# SERVICES
+###############################################
+
+### Get All Services
+GET {{baseUrl}}/services?page=1&limit=10
+
+### Get Single Service (by slug or ID)
+GET {{baseUrl}}/services/service-slug-or-uuid
+
+### Create Service (Admin/Secretary)
+POST {{baseUrl}}/services
+Content-Type: application/json
+
+{
+  "title": "Teeth Whitening",
+  "description": "Professional teeth whitening service",
+  "beforeTreatmentTips": "Avoid eating 2 hours before",
+  "afterTreatmentTips": "Don't eat colored foods for 24h",
+  "price": 5000000,
+  "durationMinutes": 60
+}
+
+### Update Service (Admin/Secretary)
+PATCH {{baseUrl}}/services/service-uuid-here
+Content-Type: application/json
+
+{
+  "price": 6000000,
+  "durationMinutes": 90
+}
+
+### Delete Service (Admin/Secretary)
+DELETE {{baseUrl}}/services/service-uuid-here
+
+###############################################
+# COMMENTS
+###############################################
+
+### Get Doctor Comments
+GET {{baseUrl}}/comments/doctor/doctor-uuid-here?page=1&limit=10
+
+### Create Comment (Patient only)
+POST {{baseUrl}}/comments/doctor/doctor-uuid-here
+Content-Type: application/json
+
+{
+  "content": "Excellent doctor! Very professional and caring.",
+  "rating": 5
+}
+
+### Update Comment (Owner only)
+PATCH {{baseUrl}}/comments/comment-uuid-here
+Content-Type: application/json
+
+{
+  "content": "Updated comment text",
+  "rating": 4
+}
+
+### Delete Comment (Owner or Admin)
+DELETE {{baseUrl}}/comments/comment-uuid-here
+
+###############################################
+# SITE SETTINGS
+###############################################
+
+### Get All Settings (Public)
+GET {{baseUrl}}/settings
+
+### Get Social Media Links Only (Public)
+GET {{baseUrl}}/settings/social-media
+
+### Update All Settings (Admin)
+PATCH {{baseUrl}}/settings
+Content-Type: application/json
+
+{
+  "siteName": "My Dental Clinic",
+  "siteTitle": "Professional Dental Care",
+  "description": "Best dental services in town",
+  "email": "info@dentalclinic.com",
+  "phoneNumber": "02188776655",
+  "address": "Tehran, Vanak Square",
+  "workingHours": "Saturday to Thursday: 9AM - 8PM"
+}
+
+### Update Social Media Links (Admin)
+PATCH {{baseUrl}}/settings/social-media
+Content-Type: application/json
+
+{
+  "instagram": "https://instagram.com/dentalclinic",
+  "telegram": "https://t.me/dentalclinic",
+  "whatsapp": "989123456789",
+  "twitter": "https://twitter.com/dentalclinic",
+  "linkedin": "https://linkedin.com/company/dentalclinic",
+  "facebook": "https://facebook.com/dentalclinic",
+  "youtube": "https://youtube.com/@dentalclinic"
+}
+
+###############################################
+# FAQs (Frequently Asked Questions)
+###############################################
+
+### Get All FAQs (Public - Published only)
+GET {{baseUrl}}/faqs?page=1&limit=50
+
+### Get All FAQs (Admin - Including unpublished)
+GET {{baseUrl}}/faqs?published=false
+
+### Get Single FAQ
+GET {{baseUrl}}/faqs/faq-uuid-here
+
+### Create FAQ (Admin/Secretary)
+POST {{baseUrl}}/faqs
+Content-Type: application/json
+
+{
+  "question": "آیا نوبت‌دهی آنلاین رایگان است؟",
+  "answer": "بله، نوبت‌دهی آنلاین کاملاً رایگان است و شما می‌توانید به راحتی نوبت خود را از طریق سایت رزرو کنید.",
+  "order": 1,
+  "published": true
+}
+
+### Update FAQ (Admin/Secretary)
+PATCH {{baseUrl}}/faqs/faq-uuid-here
+Content-Type: application/json
+
+{
+  "question": "آیا نوبت‌دهی آنلاین رایگان است؟ (ویرایش شده)",
+  "answer": "بله، نوبت‌دهی آنلاین کاملاً رایگان است.",
+  "order": 2,
+  "published": false
+}
+
+### Delete FAQ (Admin/Secretary)
+DELETE {{baseUrl}}/faqs/faq-uuid-here
+
+### Reorder FAQs (Admin/Secretary)
+POST {{baseUrl}}/faqs/reorder
+Content-Type: application/json
+
+{
+  "faqs": [
+    { "id": "faq-uuid-1", "order": 1 },
+    { "id": "faq-uuid-2", "order": 2 },
+    { "id": "faq-uuid-3", "order": 3 }
+  ]
+}
+
+###############################################
+# GALLERY
+###############################################
+
+### Get All Gallery Images (Public - Published only)
+GET {{baseUrl}}/gallery?page=1&limit=20
+
+### Get All Gallery Images (Admin - Including unpublished)
+GET {{baseUrl}}/gallery?published=false
+
+### Get Single Gallery Image
+GET {{baseUrl}}/gallery/image-uuid-here
+
+### Upload Image to Gallery (Admin/Secretary)
+# Note: Use Postman/Thunder Client for multipart/form-data
+POST {{baseUrl}}/gallery
+# Body (form-data):
+# galleryImage: [Select File]
+# title: Beautiful Smile
+# description: Our patient after teeth whitening
+# order: 1
+# published: true
+
+### Update Gallery Image (Admin/Secretary)
+# Can update info or replace image
+PATCH {{baseUrl}}/gallery/image-uuid-here
+# Body (form-data):
+# title: Updated Title
+# description: Updated description
+# order: 2
+# published: false
+# galleryImage: [Select New File - Optional]
+
+### Delete Gallery Image (Admin/Secretary)
+DELETE {{baseUrl}}/gallery/image-uuid-here
+
+### Reorder Gallery Images (Admin/Secretary)
+POST {{baseUrl}}/gallery/reorder
+Content-Type: application/json
+
+{
+  "images": [
+    { "id": "image-uuid-1", "order": 1 },
+    { "id": "image-uuid-2", "order": 2 },
+    { "id": "image-uuid-3", "order": 3 }
+  ]
+}
+
