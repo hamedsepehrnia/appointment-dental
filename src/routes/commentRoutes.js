@@ -15,6 +15,7 @@ router.get(
   validate(
     schemas.pagination.keys({
       published: Joi.string().valid('true', 'false'),
+      search: Joi.string().optional(),
     }),
     'query'
   ),
@@ -28,6 +29,7 @@ router.get(
   validate(
     schemas.pagination.keys({
       published: Joi.string().valid('true', 'false'),
+      search: Joi.string().optional(),
     }),
     'query'
   ),
@@ -41,6 +43,7 @@ router.get(
   validate(
     schemas.pagination.keys({
       published: Joi.string().valid('true', 'false'),
+      search: Joi.string().optional(),
     }),
     'query'
   ),
@@ -131,6 +134,23 @@ router.post(
     })
   ),
   asyncHandler(commentController.createServiceComment)
+);
+
+// Reply to comment (Authenticated users)
+router.post(
+  '/:id/reply',
+  isAuthenticated,
+  csrfProtection,
+  validate(
+    Joi.object({
+      content: Joi.string().required().min(10).max(1000).messages({
+        'any.required': 'متن پاسخ الزامی است',
+        'string.min': 'پاسخ باید حداقل ۱۰ کاراکتر باشد',
+        'string.max': 'پاسخ نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
+      }),
+    })
+  ),
+  asyncHandler(commentController.replyToComment)
 );
 
 // Update comment (Owner or Admin)

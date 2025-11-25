@@ -18,7 +18,7 @@ const getClinics = async (req, res) => {
           select: { doctors: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.clinic.count(),
   ]);
@@ -65,7 +65,7 @@ const getClinic = async (req, res) => {
   });
 
   if (!clinic) {
-    throw new AppError('کلینیک یافت نشد', 404);
+    throw new AppError("کلینیک یافت نشد", 404);
   }
 
   res.json({
@@ -112,7 +112,7 @@ const createClinic = async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'کلینیک با موفقیت ایجاد شد',
+    message: "کلینیک با موفقیت ایجاد شد",
     data: { clinic },
   });
 };
@@ -122,17 +122,18 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const { name, address, phoneNumber, description, latitude, longitude } = req.body;
+  const { name, address, phoneNumber, description, latitude, longitude } =
+    req.body;
 
   // If secretary, check if they belong to this clinic
-  if (req.session.userRole === 'SECRETARY') {
+  if (req.session.userRole === "SECRETARY") {
     const user = await prisma.user.findUnique({
       where: { id: req.session.userId },
       select: { clinicId: true },
     });
 
     if (user.clinicId !== id) {
-      throw new AppError('شما دسترسی لازم را ندارید', 403);
+      throw new AppError("شما دسترسی لازم را ندارید", 403);
     }
   }
 
@@ -145,9 +146,11 @@ const updateClinic = async (req, res) => {
     let counter = 1;
 
     // Ensure slug is unique
-    while (await prisma.clinic.findFirst({ 
-      where: { slug, id: { not: id } } 
-    })) {
+    while (
+      await prisma.clinic.findFirst({
+        where: { slug, id: { not: id } },
+      })
+    ) {
       slug = `${baseSlug}-${counter}`;
       counter++;
     }
@@ -157,10 +160,12 @@ const updateClinic = async (req, res) => {
   let parsedLatitude = undefined;
   let parsedLongitude = undefined;
   if (latitude !== undefined) {
-    parsedLatitude = latitude === null || latitude === '' ? null : parseFloat(latitude);
+    parsedLatitude =
+      latitude === null || latitude === "" ? null : parseFloat(latitude);
   }
   if (longitude !== undefined) {
-    parsedLongitude = longitude === null || longitude === '' ? null : parseFloat(longitude);
+    parsedLongitude =
+      longitude === null || longitude === "" ? null : parseFloat(longitude);
   }
 
   // Normalize phone number if provided
@@ -184,7 +189,7 @@ const updateClinic = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'کلینیک با موفقیت به‌روزرسانی شد',
+    message: "کلینیک با موفقیت به‌روزرسانی شد",
     data: { clinic },
   });
 };
@@ -201,7 +206,7 @@ const deleteClinic = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'کلینیک با موفقیت حذف شد',
+    message: "کلینیک با موفقیت حذف شد",
   });
 };
 
@@ -212,4 +217,3 @@ module.exports = {
   updateClinic,
   deleteClinic,
 };
-

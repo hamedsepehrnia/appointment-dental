@@ -17,23 +17,27 @@
 ## ✨ ویژگی‌ها
 
 ### مدیریت کاربران
+
 - سیستم احراز هویت با دو روش: رمز عبور (Admin/Secretary) و OTP (همه کاربران)
 - سه نقش کاربری: مدیر، منشی، بیمار
 - مدیریت پروفایل کاربران
 - تنظیمات session با PostgreSQL store
 
 ### مدیریت کلینیک‌ها
+
 - ثبت و مدیریت اطلاعات کلینیک‌ها
 - اختصاص منشی به هر کلینیک (رابطه Many-to-One)
 - مدیریت دسترسی‌های ویرایش توسط منشی
 
 ### مدیریت پزشکان
+
 - ثبت اطلاعات کامل پزشکان (نام، دانشگاه، بیوگرافی، مهارت‌ها)
 - آپلود تصویر پروفایل
 - ارتباط با چندین کلینیک (Many-to-Many)
 - جستجو و فیلتر بر اساس کلینیک
 
 ### سیستم مقالات
+
 - ایجاد، ویرایش و حذف مقالات
 - حالت پیش‌نویس و منتشرشده
 - آپلود تصویر کاور
@@ -41,12 +45,14 @@
 - جستجو و فیلتر بر اساس وضعیت انتشار
 
 ### مدیریت خدمات
+
 - ثبت خدمات دندانپزشکی با تعرفه و مدت زمان
 - توصیه‌های قبل و بعد از درمان
 - آپلود تصویر کاور
 - سیستم slug برای URL‌های SEO-friendly
 
 ### سیستم نظرات
+
 - ثبت نظر و امتیاز برای پزشکان، مقالات و خدمات
 - محاسبه خودکار میانگین امتیاز
 - مدیریت نظرات توسط کاربران (ویرایش/حذف)
@@ -54,23 +60,27 @@
 - نمایش لیست نظرات با pagination
 
 ### مدیریت سوالات متداول (FAQ)
+
 - ایجاد و مدیریت FAQ
 - ترتیب‌بندی قابل تنظیم
 - حالت منتشرشده/پیش‌نویس
 - سیستم reorder برای تغییر ترتیب
 
 ### مدیریت گالری
+
 - آپلود تصاویر گالری
 - مدیریت عنوان، توضیحات و ترتیب
 - حالت منتشرشده/پیش‌نویس
 - سیستم reorder برای تغییر ترتیب
 
 ### مدیریت تنظیمات
+
 - تنظیمات عمومی سایت (نام، لوگو، آدرس، تماس)
 - مدیریت لینک‌های شبکه‌های اجتماعی
 - تنظیمات ساعات کاری
 
 ### مدیریت سازمان‌های بیمه
+
 - ثبت و مدیریت سازمان‌های بیمه تحت پوشش
 - امکان فعال/غیرفعال کردن سازمان‌ها
 - ترتیب‌بندی سازمان‌ها
@@ -210,7 +220,8 @@ appointment-dental/
 │   │   ├── faqController.js
 │   │   ├── galleryController.js
 │   │   ├── settingsController.js
-│   │   └── insuranceController.js
+│   │   ├── insuranceController.js
+│   │   └── uploadController.js
 │   ├── middlewares/
 │   │   ├── auth.js          # Authentication middleware
 │   │   ├── csrf.js          # CSRF protection
@@ -230,6 +241,7 @@ appointment-dental/
 │   │   ├── galleryRoutes.js
 │   │   ├── settingsRoutes.js
 │   │   ├── insuranceRoutes.js
+│   │   ├── uploadRoutes.js
 │   │   └── index.js
 │   ├── services/
 │   │   └── smsService.js     # Kavenegar SMS
@@ -240,9 +252,12 @@ appointment-dental/
 ├── uploads/                 # فایل‌های آپلود شده
 │   ├── doctors/             # تصاویر پزشکان
 │   ├── gallery/             # تصاویر گالری
-│   └── images/              # تصاویر مقالات و خدمات
+│   ├── images/              # تصاویر مقالات، خدمات و CKEditor
+│   ├── documents/           # اسناد
+│   └── insurance/           # لوگوهای بیمه
 ├── logs/                    # فایل‌های لاگ
 ├── docs/                    # مستندات
+│   ├── CKEDITOR_UPLOAD.md   # راهنمای آپلود تصویر CKEditor
 ├── .env                     # متغیرهای محیطی
 ├── .gitignore
 ├── package.json
@@ -286,6 +301,7 @@ Content-Type: application/json
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -313,6 +329,7 @@ GET /api/auth/csrf-token
 **نکته:** این endpoint نیاز به احراز هویت دارد. برای درخواست‌های POST/PATCH/DELETE باید از این token استفاده کنید.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -323,6 +340,7 @@ GET /api/auth/csrf-token
 ```
 
 **استفاده:** در header درخواست‌های بعدی این token را ارسال کنید:
+
 ```
 X-CSRF-Token: csrf-token-here
 ```
@@ -339,6 +357,7 @@ Content-Type: application/json
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -361,6 +380,7 @@ Content-Type: application/json
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -393,6 +413,7 @@ GET /api/auth/me
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -438,6 +459,7 @@ GET /api/clinics?page=1&limit=10
 ```
 
 **Query Parameters:**
+
 - `page` (optional): شماره صفحه (default: 1)
 - `limit` (optional): تعداد در هر صفحه (default: 10)
 
@@ -497,6 +519,7 @@ GET /api/doctors?page=1&limit=10&clinicId=uuid
 ```
 
 **Query Parameters:**
+
 - `page` (optional): شماره صفحه
 - `limit` (optional): تعداد در هر صفحه
 - `clinicId` (optional): فیلتر بر اساس کلینیک
@@ -561,6 +584,7 @@ GET /api/articles?page=1&limit=10&published=true
 ```
 
 **Query Parameters:**
+
 - `page` (optional): شماره صفحه
 - `limit` (optional): تعداد در هر صفحه
 - `published` (optional): true/false برای فیلتر مقالات منتشر شده
@@ -922,6 +946,7 @@ GET /api/settings
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -1059,6 +1084,36 @@ X-CSRF-Token: your-csrf-token
 
 ---
 
+## Upload Endpoints
+
+### آپلود تصویر برای CKEditor
+
+```http
+POST /api/upload
+Content-Type: multipart/form-data
+
+file: <image-file>
+```
+
+**Response (200):**
+
+```json
+{
+  "url": "http://localhost:4000/uploads/images/file-1234567890-987654321.jpg"
+}
+```
+
+**نکات:**
+
+- این endpoint عمومی است و نیاز به authentication ندارد
+- فقط فایل‌های تصویری مجاز هستند (jpg, jpeg, png, webp)
+- حداکثر حجم فایل: 5MB (قابل تنظیم در `.env`)
+- فایل‌ها در `uploads/images/` ذخیره می‌شوند
+
+**مستندات کامل:** برای راهنمای کامل پیاده‌سازی در Frontend، به [مستندات CKEditor Upload](./docs/CKEDITOR_UPLOAD.md) مراجعه کنید.
+
+---
+
 ## Health Check
 
 ### بررسی وضعیت سرور
@@ -1068,6 +1123,7 @@ GET /api/health
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -1123,6 +1179,7 @@ POST /api/auth/login
 ### مدیر (ADMIN)
 
 **دسترسی‌ها:**
+
 - دسترسی کامل به تمام بخش‌ها
 - ایجاد/حذف کلینیک
 - ایجاد/حذف پزشک
@@ -1133,10 +1190,12 @@ POST /api/auth/login
 - حذف نظرات
 
 **روش ورود:**
+
 - Password Login
 - OTP Login
 
 **ساخت اکانت:**
+
 ```bash
 npm run create:admin
 ```
@@ -1144,6 +1203,7 @@ npm run create:admin
 ### منشی (SECRETARY)
 
 **دسترسی‌ها:**
+
 - مربوط به یک کلینیک خاص
 - ویرایش اطلاعات کلینیک خود
 - ایجاد/ویرایش پزشک
@@ -1151,10 +1211,12 @@ npm run create:admin
 - مدیریت سوالات متداول و گالری
 
 **روش ورود:**
+
 - Password Login (پیشنهادی)
 - OTP Login
 
 **ساخت اکانت:**
+
 ```bash
 npm run create:secretary
 ```
@@ -1162,15 +1224,18 @@ npm run create:secretary
 ### بیمار (PATIENT)
 
 **دسترسی‌ها:**
+
 - مشاهده اطلاعات عمومی
 - ثبت نظر برای پزشکان، مقالات و خدمات
 - مدیریت پروفایل خود
 - (آینده) رزرو نوبت
 
 **روش ورود:**
+
 - OTP Login (فقط)
 
 **ساخت اکانت:**
+
 - خودکار هنگام اولین ورود با OTP
 
 ---
@@ -1182,6 +1247,7 @@ npm run create:secretary
 تمام درخواست‌های POST, PATCH, DELETE نیاز به CSRF token دارند:
 
 1. ابتدا CSRF token را دریافت کنید:
+
    ```http
    GET /api/auth/csrf-token
    ```
@@ -1194,9 +1260,11 @@ npm run create:secretary
 ### Rate Limiting
 
 **محدودیت‌های عمومی:**
+
 - همه endpoints: 100 درخواست در 15 دقیقه
 
 **محدودیت‌های Authentication:**
+
 - Request OTP: 5 درخواست در 15 دقیقه
 - Verify OTP: 10 درخواست در 15 دقیقه
 - Login: 10 درخواست در 15 دقیقه
@@ -1206,6 +1274,7 @@ npm run create:secretary
 ### Security Headers
 
 سیستم از Helmet برای تنظیمات امنیتی استفاده می‌کند:
+
 - Content Security Policy (CSP)
 - HSTS (HTTP Strict Transport Security)
 - XSS Protection

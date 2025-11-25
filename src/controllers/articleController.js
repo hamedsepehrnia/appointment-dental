@@ -83,10 +83,10 @@ const getArticles = async (req, res) => {
     prisma.article.count({ where }),
   ]);
 
-  // Transform categories to simpler format
+  // Transform categories to simpler format - ensure it's always an array
   const transformedArticles = articles.map(article => ({
     ...article,
-    categories: article.categories.map(rel => rel.category),
+    categories: (article.categories || []).map(rel => rel.category),
   }));
 
   res.json({
@@ -125,14 +125,12 @@ const getArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  if (article) {
-    article.categories = article.categories.map(rel => rel.category);
-  }
-
   if (!article) {
     throw new AppError('مقاله یافت نشد', 404);
   }
+
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   // Check if article is published (for non-admin/secretary)
   if (!article.published && req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
@@ -209,8 +207,8 @@ const createArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  article.categories = article.categories.map(rel => rel.category);
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   res.status(201).json({
     success: true,
@@ -318,8 +316,8 @@ const updateArticle = async (req, res) => {
     },
   });
 
-  // Transform categories
-  article.categories = article.categories.map(rel => rel.category);
+  // Transform categories - ensure it's always an array
+  article.categories = (article.categories || []).map(rel => rel.category);
 
   res.json({
     success: true,
@@ -362,11 +360,33 @@ const deleteArticle = async (req, res) => {
   });
 };
 
+/**
+ * Upload image for article content (CKEditor) (Admin/Secretary)
+ */
+const uploadContentImage = async (req, res) => {
+  if (!req.file) {
+    throw new AppError('لطفاً یک تصویر انتخاب کنید', 400);
+  }
+
+  const imageUrl = `/uploads/images/${req.file.filename}`;
+  // استفاده از URL نسبی برای سازگاری با production
+  // فرانت‌اند این URL را به URL کامل تبدیل می‌کند
+  const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+
+  // CKEditor expects a specific response format
+  // برگرداندن URL کامل برای CKEditor (که در ادیتور نیاز دارد)
+  // اما در نمایش، فرانت‌اند URL را تبدیل می‌کند
+  res.json({
+    url: fullImageUrl,
+  });
+};
+
 module.exports = {
   getArticles,
   getArticle,
   createArticle,
   updateArticle,
   deleteArticle,
+  uploadContentImage,
 };
 

@@ -40,7 +40,10 @@ router.post(
       website: Joi.string().uri().allow(''),
       phoneNumber: Joi.string().allow(''),
       email: Joi.string().email().allow(''),
-      published: Joi.string().valid('true', 'false'),
+      published: Joi.alternatives().try(
+        Joi.boolean(),
+        Joi.string().valid('true', 'false').custom((value) => value === 'true')
+      ),
       order: Joi.number().integer().min(0),
     })
   ),
@@ -61,7 +64,10 @@ router.patch(
       website: Joi.string().uri().allow(''),
       phoneNumber: Joi.string().allow(''),
       email: Joi.string().email().allow(''),
-      published: Joi.string().valid('true', 'false'),
+      published: Joi.alternatives().try(
+        Joi.boolean(),
+        Joi.string().valid('true', 'false').custom((value) => value === 'true')
+      ),
       order: Joi.number().integer().min(0),
     })
   ),
