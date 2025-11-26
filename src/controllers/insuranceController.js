@@ -9,7 +9,8 @@ const getInsuranceOrganizations = async (req, res) => {
   const { page = 1, limit = 10, published = true } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = published === 'true' ? { published: true } : {};
+  // Handle both string and boolean values for published parameter
+  const where = (published === 'true' || published === true) ? { published: true } : {};
 
   const [organizations, total] = await Promise.all([
     prisma.insuranceOrganization.findMany({
