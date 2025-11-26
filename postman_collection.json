@@ -2,7 +2,7 @@
   "info": {
     "name": "Dental Appointment API",
     "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.",
-    "version": "2.4.0",
+    "version": "2.5.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -151,6 +151,253 @@
               "host": ["{{baseUrl}}"],
               "path": ["auth", "logout"]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "مدیریت کاربران - فقط برای ادمین",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=10&role=&search=&clinicId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "فیلتر بر اساس نقش: ADMIN, SECRETARY, PATIENT",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "جستجو در نام، نام خانوادگی، شماره تلفن و کد ملی",
+                  "disabled": true
+                },
+                {
+                  "key": "clinicId",
+                  "value": "",
+                  "description": "فیلتر بر اساس کلینیک",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "دریافت لیست کاربران (نیاز به احراز هویت Admin)"
+          }
+        },
+        {
+          "name": "Get Single User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"]
+            },
+            "description": "دریافت اطلاعات یک کاربر (نیاز به احراز هویت Admin)"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "description": "Get CSRF token first from /auth/csrf-token"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "phoneNumber",
+                  "value": "09123456789",
+                  "type": "text",
+                  "description": "شماره تلفن (الزامی)"
+                },
+                {
+                  "key": "firstName",
+                  "value": "احمد",
+                  "type": "text",
+                  "description": "نام (الزامی)"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text",
+                  "description": "نام خانوادگی (الزامی)"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "description": "رمز عبور (الزامی، حداقل ۸ کاراکتر)"
+                },
+                {
+                  "key": "role",
+                  "value": "PATIENT",
+                  "type": "text",
+                  "description": "نقش کاربر: ADMIN, SECRETARY, PATIENT (پیش‌فرض: PATIENT)"
+                },
+                {
+                  "key": "nationalCode",
+                  "value": "1234567890",
+                  "type": "text",
+                  "description": "کد ملی (اختیاری)"
+                },
+                {
+                  "key": "address",
+                  "value": "تهران، خیابان ولیعصر",
+                  "type": "text",
+                  "description": "آدرس (اختیاری)"
+                },
+                {
+                  "key": "gender",
+                  "value": "MALE",
+                  "type": "text",
+                  "description": "جنسیت: MALE, FEMALE, OTHER (اختیاری)"
+                },
+                {
+                  "key": "clinicId",
+                  "value": "",
+                  "type": "text",
+                  "description": "شناسه کلینیک (اختیاری، برای منشی)",
+                  "disabled": true
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": [],
+                  "description": "تصویر پروفایل (اختیاری)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "ایجاد کاربر جدید (نیاز به احراز هویت Admin)"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "phoneNumber",
+                  "value": "09123456789",
+                  "type": "text",
+                  "description": "شماره تلفن (اختیاری)"
+                },
+                {
+                  "key": "firstName",
+                  "value": "احمد",
+                  "type": "text",
+                  "description": "نام (اختیاری)"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text",
+                  "description": "نام خانوادگی (اختیاری)"
+                },
+                {
+                  "key": "password",
+                  "value": "newpassword123",
+                  "type": "text",
+                  "description": "رمز عبور جدید (اختیاری، حداقل ۸ کاراکتر)"
+                },
+                {
+                  "key": "role",
+                  "value": "PATIENT",
+                  "type": "text",
+                  "description": "نقش کاربر: ADMIN, SECRETARY, PATIENT (اختیاری)"
+                },
+                {
+                  "key": "nationalCode",
+                  "value": "1234567890",
+                  "type": "text",
+                  "description": "کد ملی (اختیاری)"
+                },
+                {
+                  "key": "address",
+                  "value": "تهران، خیابان ولیعصر",
+                  "type": "text",
+                  "description": "آدرس (اختیاری)"
+                },
+                {
+                  "key": "gender",
+                  "value": "MALE",
+                  "type": "text",
+                  "description": "جنسیت: MALE, FEMALE, OTHER (اختیاری)"
+                },
+                {
+                  "key": "clinicId",
+                  "value": "",
+                  "type": "text",
+                  "description": "شناسه کلینیک (اختیاری، برای منشی)",
+                  "disabled": true
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": [],
+                  "description": "تصویر پروفایل جدید (اختیاری)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"]
+            },
+            "description": "ویرایش کاربر (نیاز به احراز هویت Admin)"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"]
+            },
+            "description": "حذف کاربر (نیاز به احراز هویت Admin) - نمی‌توانید خودتان را حذف کنید"
           }
         }
       ]
