@@ -2,16 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const userController = require('../controllers/userController');
-const { isAdmin } = require('../middlewares/auth');
+const { isAdminOrSecretary } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const upload = require('../middlewares/upload');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
 
-// Get all users (Admin only)
+// Get all users (Admin/Secretary)
 router.get(
   '/',
-  isAdmin,
+  isAdminOrSecretary,
   validate(
     schemas.pagination.keys({
       role: Joi.string().valid('ADMIN', 'SECRETARY', 'PATIENT'),
@@ -23,10 +23,10 @@ router.get(
   asyncHandler(userController.getUsers)
 );
 
-// Get single user by ID (Admin only)
+// Get single user by ID (Admin/Secretary)
 router.get(
   '/:id',
-  isAdmin,
+  isAdminOrSecretary,
   validate(
     Joi.object({
       id: schemas.id,
@@ -36,10 +36,10 @@ router.get(
   asyncHandler(userController.getUser)
 );
 
-// Create user (Admin only)
+// Create user (Admin/Secretary)
 router.post(
   '/',
-  isAdmin,
+  isAdminOrSecretary,
   csrfProtection,
   upload.single('profileImage'),
   validate(
@@ -69,10 +69,10 @@ router.post(
   asyncHandler(userController.createUser)
 );
 
-// Update user (Admin only)
+// Update user (Admin/Secretary)
 router.patch(
   '/:id',
-  isAdmin,
+  isAdminOrSecretary,
   csrfProtection,
   upload.single('profileImage'),
   validate(
@@ -97,10 +97,10 @@ router.patch(
   asyncHandler(userController.updateUser)
 );
 
-// Delete user (Admin only)
+// Delete user (Admin/Secretary)
 router.delete(
   '/:id',
-  isAdmin,
+  isAdminOrSecretary,
   csrfProtection,
   validate(
     Joi.object({

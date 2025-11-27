@@ -6,12 +6,12 @@ const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('.
  * Get all insurance organizations (Public)
  */
 const getInsuranceOrganizations = async (req, res) => {
-  const { page = 1, limit = 10, published } = req.query;
-  const { skip, take } = paginate(page, limit);
+  // Convert query params to numbers (they come as strings)
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const { published } = req.query;
   
-  // FIX: Convert to numbers (query params are strings)
-  const skipNum = parseInt(skip) || 0;
-  const takeNum = parseInt(take) || 10;
+  const { skip, take } = paginate(page, limit);
 
   const where = {};
   
@@ -26,21 +26,11 @@ const getInsuranceOrganizations = async (req, res) => {
     where.published = published === 'true' || published === true || published === '1';
   }
 
-  // Debug log (بعداً حذف کنید)
-  console.log('Insurance Query:', {
-    isAdminOrSecretary,
-    userRole: req.session?.userRole,
-    publishedParam: published,
-    where,
-    skip: skipNum,
-    take: takeNum
-  });
-
   const [organizations, total] = await Promise.all([
     prisma.insuranceOrganization.findMany({
       where,
-      skip: skipNum,
-      take: takeNum,
+      skip,
+      take,
       orderBy: [
         { order: 'asc' },
         { createdAt: 'desc' }
@@ -48,9 +38,6 @@ const getInsuranceOrganizations = async (req, res) => {
     }),
     prisma.insuranceOrganization.count({ where }),
   ]);
-
-  // Debug log
-  console.log('Insurance Results:', { total, count: organizations.length });
 
   res.json({
     success: true,
