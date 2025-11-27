@@ -6,6 +6,7 @@ const { isAuthenticated } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
+const upload = require('../middlewares/upload');
 
 // Login with password (Admin/Secretary only)
 router.post(
@@ -61,6 +62,7 @@ router.patch(
   '/me',
   isAuthenticated,
   csrfProtection,
+  upload.single('profileImage'),
   validate(
     Joi.object({
       firstName: Joi.string().min(2).max(50),

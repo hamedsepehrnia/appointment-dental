@@ -9,8 +9,8 @@ const storage = multer.diskStorage({
     let uploadPath = "uploads/";
 
     if (file.fieldname === "profileImage") {
-      // Check if this is for a user (from /users route) or doctor
-      const isUserRoute = req.originalUrl && req.originalUrl.includes("/users");
+      // Check if this is for a user (from /users or /auth/me route) or doctor
+      const isUserRoute = req.originalUrl && (req.originalUrl.includes("/users") || req.originalUrl.includes("/auth/me"));
       uploadPath += isUserRoute ? "users/" : "doctors/";
     } else if (file.fieldname === "coverImage") {
       uploadPath += "images/";
