@@ -6,10 +6,17 @@ const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('.
  * Get all insurance organizations (Public)
  */
 const getInsuranceOrganizations = async (req, res) => {
-  const { page = 1, limit = 10, published = true } = req.query;
+  const { page = 1, limit = 10, published } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = published === 'true' ? { published: true } : {};
+  const where = {};
+  
+  // Only show published insurances to non-admin/secretary users
+  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    where.published = true;
+  } else if (published !== undefined) {
+    where.published = published === 'true' || published === true;
+  }
 
   const [organizations, total] = await Promise.all([
     prisma.insuranceOrganization.findMany({
