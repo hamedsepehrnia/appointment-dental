@@ -1,6 +1,8 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const { formatPhoneNumberOptional } = require('../utils/helpers');
+const fs = require('fs').promises;
+const path = require('path');
 
 /**
  * Get site settings (public)
@@ -47,8 +49,10 @@ const updateSettings = async (req, res) => {
     workingHours,
     aboutUsImage,
     aboutUsVideo,
+    aboutUsContent,
     contactUsImage,
     contactUsVideo,
+    becomeDoctorContent,
   } = req.body;
 
   // Get existing settings or create new one
@@ -57,6 +61,164 @@ const updateSettings = async (req, res) => {
   // Normalize phone number if provided
   const normalizedPhoneNumber = phoneNumber !== undefined ? formatPhoneNumberOptional(phoneNumber) : undefined;
 
+  // Handle file uploads (logo, aboutUsImage, contactUsImage, aboutUsVideo, contactUsVideo)
+  let logoPath = undefined;
+  let aboutUsImagePath = undefined;
+  let contactUsImagePath = undefined;
+  let aboutUsVideoPath = undefined;
+  let contactUsVideoPath = undefined;
+
+  if (req.files) {
+    if (req.files.logo && req.files.logo[0]) {
+      // Delete old logo if exists
+      if (settings?.logo) {
+        try {
+          const oldLogoPath = path.join(process.cwd(), settings.logo);
+          await fs.unlink(oldLogoPath);
+        } catch (error) {
+          console.log('Error deleting old logo:', error.message);
+        }
+      }
+      logoPath = `/uploads/site/${req.files.logo[0].filename}`;
+    }
+    if (req.files.aboutUsImage && req.files.aboutUsImage[0]) {
+      // Delete old image if exists
+      if (settings?.aboutUsImage) {
+        try {
+          const oldImagePath = path.join(process.cwd(), settings.aboutUsImage);
+          await fs.unlink(oldImagePath);
+        } catch (error) {
+          console.log('Error deleting old aboutUsImage:', error.message);
+        }
+      }
+      aboutUsImagePath = `/uploads/images/${req.files.aboutUsImage[0].filename}`;
+    }
+    if (req.files.contactUsImage && req.files.contactUsImage[0]) {
+      // Delete old image if exists
+      if (settings?.contactUsImage) {
+        try {
+          const oldImagePath = path.join(process.cwd(), settings.contactUsImage);
+          await fs.unlink(oldImagePath);
+        } catch (error) {
+          console.log('Error deleting old contactUsImage:', error.message);
+        }
+      }
+      contactUsImagePath = `/uploads/images/${req.files.contactUsImage[0].filename}`;
+    }
+    if (req.files.aboutUsVideo && req.files.aboutUsVideo[0]) {
+      // Delete old video if exists
+      if (settings?.aboutUsVideo) {
+        try {
+          const oldVideoPath = path.join(process.cwd(), settings.aboutUsVideo);
+          await fs.unlink(oldVideoPath);
+        } catch (error) {
+          console.log('Error deleting old aboutUsVideo:', error.message);
+        }
+      }
+      aboutUsVideoPath = `/uploads/videos/${req.files.aboutUsVideo[0].filename}`;
+    }
+    if (req.files.contactUsVideo && req.files.contactUsVideo[0]) {
+      // Delete old video if exists
+      if (settings?.contactUsVideo) {
+        try {
+          const oldVideoPath = path.join(process.cwd(), settings.contactUsVideo);
+          await fs.unlink(oldVideoPath);
+        } catch (error) {
+          console.log('Error deleting old contactUsVideo:', error.message);
+        }
+      }
+      contactUsVideoPath = `/uploads/videos/${req.files.contactUsVideo[0].filename}`;
+    }
+  }
+
+  // If files are not uploaded but provided as strings (existing paths or empty strings)
+  // Handle delete (empty string means delete)
+  if (logoPath === undefined && logo !== undefined) {
+    if (logo === '') {
+      // Delete existing logo file
+      if (settings?.logo) {
+        try {
+          const oldLogoPath = path.join(process.cwd(), settings.logo);
+          await fs.unlink(oldLogoPath);
+        } catch (error) {
+          // File might not exist, ignore error
+          console.log('Error deleting old logo:', error.message);
+        }
+      }
+      logoPath = '';
+    } else {
+      logoPath = logo;
+    }
+  }
+  
+  if (aboutUsImagePath === undefined && aboutUsImage !== undefined) {
+    if (aboutUsImage === '') {
+      // Delete existing image file
+      if (settings?.aboutUsImage) {
+        try {
+          const oldImagePath = path.join(process.cwd(), settings.aboutUsImage);
+          await fs.unlink(oldImagePath);
+        } catch (error) {
+          console.log('Error deleting old aboutUsImage:', error.message);
+        }
+      }
+      aboutUsImagePath = '';
+    } else {
+      aboutUsImagePath = aboutUsImage;
+    }
+  }
+  
+  if (contactUsImagePath === undefined && contactUsImage !== undefined) {
+    if (contactUsImage === '') {
+      // Delete existing image file
+      if (settings?.contactUsImage) {
+        try {
+          const oldImagePath = path.join(process.cwd(), settings.contactUsImage);
+          await fs.unlink(oldImagePath);
+        } catch (error) {
+          console.log('Error deleting old contactUsImage:', error.message);
+        }
+      }
+      contactUsImagePath = '';
+    } else {
+      contactUsImagePath = contactUsImage;
+    }
+  }
+  
+  if (aboutUsVideoPath === undefined && aboutUsVideo !== undefined) {
+    if (aboutUsVideo === '') {
+      // Delete existing video file
+      if (settings?.aboutUsVideo) {
+        try {
+          const oldVideoPath = path.join(process.cwd(), settings.aboutUsVideo);
+          await fs.unlink(oldVideoPath);
+        } catch (error) {
+          console.log('Error deleting old aboutUsVideo:', error.message);
+        }
+      }
+      aboutUsVideoPath = '';
+    } else {
+      aboutUsVideoPath = aboutUsVideo;
+    }
+  }
+  
+  if (contactUsVideoPath === undefined && contactUsVideo !== undefined) {
+    if (contactUsVideo === '') {
+      // Delete existing video file
+      if (settings?.contactUsVideo) {
+        try {
+          const oldVideoPath = path.join(process.cwd(), settings.contactUsVideo);
+          await fs.unlink(oldVideoPath);
+        } catch (error) {
+          console.log('Error deleting old contactUsVideo:', error.message);
+        }
+      }
+      contactUsVideoPath = '';
+    } else {
+      contactUsVideoPath = contactUsVideo;
+    }
+  }
+
   if (!settings) {
     // Create new settings
     settings = await prisma.siteSettings.create({
@@ -64,7 +226,7 @@ const updateSettings = async (req, res) => {
         siteName,
         siteTitle,
         description,
-        logo,
+        logo: logoPath,
         email,
         phoneNumber: normalizedPhoneNumber,
         address,
@@ -76,10 +238,12 @@ const updateSettings = async (req, res) => {
         facebook,
         youtube,
         workingHours,
-        aboutUsImage,
-        aboutUsVideo,
-        contactUsImage,
-        contactUsVideo,
+        aboutUsImage: aboutUsImagePath !== undefined ? aboutUsImagePath : aboutUsImage,
+        aboutUsVideo: aboutUsVideoPath !== undefined ? aboutUsVideoPath : aboutUsVideo,
+        aboutUsContent,
+        contactUsImage: contactUsImagePath !== undefined ? contactUsImagePath : contactUsImage,
+        contactUsVideo: contactUsVideoPath !== undefined ? contactUsVideoPath : contactUsVideo,
+        becomeDoctorContent,
       },
     });
   } else {
@@ -90,7 +254,7 @@ const updateSettings = async (req, res) => {
         ...(siteName !== undefined && { siteName }),
         ...(siteTitle !== undefined && { siteTitle }),
         ...(description !== undefined && { description }),
-        ...(logo !== undefined && { logo }),
+        ...(logoPath !== undefined && { logo: logoPath }),
         ...(email !== undefined && { email }),
         ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
         ...(address !== undefined && { address }),
@@ -102,10 +266,16 @@ const updateSettings = async (req, res) => {
         ...(facebook !== undefined && { facebook }),
         ...(youtube !== undefined && { youtube }),
         ...(workingHours !== undefined && { workingHours }),
-        ...(aboutUsImage !== undefined && { aboutUsImage }),
-        ...(aboutUsVideo !== undefined && { aboutUsVideo }),
-        ...(contactUsImage !== undefined && { contactUsImage }),
-        ...(contactUsVideo !== undefined && { contactUsVideo }),
+        ...(aboutUsImagePath !== undefined && { aboutUsImage: aboutUsImagePath }),
+        ...(aboutUsImagePath === undefined && aboutUsImage !== undefined && { aboutUsImage }),
+        ...(aboutUsVideoPath !== undefined && { aboutUsVideo: aboutUsVideoPath }),
+        ...(aboutUsVideoPath === undefined && aboutUsVideo !== undefined && { aboutUsVideo }),
+        ...(aboutUsContent !== undefined && { aboutUsContent }),
+        ...(contactUsImagePath !== undefined && { contactUsImage: contactUsImagePath }),
+        ...(contactUsImagePath === undefined && contactUsImage !== undefined && { contactUsImage }),
+        ...(contactUsVideoPath !== undefined && { contactUsVideo: contactUsVideoPath }),
+        ...(contactUsVideoPath === undefined && contactUsVideo !== undefined && { contactUsVideo }),
+        ...(becomeDoctorContent !== undefined && { becomeDoctorContent }),
       },
     });
   }

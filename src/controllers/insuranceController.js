@@ -8,21 +8,39 @@ const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('.
 const getInsuranceOrganizations = async (req, res) => {
   const { page = 1, limit = 10, published } = req.query;
   const { skip, take } = paginate(page, limit);
+  
+  // FIX: Convert to numbers (query params are strings)
+  const skipNum = parseInt(skip) || 0;
+  const takeNum = parseInt(take) || 10;
 
   const where = {};
   
   // Only show published insurances to non-admin/secretary users
-  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+  const isAdminOrSecretary = req.session?.userRole === 'ADMIN' || req.session?.userRole === 'SECRETARY';
+  
+  // FIX: برای ادمین/منشی فقط وقتی published مشخص شده فیلتر کن
+  if (!isAdminOrSecretary) {
     where.published = true;
-  } else if (published !== undefined) {
-    where.published = published === 'true' || published === true;
+  } else if (published !== undefined && published !== null && published !== '') {
+    // FIX: چک کردن مقادیر مختلف published
+    where.published = published === 'true' || published === true || published === '1';
   }
+
+  // Debug log (بعداً حذف کنید)
+  console.log('Insurance Query:', {
+    isAdminOrSecretary,
+    userRole: req.session?.userRole,
+    publishedParam: published,
+    where,
+    skip: skipNum,
+    take: takeNum
+  });
 
   const [organizations, total] = await Promise.all([
     prisma.insuranceOrganization.findMany({
       where,
-      skip,
-      take,
+      skip: skipNum,
+      take: takeNum,
       orderBy: [
         { order: 'asc' },
         { createdAt: 'desc' }
@@ -30,6 +48,9 @@ const getInsuranceOrganizations = async (req, res) => {
     }),
     prisma.insuranceOrganization.count({ where }),
   ]);
+
+  // Debug log
+  console.log('Insurance Results:', { total, count: organizations.length });
 
   res.json({
     success: true,

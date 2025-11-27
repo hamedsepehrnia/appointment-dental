@@ -19,7 +19,13 @@ const storage = multer.diskStorage({
     } else if (file.fieldname === "documents") {
       uploadPath += "documents/";
     } else if (file.fieldname === "logo") {
-      uploadPath += "insurance/";
+      // Check if this is for insurance or site settings
+      const isInsuranceRoute = req.originalUrl && req.originalUrl.includes("/insurance");
+      uploadPath += isInsuranceRoute ? "insurance/" : "site/";
+    } else if (file.fieldname === "aboutUsImage" || file.fieldname === "contactUsImage") {
+      uploadPath += "images/";
+    } else if (file.fieldname === "aboutUsVideo" || file.fieldname === "contactUsVideo") {
+      uploadPath += "videos/";
     } else if (file.fieldname === "upload" || file.fieldname === "file") {
       // For CKEditor image uploads
       uploadPath += "images/";
@@ -41,37 +47,58 @@ const storage = multer.diskStorage({
 
 // File filter with strict validation
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  // Check file extension
   const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-
-  if (!allowedExtensions.includes(ext)) {
-    return cb(new AppError("نوع فایل نامعتبر است. فقط تصاویر مجاز هستند", 400));
-  }
-
-  // Check MIME type
-  const allowedMimeTypes = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
-  if (!allowedMimeTypes.includes(file.mimetype)) {
-    return cb(new AppError("نوع MIME فایل نامعتبر است", 400));
-  }
-
-  // Double check extension matches MIME type
-  if (mimetype && extname) {
+  
+  // Check if this is a video file
+  const isVideo = file.fieldname === "aboutUsVideo" || file.fieldname === "contactUsVideo";
+  
+  if (isVideo) {
+    // Video file validation
+    const allowedVideoExtensions = [".mp4", ".webm", ".ogg", ".mov"];
+    const allowedVideoMimeTypes = [
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+      "video/quicktime",
+    ];
+    
+    if (!allowedVideoExtensions.includes(ext)) {
+      return cb(new AppError("نوع فایل ویدیو نامعتبر است. فقط فرمت‌های mp4, webm, ogg, mov مجاز هستند", 400));
+    }
+    
+    if (!allowedVideoMimeTypes.includes(file.mimetype)) {
+      return cb(new AppError("نوع MIME ویدیو نامعتبر است", 400));
+    }
+    
     return cb(null, true);
-  }
+  } else {
+    // Image file validation
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(ext);
+    const mimetype = allowedTypes.test(file.mimetype);
 
-  cb(new AppError("فقط فایل‌های تصویری مجاز هستند", 400));
+    const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+    if (!allowedExtensions.includes(ext)) {
+      return cb(new AppError("نوع فایل نامعتبر است. فقط تصاویر مجاز هستند", 400));
+    }
+
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new AppError("نوع MIME فایل نامعتبر است", 400));
+    }
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+
+    cb(new AppError("فقط فایل‌های تصویری مجاز هستند", 400));
+  }
 };
 
 // Upload middleware
@@ -79,7 +106,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024, // 5MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 50 * 1024 * 1024, // 50MB default (for videos)
   },
 });
 

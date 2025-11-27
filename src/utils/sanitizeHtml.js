@@ -17,6 +17,8 @@ const sanitizeContent = (html) => {
       
       // Lists
       'ul', 'ol', 'li',
+      // TodoList elements
+      'label', 'input',
       
       // Links
       'a',
@@ -53,6 +55,11 @@ const sanitizeContent = (html) => {
       'h4': ['id'],
       'h5': ['id'],
       'h6': ['id'],
+      // TodoList attributes for CKEditor 5
+      'ul': ['data-todo-list', 'class'],
+      'li': ['data-todo', 'data-todo-checked', 'class'],
+      'label': ['for', 'class'],
+      'input': ['type', 'checked', 'disabled', 'class'],
     },
     
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],

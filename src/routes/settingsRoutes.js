@@ -6,6 +6,7 @@ const { isAdmin } = require('../middlewares/auth');
 const { validate } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
+const upload = require('../middlewares/upload');
 
 // Get all settings (public)
 router.get('/', asyncHandler(settingsController.getSettings));
@@ -18,6 +19,13 @@ router.patch(
   '/',
   isAdmin,
   csrfProtection,
+  upload.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'aboutUsImage', maxCount: 1 },
+    { name: 'aboutUsVideo', maxCount: 1 },
+    { name: 'contactUsImage', maxCount: 1 },
+    { name: 'contactUsVideo', maxCount: 1 },
+  ]),
   validate(
     Joi.object({
       siteName: Joi.string(),
@@ -37,8 +45,10 @@ router.patch(
       workingHours: Joi.string().allow(''),
       aboutUsImage: Joi.string().allow('', null),
       aboutUsVideo: Joi.string().allow('', null),
+      aboutUsContent: Joi.string().allow(''),
       contactUsImage: Joi.string().allow('', null),
       contactUsVideo: Joi.string().allow('', null),
+      becomeDoctorContent: Joi.string().allow(''),
     })
   ),
   asyncHandler(settingsController.updateSettings)
