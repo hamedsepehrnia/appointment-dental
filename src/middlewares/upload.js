@@ -9,9 +9,20 @@ const storage = multer.diskStorage({
     let uploadPath = "uploads/";
 
     if (file.fieldname === "profileImage") {
-      // Check if this is for a user (from /users or /auth/me route) or doctor
-      const isUserRoute = req.originalUrl && (req.originalUrl.includes("/users") || req.originalUrl.includes("/auth/me"));
-      uploadPath += isUserRoute ? "users/" : "doctors/";
+      // Check if this is for a user (from /users or /auth/me route), doctor, or review
+      const isUserRoute =
+        req.originalUrl &&
+        (req.originalUrl.includes("/users") ||
+          req.originalUrl.includes("/auth/me"));
+      const isReviewRoute =
+        req.originalUrl && req.originalUrl.includes("/reviews");
+      if (isUserRoute) {
+        uploadPath += "users/";
+      } else if (isReviewRoute) {
+        uploadPath += "images/";
+      } else {
+        uploadPath += "doctors/";
+      }
     } else if (file.fieldname === "coverImage") {
       uploadPath += "images/";
     } else if (file.fieldname === "galleryImage") {
@@ -20,11 +31,18 @@ const storage = multer.diskStorage({
       uploadPath += "documents/";
     } else if (file.fieldname === "logo") {
       // Check if this is for insurance or site settings
-      const isInsuranceRoute = req.originalUrl && req.originalUrl.includes("/insurance");
+      const isInsuranceRoute =
+        req.originalUrl && req.originalUrl.includes("/insurance");
       uploadPath += isInsuranceRoute ? "insurance/" : "site/";
-    } else if (file.fieldname === "aboutUsImage" || file.fieldname === "contactUsImage") {
+    } else if (
+      file.fieldname === "aboutUsImage" ||
+      file.fieldname === "contactUsImage"
+    ) {
       uploadPath += "images/";
-    } else if (file.fieldname === "aboutUsVideo" || file.fieldname === "contactUsVideo") {
+    } else if (
+      file.fieldname === "aboutUsVideo" ||
+      file.fieldname === "contactUsVideo"
+    ) {
       uploadPath += "videos/";
     } else if (file.fieldname === "upload" || file.fieldname === "file") {
       // For CKEditor image uploads
@@ -48,10 +66,11 @@ const storage = multer.diskStorage({
 // File filter with strict validation
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
-  
+
   // Check if this is a video file
-  const isVideo = file.fieldname === "aboutUsVideo" || file.fieldname === "contactUsVideo";
-  
+  const isVideo =
+    file.fieldname === "aboutUsVideo" || file.fieldname === "contactUsVideo";
+
   if (isVideo) {
     // Video file validation
     const allowedVideoExtensions = [".mp4", ".webm", ".ogg", ".mov"];
@@ -61,15 +80,20 @@ const fileFilter = (req, file, cb) => {
       "video/ogg",
       "video/quicktime",
     ];
-    
+
     if (!allowedVideoExtensions.includes(ext)) {
-      return cb(new AppError("نوع فایل ویدیو نامعتبر است. فقط فرمت‌های mp4, webm, ogg, mov مجاز هستند", 400));
+      return cb(
+        new AppError(
+          "نوع فایل ویدیو نامعتبر است. فقط فرمت‌های mp4, webm, ogg, mov مجاز هستند",
+          400
+        )
+      );
     }
-    
+
     if (!allowedVideoMimeTypes.includes(file.mimetype)) {
       return cb(new AppError("نوع MIME ویدیو نامعتبر است", 400));
     }
-    
+
     return cb(null, true);
   } else {
     // Image file validation
@@ -80,7 +104,9 @@ const fileFilter = (req, file, cb) => {
     const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 
     if (!allowedExtensions.includes(ext)) {
-      return cb(new AppError("نوع فایل نامعتبر است. فقط تصاویر مجاز هستند", 400));
+      return cb(
+        new AppError("نوع فایل نامعتبر است. فقط تصاویر مجاز هستند", 400)
+      );
     }
 
     const allowedMimeTypes = [
