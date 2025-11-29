@@ -109,28 +109,55 @@ const updateImage = async (req, res) => {
     throw new AppError('تصویر یافت نشد', 404);
   }
 
-  // Handle new image upload
-  let imagePath = currentImage.image;
-  if (req.file) {
+  // Prepare update data
+  const updateData = {};
+  if (title !== undefined) {
+    updateData.title = title;
+  }
+  if (description !== undefined) {
+    updateData.description = description;
+  }
+  if (order !== undefined) {
+    updateData.order = parseInt(order);
+  }
+  if (published !== undefined) {
+    updateData.published = published === 'true';
+  }
+
+  // Handle gallery image removal
+  if (req.body.removeGalleryImage === "true") {
+    // Delete old image if exists
+    if (currentImage.image) {
+      const imagePath = currentImage.image.startsWith('/')
+        ? currentImage.image.slice(1)
+        : currentImage.image;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting image:', err);
+      }
+    }
+    updateData.image = null;
+  }
+  // Handle gallery image upload
+  else if (req.file) {
     // Delete old image
-    const oldImagePath = path.join(process.cwd(), currentImage.image);
+    const imagePath = currentImage.image.startsWith('/')
+      ? currentImage.image.slice(1)
+      : currentImage.image;
+    const oldImagePath = path.join(process.cwd(), imagePath);
     try {
       await fs.unlink(oldImagePath);
     } catch (err) {
       console.error('Error deleting old image:', err);
     }
-    imagePath = `/uploads/gallery/${req.file.filename}`;
+    updateData.image = `/uploads/gallery/${req.file.filename}`;
   }
 
   const image = await prisma.gallery.update({
     where: { id },
-    data: {
-      ...(title !== undefined && { title }),
-      ...(description !== undefined && { description }),
-      ...(imagePath !== currentImage.image && { image: imagePath }),
-      ...(order !== undefined && { order: parseInt(order) }),
-      ...(published !== undefined && { published: published === 'true' }),
-    },
+    data: updateData,
   });
 
   res.json({

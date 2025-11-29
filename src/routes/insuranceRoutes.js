@@ -69,6 +69,7 @@ router.patch(
         Joi.string().valid('true', 'false').custom((value) => value === 'true')
       ),
       order: Joi.number().integer().min(0),
+      removeLogo: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(insuranceController.updateInsuranceOrganization)

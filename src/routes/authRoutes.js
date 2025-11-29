@@ -79,6 +79,7 @@ router.patch(
       nationalCode: schemas.nationalCode.optional().allow(null).allow(""),
       address: Joi.string().max(500).allow("").allow(null).optional(),
       gender: Joi.string().valid("MALE", "FEMALE", "OTHER"),
+      removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(authController.updateProfile)

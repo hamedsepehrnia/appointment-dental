@@ -97,6 +97,7 @@ router.patch(
           return num;
         })
       ).allow(null, ''),
+      removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(reviewController.updateReview)

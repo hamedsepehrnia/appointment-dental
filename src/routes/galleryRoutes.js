@@ -52,6 +52,7 @@ router.patch(
       description: Joi.string().allow(''),
       order: Joi.number().integer().min(0),
       published: Joi.string().valid('true', 'false'),
+      removeGalleryImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(galleryController.updateImage)

@@ -90,6 +90,7 @@ router.patch(
         thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
         friday: Joi.string().allow("", null).optional(), // جمعه
       }).optional(),
+      removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(doctorController.updateDoctor)

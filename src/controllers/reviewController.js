@@ -127,20 +127,6 @@ const updateReview = async (req, res) => {
     throw new AppError('نظر یافت نشد', 404);
   }
 
-  // Handle profile image
-  let profileImage = currentReview.profileImage;
-  if (req.file) {
-    if (currentReview.profileImage) {
-      const oldImagePath = path.join(process.cwd(), currentReview.profileImage);
-      try {
-        await fs.unlink(oldImagePath);
-      } catch (err) {
-        console.error('Error deleting old image:', err);
-      }
-    }
-    profileImage = `/uploads/images/${req.file.filename}`;
-  }
-
   // Validate rating if provided
   let ratingNum = currentReview.rating;
   if (rating !== undefined) {
@@ -150,14 +136,55 @@ const updateReview = async (req, res) => {
     }
   }
 
-  const updateData = {
-    ...(name && { name }),
-    ...(content && { content: sanitizeContent(content) }),
-    ...(rating !== undefined && { rating: ratingNum }),
-    ...(published !== undefined && { published: published === 'true' || published === true }),
-    ...(order !== undefined && { order: parseInt(order) || 0 }),
-    ...(profileImage && { profileImage }),
-  };
+  // Prepare update data
+  const updateData = {};
+  if (name) {
+    updateData.name = name;
+  }
+  if (content) {
+    updateData.content = sanitizeContent(content);
+  }
+  if (rating !== undefined) {
+    updateData.rating = ratingNum;
+  }
+  if (published !== undefined) {
+    updateData.published = published === 'true' || published === true;
+  }
+  if (order !== undefined) {
+    updateData.order = parseInt(order) || 0;
+  }
+
+  // Handle profile image removal
+  if (req.body.removeProfileImage === "true") {
+    // Delete old image if exists
+    if (currentReview.profileImage) {
+      const imagePath = currentReview.profileImage.startsWith('/')
+        ? currentReview.profileImage.slice(1)
+        : currentReview.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting image:', err);
+      }
+    }
+    updateData.profileImage = null;
+  }
+  // Handle profile image upload
+  else if (req.file) {
+    if (currentReview.profileImage) {
+      const imagePath = currentReview.profileImage.startsWith('/')
+        ? currentReview.profileImage.slice(1)
+        : currentReview.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting old image:', err);
+      }
+    }
+    updateData.profileImage = `/uploads/images/${req.file.filename}`;
+  }
 
   const review = await prisma.review.update({
     where: { id },
@@ -212,4 +239,5 @@ module.exports = {
   updateReview,
   deleteReview,
 };
+
 

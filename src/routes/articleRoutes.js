@@ -161,6 +161,7 @@ router.patch(
           }
           return helpers.error("any.invalid");
         }, "Validate and normalize categoryIds"),
+      removeCoverImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(articleController.updateArticle)

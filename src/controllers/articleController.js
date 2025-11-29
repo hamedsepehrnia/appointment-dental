@@ -1,26 +1,40 @@
-const prisma = require('../config/database');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
-const { sanitizeContent } = require('../utils/sanitizeHtml');
-const fs = require('fs').promises;
-const path = require('path');
+const prisma = require("../config/database");
+const { AppError } = require("../middlewares/errorHandler");
+const {
+  paginate,
+  createPaginationMeta,
+  createSlug,
+} = require("../utils/helpers");
+const { sanitizeContent } = require("../utils/sanitizeHtml");
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Get all articles (published only for public)
  */
 const getArticles = async (req, res) => {
-  const { page = 1, limit = 10, published, search, categoryId, categorySlug } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    published,
+    search,
+    categoryId,
+    categorySlug,
+  } = req.query;
   const { skip, take } = paginate(page, limit);
 
   const where = {};
-  
+
   // Only show published articles to non-admin/secretary users
-  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+  if (
+    req.session.userRole !== "ADMIN" &&
+    req.session.userRole !== "SECRETARY"
+  ) {
     where.published = true;
   } else if (published !== undefined) {
-    where.published = published === 'true';
+    where.published = published === "true";
   }
-  
+
   // Category filter (Many-to-Many)
   if (categoryId || categorySlug) {
     const categoryWhere = {};
@@ -31,7 +45,10 @@ const getArticles = async (req, res) => {
       categoryWhere.slug = categorySlug;
     }
     // Only show published categories to non-admin/secretary users
-    if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    if (
+      req.session.userRole !== "ADMIN" &&
+      req.session.userRole !== "SECRETARY"
+    ) {
       categoryWhere.published = true;
     }
     where.categories = {
@@ -40,13 +57,13 @@ const getArticles = async (req, res) => {
       },
     };
   }
-  
+
   // Search functionality
   if (search) {
     where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { excerpt: { contains: search, mode: 'insensitive' } },
-      { content: { contains: search, mode: 'insensitive' } },
+      { title: { contains: search, mode: "insensitive" } },
+      { excerpt: { contains: search, mode: "insensitive" } },
+      { content: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -78,15 +95,15 @@ const getArticles = async (req, res) => {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.article.count({ where }),
   ]);
 
   // Transform categories to simpler format - ensure it's always an array
-  const transformedArticles = articles.map(article => ({
+  const transformedArticles = articles.map((article) => ({
     ...article,
-    categories: (article.categories || []).map(rel => rel.category),
+    categories: (article.categories || []).map((rel) => rel.category),
   }));
 
   res.json({
@@ -105,10 +122,7 @@ const getArticle = async (req, res) => {
   // Try to find by slug first, then by ID
   const article = await prisma.article.findFirst({
     where: {
-      OR: [
-        { slug: identifier },
-        { id: identifier },
-      ],
+      OR: [{ slug: identifier }, { id: identifier }],
     },
     include: {
       categories: {
@@ -126,15 +140,19 @@ const getArticle = async (req, res) => {
   });
 
   if (!article) {
-    throw new AppError('مقاله یافت نشد', 404);
+    throw new AppError("مقاله یافت نشد", 404);
   }
 
   // Transform categories - ensure it's always an array
-  article.categories = (article.categories || []).map(rel => rel.category);
+  article.categories = (article.categories || []).map((rel) => rel.category);
 
   // Check if article is published (for non-admin/secretary)
-  if (!article.published && req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
-    throw new AppError('مقاله یافت نشد', 404);
+  if (
+    !article.published &&
+    req.session.userRole !== "ADMIN" &&
+    req.session.userRole !== "SECRETARY"
+  ) {
+    throw new AppError("مقاله یافت نشد", 404);
   }
 
   res.json({
@@ -148,7 +166,7 @@ const getArticle = async (req, res) => {
  */
 const createArticle = async (req, res) => {
   const { title, content, excerpt, author, published, categoryIds } = req.body;
-  
+
   let slug = createSlug(title);
   const coverImage = req.file ? `/uploads/images/${req.file.filename}` : null;
 
@@ -166,14 +184,14 @@ const createArticle = async (req, res) => {
   let categoryIdsArray = [];
   if (categoryIds) {
     categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
-    
+
     // Validate all categories exist
     const categories = await prisma.articleCategory.findMany({
       where: { id: { in: categoryIdsArray } },
     });
-    
+
     if (categories.length !== categoryIdsArray.length) {
-      throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
+      throw new AppError("یک یا چند دسته‌بندی یافت نشد", 404);
     }
   }
 
@@ -183,11 +201,11 @@ const createArticle = async (req, res) => {
       slug,
       content: sanitizeContent(content),
       excerpt,
-      author: author && author.trim() !== '' ? author.trim() : null,
+      author: author && author.trim() !== "" ? author.trim() : null,
       coverImage,
       published: published || false,
       categories: {
-        create: categoryIdsArray.map(categoryId => ({
+        create: categoryIdsArray.map((categoryId) => ({
           categoryId,
         })),
       },
@@ -208,11 +226,11 @@ const createArticle = async (req, res) => {
   });
 
   // Transform categories - ensure it's always an array
-  article.categories = (article.categories || []).map(rel => rel.category);
+  article.categories = (article.categories || []).map((rel) => rel.category);
 
   res.status(201).json({
     success: true,
-    message: 'مقاله با موفقیت ایجاد شد',
+    message: "مقاله با موفقیت ایجاد شد",
     data: { article },
   });
 };
@@ -229,13 +247,13 @@ const updateArticle = async (req, res) => {
   });
 
   if (!currentArticle) {
-    throw new AppError('مقاله یافت نشد', 404);
+    throw new AppError("مقاله یافت نشد", 404);
   }
 
   let slug = currentArticle.slug;
   if (title && title !== currentArticle.title) {
     slug = createSlug(title);
-    
+
     // Check if new slug exists
     const existingArticle = await prisma.article.findFirst({
       where: {
@@ -249,50 +267,79 @@ const updateArticle = async (req, res) => {
     }
   }
 
-  // Handle cover image
-  let coverImage = currentArticle.coverImage;
-  if (req.file) {
+  // Prepare update data
+  const updateData = {};
+  if (title) {
+    updateData.title = title;
+    updateData.slug = slug;
+  }
+  if (content) {
+    updateData.content = sanitizeContent(content);
+  }
+  if (excerpt !== undefined) {
+    updateData.excerpt = excerpt;
+  }
+  if (author !== undefined) {
+    updateData.author = author && author.trim() !== "" ? author.trim() : null;
+  }
+  if (published !== undefined) {
+    updateData.published = published;
+  }
+
+  // Handle cover image removal
+  if (req.body.removeCoverImage === "true") {
     // Delete old image if exists
     if (currentArticle.coverImage) {
-      const oldImagePath = path.join(process.cwd(), currentArticle.coverImage);
+      const imagePath = currentArticle.coverImage.startsWith("/")
+        ? currentArticle.coverImage.slice(1)
+        : currentArticle.coverImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error('Error deleting old image:', err);
+        console.error("Error deleting image:", err);
       }
     }
-    coverImage = `/uploads/images/${req.file.filename}`;
+    updateData.coverImage = null;
   }
-
-  // Handle categories update
-  let updateData = {
-    ...(title && { title, slug }),
-    ...(content && { content: sanitizeContent(content) }),
-    ...(excerpt !== undefined && { excerpt }),
-    ...(author !== undefined && { author: author && author.trim() !== '' ? author.trim() : null }),
-    ...(coverImage && { coverImage }),
-    ...(published !== undefined && { published }),
-  };
+  // Handle cover image upload
+  else if (req.file) {
+    // Delete old image if exists
+    if (currentArticle.coverImage) {
+      const imagePath = currentArticle.coverImage.startsWith("/")
+        ? currentArticle.coverImage.slice(1)
+        : currentArticle.coverImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting old image:", err);
+      }
+    }
+    updateData.coverImage = `/uploads/images/${req.file.filename}`;
+  }
 
   if (categoryIds !== undefined) {
     let categoryIdsArray = [];
     if (categoryIds) {
-      categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
-      
+      categoryIdsArray = Array.isArray(categoryIds)
+        ? categoryIds
+        : [categoryIds];
+
       // Validate all categories exist
       const categories = await prisma.articleCategory.findMany({
         where: { id: { in: categoryIdsArray } },
       });
-      
+
       if (categories.length !== categoryIdsArray.length) {
-        throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
+        throw new AppError("یک یا چند دسته‌بندی یافت نشد", 404);
       }
     }
 
     // Delete existing relations and create new ones
     updateData.categories = {
       deleteMany: {},
-      create: categoryIdsArray.map(categoryId => ({
+      create: categoryIdsArray.map((categoryId) => ({
         categoryId,
       })),
     };
@@ -317,11 +364,11 @@ const updateArticle = async (req, res) => {
   });
 
   // Transform categories - ensure it's always an array
-  article.categories = (article.categories || []).map(rel => rel.category);
+  article.categories = (article.categories || []).map((rel) => rel.category);
 
   res.json({
     success: true,
-    message: 'مقاله با موفقیت به‌روزرسانی شد',
+    message: "مقاله با موفقیت به‌روزرسانی شد",
     data: { article },
   });
 };
@@ -337,7 +384,7 @@ const deleteArticle = async (req, res) => {
   });
 
   if (!article) {
-    throw new AppError('مقاله یافت نشد', 404);
+    throw new AppError("مقاله یافت نشد", 404);
   }
 
   // Delete cover image if exists
@@ -346,7 +393,7 @@ const deleteArticle = async (req, res) => {
     try {
       await fs.unlink(imagePath);
     } catch (err) {
-      console.error('Error deleting image:', err);
+      console.error("Error deleting image:", err);
     }
   }
 
@@ -356,7 +403,7 @@ const deleteArticle = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'مقاله با موفقیت حذف شد',
+    message: "مقاله با موفقیت حذف شد",
   });
 };
 
@@ -365,13 +412,13 @@ const deleteArticle = async (req, res) => {
  */
 const uploadContentImage = async (req, res) => {
   if (!req.file) {
-    throw new AppError('لطفاً یک تصویر انتخاب کنید', 400);
+    throw new AppError("لطفاً یک تصویر انتخاب کنید", 400);
   }
 
   const imageUrl = `/uploads/images/${req.file.filename}`;
   // استفاده از URL نسبی برای سازگاری با production
   // فرانت‌اند این URL را به URL کامل تبدیل می‌کند
-  const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+  const fullImageUrl = `${req.protocol}://${req.get("host")}${imageUrl}`;
 
   // CKEditor expects a specific response format
   // برگرداندن URL کامل برای CKEditor (که در ادیتور نیاز دارد)
@@ -389,4 +436,3 @@ module.exports = {
   deleteArticle,
   uploadContentImage,
 };
-

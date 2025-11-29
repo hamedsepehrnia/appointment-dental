@@ -1,9 +1,13 @@
-const prisma = require('../config/database');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
-const { sanitizeContent } = require('../utils/sanitizeHtml');
-const fs = require('fs').promises;
-const path = require('path');
+const prisma = require("../config/database");
+const { AppError } = require("../middlewares/errorHandler");
+const {
+  paginate,
+  createPaginationMeta,
+  createSlug,
+} = require("../utils/helpers");
+const { sanitizeContent } = require("../utils/sanitizeHtml");
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Get all services
@@ -13,7 +17,7 @@ const getServices = async (req, res) => {
   const { skip, take } = paginate(page, limit);
 
   const where = {};
-  
+
   // Category filter (Many-to-Many)
   if (categoryId || categorySlug) {
     const categoryWhere = {};
@@ -24,7 +28,10 @@ const getServices = async (req, res) => {
       categoryWhere.slug = categorySlug;
     }
     // Only show published categories to non-admin/secretary users
-    if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+    if (
+      req.session.userRole !== "ADMIN" &&
+      req.session.userRole !== "SECRETARY"
+    ) {
       categoryWhere.published = true;
     }
     where.categories = {
@@ -33,14 +40,14 @@ const getServices = async (req, res) => {
       },
     };
   }
-  
+
   // Search functionality
   if (search) {
     where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      { beforeTreatmentTips: { contains: search, mode: 'insensitive' } },
-      { afterTreatmentTips: { contains: search, mode: 'insensitive' } },
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+      { beforeTreatmentTips: { contains: search, mode: "insensitive" } },
+      { afterTreatmentTips: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -73,15 +80,15 @@ const getServices = async (req, res) => {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.service.count({ where }),
   ]);
 
   // Transform categories to simpler format
-  const transformedServices = services.map(service => ({
+  const transformedServices = services.map((service) => ({
     ...service,
-    categories: service.categories.map(rel => rel.category),
+    categories: service.categories.map((rel) => rel.category),
   }));
 
   res.json({
@@ -99,10 +106,7 @@ const getService = async (req, res) => {
 
   const service = await prisma.service.findFirst({
     where: {
-      OR: [
-        { slug: identifier },
-        { id: identifier },
-      ],
+      OR: [{ slug: identifier }, { id: identifier }],
     },
     include: {
       categories: {
@@ -121,11 +125,11 @@ const getService = async (req, res) => {
 
   // Transform categories
   if (service) {
-    service.categories = service.categories.map(rel => rel.category);
+    service.categories = service.categories.map((rel) => rel.category);
   }
 
   if (!service) {
-    throw new AppError('خدمت یافت نشد', 404);
+    throw new AppError("خدمت یافت نشد", 404);
   }
 
   res.json({
@@ -165,14 +169,14 @@ const createService = async (req, res) => {
   let categoryIdsArray = [];
   if (categoryIds) {
     categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
-    
+
     // Validate all categories exist
     const categories = await prisma.serviceCategory.findMany({
       where: { id: { in: categoryIdsArray } },
     });
-    
+
     if (categories.length !== categoryIdsArray.length) {
-      throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
+      throw new AppError("یک یا چند دسته‌بندی یافت نشد", 404);
     }
   }
 
@@ -181,13 +185,17 @@ const createService = async (req, res) => {
       title,
       slug: finalSlug,
       description: sanitizeContent(description),
-      beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null,
-      afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null,
+      beforeTreatmentTips: beforeTreatmentTips
+        ? sanitizeContent(beforeTreatmentTips)
+        : null,
+      afterTreatmentTips: afterTreatmentTips
+        ? sanitizeContent(afterTreatmentTips)
+        : null,
       price: price ? parseInt(price) : null,
       durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
       coverImage,
       categories: {
-        create: categoryIdsArray.map(categoryId => ({
+        create: categoryIdsArray.map((categoryId) => ({
           categoryId,
         })),
       },
@@ -208,11 +216,11 @@ const createService = async (req, res) => {
   });
 
   // Transform categories
-  service.categories = service.categories.map(rel => rel.category);
+  service.categories = service.categories.map((rel) => rel.category);
 
   res.status(201).json({
     success: true,
-    message: 'خدمت با موفقیت ایجاد شد',
+    message: "خدمت با موفقیت ایجاد شد",
     data: { service },
   });
 };
@@ -237,13 +245,13 @@ const updateService = async (req, res) => {
   });
 
   if (!currentService) {
-    throw new AppError('خدمت یافت نشد', 404);
+    throw new AppError("خدمت یافت نشد", 404);
   }
 
   let slug = currentService.slug;
   if (title && title !== currentService.title) {
     slug = createSlug(title);
-    
+
     const existingService = await prisma.service.findFirst({
       where: {
         slug,
@@ -256,54 +264,87 @@ const updateService = async (req, res) => {
     }
   }
 
-  // Handle cover image
-  let coverImage = currentService.coverImage;
-  if (req.file) {
+  // Prepare update data
+  const updateData = {};
+  if (title) {
+    updateData.title = title;
+    updateData.slug = slug;
+  }
+  if (description) {
+    updateData.description = sanitizeContent(description);
+  }
+  if (beforeTreatmentTips !== undefined) {
+    updateData.beforeTreatmentTips = beforeTreatmentTips
+      ? sanitizeContent(beforeTreatmentTips)
+      : null;
+  }
+  if (afterTreatmentTips !== undefined) {
+    updateData.afterTreatmentTips = afterTreatmentTips
+      ? sanitizeContent(afterTreatmentTips)
+      : null;
+  }
+  if (price !== undefined) {
+    updateData.price = price ? parseInt(price) : null;
+  }
+  if (durationMinutes !== undefined) {
+    updateData.durationMinutes = durationMinutes
+      ? parseInt(durationMinutes)
+      : null;
+  }
+
+  // Handle cover image removal
+  if (req.body.removeCoverImage === "true") {
+    // Delete old image if exists
     if (currentService.coverImage) {
-      const oldImagePath = path.join(process.cwd(), currentService.coverImage);
+      const imagePath = currentService.coverImage.startsWith("/")
+        ? currentService.coverImage.slice(1)
+        : currentService.coverImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error('Error deleting old image:', err);
+        console.error("Error deleting image:", err);
       }
     }
-    coverImage = `/uploads/images/${req.file.filename}`;
+    updateData.coverImage = null;
   }
-
-  // Handle categories update
-  let updateData = {
-    ...(title && { title, slug }),
-    ...(description && { description: sanitizeContent(description) }),
-    ...(beforeTreatmentTips !== undefined && { 
-      beforeTreatmentTips: beforeTreatmentTips ? sanitizeContent(beforeTreatmentTips) : null 
-    }),
-    ...(afterTreatmentTips !== undefined && { 
-      afterTreatmentTips: afterTreatmentTips ? sanitizeContent(afterTreatmentTips) : null 
-    }),
-    ...(price !== undefined && { price: price ? parseInt(price) : null }),
-    ...(durationMinutes !== undefined && { durationMinutes: durationMinutes ? parseInt(durationMinutes) : null }),
-    ...(coverImage && { coverImage }),
-  };
+  // Handle cover image upload
+  else if (req.file) {
+    if (currentService.coverImage) {
+      const imagePath = currentService.coverImage.startsWith("/")
+        ? currentService.coverImage.slice(1)
+        : currentService.coverImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting old image:", err);
+      }
+    }
+    updateData.coverImage = `/uploads/images/${req.file.filename}`;
+  }
 
   if (categoryIds !== undefined) {
     let categoryIdsArray = [];
     if (categoryIds) {
-      categoryIdsArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
-      
+      categoryIdsArray = Array.isArray(categoryIds)
+        ? categoryIds
+        : [categoryIds];
+
       // Validate all categories exist
       const categories = await prisma.serviceCategory.findMany({
         where: { id: { in: categoryIdsArray } },
       });
-      
+
       if (categories.length !== categoryIdsArray.length) {
-        throw new AppError('یک یا چند دسته‌بندی یافت نشد', 404);
+        throw new AppError("یک یا چند دسته‌بندی یافت نشد", 404);
       }
     }
 
     // Delete existing relations and create new ones
     updateData.categories = {
       deleteMany: {},
-      create: categoryIdsArray.map(categoryId => ({
+      create: categoryIdsArray.map((categoryId) => ({
         categoryId,
       })),
     };
@@ -328,11 +369,11 @@ const updateService = async (req, res) => {
   });
 
   // Transform categories
-  service.categories = service.categories.map(rel => rel.category);
+  service.categories = service.categories.map((rel) => rel.category);
 
   res.json({
     success: true,
-    message: 'خدمت با موفقیت به‌روزرسانی شد',
+    message: "خدمت با موفقیت به‌روزرسانی شد",
     data: { service },
   });
 };
@@ -348,7 +389,7 @@ const deleteService = async (req, res) => {
   });
 
   if (!service) {
-    throw new AppError('خدمت یافت نشد', 404);
+    throw new AppError("خدمت یافت نشد", 404);
   }
 
   // Delete cover image if exists
@@ -357,7 +398,7 @@ const deleteService = async (req, res) => {
     try {
       await fs.unlink(imagePath);
     } catch (err) {
-      console.error('Error deleting image:', err);
+      console.error("Error deleting image:", err);
     }
   }
 
@@ -367,7 +408,7 @@ const deleteService = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'خدمت با موفقیت حذف شد',
+    message: "خدمت با موفقیت حذف شد",
   });
 };
 
@@ -378,4 +419,3 @@ module.exports = {
   updateService,
   deleteService,
 };
-

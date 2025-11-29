@@ -1,6 +1,8 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('../utils/helpers');
+const fs = require('fs').promises;
+const path = require('path');
 
 /**
  * Get all insurance organizations (Public)
@@ -142,25 +144,66 @@ const updateInsuranceOrganization = async (req, res) => {
     normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
   }
 
+  // Prepare update data
+  const updateData = {};
+  if (name) {
+    updateData.name = name;
+  }
+  if (description !== undefined) {
+    updateData.description = description;
+  }
+  if (website !== undefined) {
+    updateData.website = website;
+  }
+  if (normalizedPhoneNumber !== undefined) {
+    updateData.phoneNumber = normalizedPhoneNumber;
+  }
+  if (email !== undefined) {
+    updateData.email = email;
+  }
+  if (published !== undefined) {
+    updateData.published = published === 'true' || published === true;
+  }
+  if (order !== undefined) {
+    updateData.order = parseInt(order) || 0;
+  }
+
+  // Handle logo removal
+  if (req.body.removeLogo === "true") {
+    // Delete old logo if exists
+    if (existingOrg.logo) {
+      const imagePath = existingOrg.logo.startsWith('/')
+        ? existingOrg.logo.slice(1)
+        : existingOrg.logo;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting logo:', err);
+      }
+    }
+    updateData.logo = null;
+  }
   // Handle logo upload
-  let logoPath = undefined;
-  if (req.file) {
-    logoPath = `/uploads/insurance/${req.file.filename}`;
-    // TODO: Delete old logo file if exists
+  else if (req.file) {
+    // Delete old logo if exists
+    if (existingOrg.logo) {
+      const imagePath = existingOrg.logo.startsWith('/')
+        ? existingOrg.logo.slice(1)
+        : existingOrg.logo;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting old logo:', err);
+      }
+    }
+    updateData.logo = `/uploads/insurance/${req.file.filename}`;
   }
 
   const organization = await prisma.insuranceOrganization.update({
     where: { id },
-    data: {
-      ...(name && { name }),
-      ...(description !== undefined && { description }),
-      ...(website !== undefined && { website }),
-      ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
-      ...(email !== undefined && { email }),
-      ...(logoPath !== undefined && { logo: logoPath }),
-      ...(published !== undefined && { published: published === 'true' || published === true }),
-      ...(order !== undefined && { order: parseInt(order) || 0 }),
-    },
+    data: updateData,
   });
 
   res.json({

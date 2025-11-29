@@ -287,25 +287,6 @@ const updateDoctor = async (req, res) => {
     throw new AppError("پزشک یافت نشد", 404);
   }
 
-  // Handle profile image
-  let profileImage = currentDoctor.profileImage;
-  if (req.file) {
-    // Delete old image if exists
-    if (currentDoctor.profileImage) {
-      // Remove leading slash if present to make it relative
-      const imagePath = currentDoctor.profileImage.startsWith('/')
-        ? currentDoctor.profileImage.slice(1)
-        : currentDoctor.profileImage;
-      const oldImagePath = path.join(process.cwd(), imagePath);
-      try {
-        await fs.unlink(oldImagePath);
-      } catch (err) {
-        console.error("Error deleting old image:", err);
-      }
-    }
-    profileImage = `/uploads/doctors/${req.file.filename}`;
-  }
-
   // Generate new slug if firstName or lastName is being updated
   let slug;
   if (firstName || lastName) {
@@ -343,21 +324,74 @@ const updateDoctor = async (req, res) => {
     }
   }
 
+  // Prepare update data
+  const updateData = {};
+  if (firstName) {
+    updateData.firstName = firstName;
+  }
+  if (lastName) {
+    updateData.lastName = lastName;
+  }
+  if (slug) {
+    updateData.slug = slug;
+  }
+  if (shortDescription !== undefined) {
+    updateData.shortDescription = shortDescription;
+  }
+  if (university) {
+    updateData.university = university;
+  }
+  if (biography !== undefined) {
+    updateData.biography = biography;
+  }
+  if (skills) {
+    updateData.skills = skills;
+  }
+  if (medicalLicenseNo) {
+    updateData.medicalLicenseNo = medicalLicenseNo;
+  }
+  if (workingDays !== undefined) {
+    updateData.workingDays = parsedWorkingDays;
+  }
+
+  // Handle profile image removal
+  if (req.body.removeProfileImage === "true") {
+    // Delete old image if exists
+    if (currentDoctor.profileImage) {
+      const imagePath = currentDoctor.profileImage.startsWith("/")
+        ? currentDoctor.profileImage.slice(1)
+        : currentDoctor.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting image:", err);
+      }
+    }
+    updateData.profileImage = null;
+  }
+  // Handle profile image upload
+  else if (req.file) {
+    // Delete old image if exists
+    if (currentDoctor.profileImage) {
+      // Remove leading slash if present to make it relative
+      const imagePath = currentDoctor.profileImage.startsWith("/")
+        ? currentDoctor.profileImage.slice(1)
+        : currentDoctor.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting old image:", err);
+      }
+    }
+    updateData.profileImage = `/uploads/doctors/${req.file.filename}`;
+  }
+
   // Update doctor
   const doctor = await prisma.doctor.update({
     where: { id },
-    data: {
-      ...(firstName && { firstName }),
-      ...(lastName && { lastName }),
-      ...(slug && { slug }),
-      ...(profileImage && { profileImage }),
-      ...(shortDescription !== undefined && { shortDescription }),
-      ...(university && { university }),
-      ...(biography !== undefined && { biography }),
-      ...(skills && { skills }),
-      ...(medicalLicenseNo && { medicalLicenseNo }),
-      ...(workingDays !== undefined && { workingDays: parsedWorkingDays }),
-    },
+    data: updateData,
   });
 
   // Update clinic associations
@@ -418,7 +452,7 @@ const deleteDoctor = async (req, res) => {
   // Delete profile image if exists
   if (doctor.profileImage) {
     // Remove leading slash if present to make it relative
-    const imagePath = doctor.profileImage.startsWith('/')
+    const imagePath = doctor.profileImage.startsWith("/")
       ? doctor.profileImage.slice(1)
       : doctor.profileImage;
     const fullImagePath = path.join(process.cwd(), imagePath);

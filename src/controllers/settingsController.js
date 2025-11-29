@@ -1,8 +1,8 @@
-const prisma = require('../config/database');
-const { AppError } = require('../middlewares/errorHandler');
-const { formatPhoneNumberOptional } = require('../utils/helpers');
-const fs = require('fs').promises;
-const path = require('path');
+const prisma = require("../config/database");
+const { AppError } = require("../middlewares/errorHandler");
+const { formatPhoneNumberOptional } = require("../utils/helpers");
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Get site settings (public)
@@ -14,9 +14,9 @@ const getSettings = async (req, res) => {
   if (!settings) {
     settings = await prisma.siteSettings.create({
       data: {
-        siteName: 'Dental Clinic',
-        siteTitle: 'Professional Dental Care',
-        description: 'Your trusted dental care provider',
+        siteName: "Dental Clinic",
+        siteTitle: "Professional Dental Care",
+        description: "Your trusted dental care provider",
       },
     });
   }
@@ -59,164 +59,153 @@ const updateSettings = async (req, res) => {
   let settings = await prisma.siteSettings.findFirst();
 
   // Normalize phone number if provided
-  const normalizedPhoneNumber = phoneNumber !== undefined ? formatPhoneNumberOptional(phoneNumber) : undefined;
+  const normalizedPhoneNumber =
+    phoneNumber !== undefined
+      ? formatPhoneNumberOptional(phoneNumber)
+      : undefined;
 
-  // Handle file uploads (logo, aboutUsImage, contactUsImage, aboutUsVideo, contactUsVideo)
+  // Handle file uploads and removals (logo, aboutUsImage, contactUsImage, aboutUsVideo, contactUsVideo)
   let logoPath = undefined;
   let aboutUsImagePath = undefined;
   let contactUsImagePath = undefined;
   let aboutUsVideoPath = undefined;
   let contactUsVideoPath = undefined;
 
-  if (req.files) {
-    if (req.files.logo && req.files.logo[0]) {
-      // Delete old logo if exists
-      if (settings?.logo) {
-        try {
-          const oldLogoPath = path.join(process.cwd(), settings.logo);
-          await fs.unlink(oldLogoPath);
-        } catch (error) {
-          console.log('Error deleting old logo:', error.message);
-        }
+  // Handle logo removal
+  if (req.body.removeLogo === "true") {
+    // Delete old logo if exists
+    if (settings?.logo) {
+      const logoPathToDelete = settings.logo.startsWith("/")
+        ? settings.logo.slice(1)
+        : settings.logo;
+      const oldLogoPath = path.join(process.cwd(), logoPathToDelete);
+      try {
+        await fs.unlink(oldLogoPath);
+      } catch (error) {
+        console.log("Error deleting logo:", error.message);
       }
-      logoPath = `/uploads/site/${req.files.logo[0].filename}`;
     }
-    if (req.files.aboutUsImage && req.files.aboutUsImage[0]) {
-      // Delete old image if exists
-      if (settings?.aboutUsImage) {
-        try {
-          const oldImagePath = path.join(process.cwd(), settings.aboutUsImage);
-          await fs.unlink(oldImagePath);
-        } catch (error) {
-          console.log('Error deleting old aboutUsImage:', error.message);
-        }
+    logoPath = null;
+  }
+  // Handle logo upload
+  else if (req.files && req.files.logo && req.files.logo[0]) {
+    // Delete old logo if exists
+    if (settings?.logo) {
+      const logoPathToDelete = settings.logo.startsWith("/")
+        ? settings.logo.slice(1)
+        : settings.logo;
+      const oldLogoPath = path.join(process.cwd(), logoPathToDelete);
+      try {
+        await fs.unlink(oldLogoPath);
+      } catch (error) {
+        console.log("Error deleting old logo:", error.message);
       }
-      aboutUsImagePath = `/uploads/images/${req.files.aboutUsImage[0].filename}`;
     }
-    if (req.files.contactUsImage && req.files.contactUsImage[0]) {
-      // Delete old image if exists
-      if (settings?.contactUsImage) {
-        try {
-          const oldImagePath = path.join(process.cwd(), settings.contactUsImage);
-          await fs.unlink(oldImagePath);
-        } catch (error) {
-          console.log('Error deleting old contactUsImage:', error.message);
-        }
-      }
-      contactUsImagePath = `/uploads/images/${req.files.contactUsImage[0].filename}`;
-    }
-    if (req.files.aboutUsVideo && req.files.aboutUsVideo[0]) {
-      // Delete old video if exists
-      if (settings?.aboutUsVideo) {
-        try {
-          const oldVideoPath = path.join(process.cwd(), settings.aboutUsVideo);
-          await fs.unlink(oldVideoPath);
-        } catch (error) {
-          console.log('Error deleting old aboutUsVideo:', error.message);
-        }
-      }
-      aboutUsVideoPath = `/uploads/videos/${req.files.aboutUsVideo[0].filename}`;
-    }
-    if (req.files.contactUsVideo && req.files.contactUsVideo[0]) {
-      // Delete old video if exists
-      if (settings?.contactUsVideo) {
-        try {
-          const oldVideoPath = path.join(process.cwd(), settings.contactUsVideo);
-          await fs.unlink(oldVideoPath);
-        } catch (error) {
-          console.log('Error deleting old contactUsVideo:', error.message);
-        }
-      }
-      contactUsVideoPath = `/uploads/videos/${req.files.contactUsVideo[0].filename}`;
-    }
+    logoPath = `/uploads/site/${req.files.logo[0].filename}`;
   }
 
-  // If files are not uploaded but provided as strings (existing paths or empty strings)
-  // Handle delete (empty string means delete)
-  if (logoPath === undefined && logo !== undefined) {
-    if (logo === '') {
-      // Delete existing logo file
-      if (settings?.logo) {
-        try {
-          const oldLogoPath = path.join(process.cwd(), settings.logo);
-          await fs.unlink(oldLogoPath);
-        } catch (error) {
-          // File might not exist, ignore error
-          console.log('Error deleting old logo:', error.message);
-        }
+  // Handle aboutUsImage removal
+  if (req.body.removeAboutUsImage === "true") {
+    // Delete old image if exists
+    if (settings?.aboutUsImage) {
+      const imagePathToDelete = settings.aboutUsImage.startsWith("/")
+        ? settings.aboutUsImage.slice(1)
+        : settings.aboutUsImage;
+      const oldImagePath = path.join(process.cwd(), imagePathToDelete);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.log("Error deleting aboutUsImage:", error.message);
       }
-      logoPath = '';
-    } else {
-      logoPath = logo;
     }
+    aboutUsImagePath = null;
   }
-  
-  if (aboutUsImagePath === undefined && aboutUsImage !== undefined) {
-    if (aboutUsImage === '') {
-      // Delete existing image file
-      if (settings?.aboutUsImage) {
-        try {
-          const oldImagePath = path.join(process.cwd(), settings.aboutUsImage);
-          await fs.unlink(oldImagePath);
-        } catch (error) {
-          console.log('Error deleting old aboutUsImage:', error.message);
-        }
+  // Handle aboutUsImage upload
+  else if (req.files && req.files.aboutUsImage && req.files.aboutUsImage[0]) {
+    // Delete old image if exists
+    if (settings?.aboutUsImage) {
+      const imagePathToDelete = settings.aboutUsImage.startsWith("/")
+        ? settings.aboutUsImage.slice(1)
+        : settings.aboutUsImage;
+      const oldImagePath = path.join(process.cwd(), imagePathToDelete);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.log("Error deleting old aboutUsImage:", error.message);
       }
-      aboutUsImagePath = '';
-    } else {
-      aboutUsImagePath = aboutUsImage;
     }
+    aboutUsImagePath = `/uploads/images/${req.files.aboutUsImage[0].filename}`;
   }
-  
-  if (contactUsImagePath === undefined && contactUsImage !== undefined) {
-    if (contactUsImage === '') {
-      // Delete existing image file
-      if (settings?.contactUsImage) {
-        try {
-          const oldImagePath = path.join(process.cwd(), settings.contactUsImage);
-          await fs.unlink(oldImagePath);
-        } catch (error) {
-          console.log('Error deleting old contactUsImage:', error.message);
-        }
+
+  // Handle contactUsImage removal
+  if (req.body.removeContactUsImage === "true") {
+    // Delete old image if exists
+    if (settings?.contactUsImage) {
+      const imagePathToDelete = settings.contactUsImage.startsWith("/")
+        ? settings.contactUsImage.slice(1)
+        : settings.contactUsImage;
+      const oldImagePath = path.join(process.cwd(), imagePathToDelete);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.log("Error deleting contactUsImage:", error.message);
       }
-      contactUsImagePath = '';
-    } else {
-      contactUsImagePath = contactUsImage;
     }
+    contactUsImagePath = null;
   }
-  
-  if (aboutUsVideoPath === undefined && aboutUsVideo !== undefined) {
-    if (aboutUsVideo === '') {
-      // Delete existing video file
-      if (settings?.aboutUsVideo) {
-        try {
-          const oldVideoPath = path.join(process.cwd(), settings.aboutUsVideo);
-          await fs.unlink(oldVideoPath);
-        } catch (error) {
-          console.log('Error deleting old aboutUsVideo:', error.message);
-        }
+  // Handle contactUsImage upload
+  else if (
+    req.files &&
+    req.files.contactUsImage &&
+    req.files.contactUsImage[0]
+  ) {
+    // Delete old image if exists
+    if (settings?.contactUsImage) {
+      const imagePathToDelete = settings.contactUsImage.startsWith("/")
+        ? settings.contactUsImage.slice(1)
+        : settings.contactUsImage;
+      const oldImagePath = path.join(process.cwd(), imagePathToDelete);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.log("Error deleting old contactUsImage:", error.message);
       }
-      aboutUsVideoPath = '';
-    } else {
-      aboutUsVideoPath = aboutUsVideo;
     }
+    contactUsImagePath = `/uploads/images/${req.files.contactUsImage[0].filename}`;
   }
-  
-  if (contactUsVideoPath === undefined && contactUsVideo !== undefined) {
-    if (contactUsVideo === '') {
-      // Delete existing video file
-      if (settings?.contactUsVideo) {
-        try {
-          const oldVideoPath = path.join(process.cwd(), settings.contactUsVideo);
-          await fs.unlink(oldVideoPath);
-        } catch (error) {
-          console.log('Error deleting old contactUsVideo:', error.message);
-        }
+
+  // Handle aboutUsVideo upload (no removal flag needed, videos can be replaced)
+  if (req.files && req.files.aboutUsVideo && req.files.aboutUsVideo[0]) {
+    // Delete old video if exists
+    if (settings?.aboutUsVideo) {
+      const videoPathToDelete = settings.aboutUsVideo.startsWith("/")
+        ? settings.aboutUsVideo.slice(1)
+        : settings.aboutUsVideo;
+      const oldVideoPath = path.join(process.cwd(), videoPathToDelete);
+      try {
+        await fs.unlink(oldVideoPath);
+      } catch (error) {
+        console.log("Error deleting old aboutUsVideo:", error.message);
       }
-      contactUsVideoPath = '';
-    } else {
-      contactUsVideoPath = contactUsVideo;
     }
+    aboutUsVideoPath = `/uploads/videos/${req.files.aboutUsVideo[0].filename}`;
+  }
+
+  // Handle contactUsVideo upload (no removal flag needed, videos can be replaced)
+  if (req.files && req.files.contactUsVideo && req.files.contactUsVideo[0]) {
+    // Delete old video if exists
+    if (settings?.contactUsVideo) {
+      const videoPathToDelete = settings.contactUsVideo.startsWith("/")
+        ? settings.contactUsVideo.slice(1)
+        : settings.contactUsVideo;
+      const oldVideoPath = path.join(process.cwd(), videoPathToDelete);
+      try {
+        await fs.unlink(oldVideoPath);
+      } catch (error) {
+        console.log("Error deleting old contactUsVideo:", error.message);
+      }
+    }
+    contactUsVideoPath = `/uploads/videos/${req.files.contactUsVideo[0].filename}`;
   }
 
   if (!settings) {
@@ -226,7 +215,7 @@ const updateSettings = async (req, res) => {
         siteName,
         siteTitle,
         description,
-        logo: logoPath,
+        logo: logoPath !== undefined ? logoPath : null,
         email,
         phoneNumber: normalizedPhoneNumber,
         address,
@@ -238,11 +227,13 @@ const updateSettings = async (req, res) => {
         facebook,
         youtube,
         workingHours,
-        aboutUsImage: aboutUsImagePath !== undefined ? aboutUsImagePath : aboutUsImage,
-        aboutUsVideo: aboutUsVideoPath !== undefined ? aboutUsVideoPath : aboutUsVideo,
+        aboutUsImage: aboutUsImagePath !== undefined ? aboutUsImagePath : null,
+        aboutUsVideo: aboutUsVideoPath !== undefined ? aboutUsVideoPath : null,
         aboutUsContent,
-        contactUsImage: contactUsImagePath !== undefined ? contactUsImagePath : contactUsImage,
-        contactUsVideo: contactUsVideoPath !== undefined ? contactUsVideoPath : contactUsVideo,
+        contactUsImage:
+          contactUsImagePath !== undefined ? contactUsImagePath : null,
+        contactUsVideo:
+          contactUsVideoPath !== undefined ? contactUsVideoPath : null,
         becomeDoctorContent,
       },
     });
@@ -256,7 +247,9 @@ const updateSettings = async (req, res) => {
         ...(description !== undefined && { description }),
         ...(logoPath !== undefined && { logo: logoPath }),
         ...(email !== undefined && { email }),
-        ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
+        ...(normalizedPhoneNumber !== undefined && {
+          phoneNumber: normalizedPhoneNumber,
+        }),
         ...(address !== undefined && { address }),
         ...(instagram !== undefined && { instagram }),
         ...(telegram !== undefined && { telegram }),
@@ -266,15 +259,19 @@ const updateSettings = async (req, res) => {
         ...(facebook !== undefined && { facebook }),
         ...(youtube !== undefined && { youtube }),
         ...(workingHours !== undefined && { workingHours }),
-        ...(aboutUsImagePath !== undefined && { aboutUsImage: aboutUsImagePath }),
-        ...(aboutUsImagePath === undefined && aboutUsImage !== undefined && { aboutUsImage }),
-        ...(aboutUsVideoPath !== undefined && { aboutUsVideo: aboutUsVideoPath }),
-        ...(aboutUsVideoPath === undefined && aboutUsVideo !== undefined && { aboutUsVideo }),
+        ...(aboutUsImagePath !== undefined && {
+          aboutUsImage: aboutUsImagePath,
+        }),
+        ...(aboutUsVideoPath !== undefined && {
+          aboutUsVideo: aboutUsVideoPath,
+        }),
         ...(aboutUsContent !== undefined && { aboutUsContent }),
-        ...(contactUsImagePath !== undefined && { contactUsImage: contactUsImagePath }),
-        ...(contactUsImagePath === undefined && contactUsImage !== undefined && { contactUsImage }),
-        ...(contactUsVideoPath !== undefined && { contactUsVideo: contactUsVideoPath }),
-        ...(contactUsVideoPath === undefined && contactUsVideo !== undefined && { contactUsVideo }),
+        ...(contactUsImagePath !== undefined && {
+          contactUsImage: contactUsImagePath,
+        }),
+        ...(contactUsVideoPath !== undefined && {
+          contactUsVideo: contactUsVideoPath,
+        }),
         ...(becomeDoctorContent !== undefined && { becomeDoctorContent }),
       },
     });
@@ -282,7 +279,7 @@ const updateSettings = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'تنظیمات سایت با موفقیت به‌روزرسانی شد',
+    message: "تنظیمات سایت با موفقیت به‌روزرسانی شد",
     data: { settings },
   });
 };
@@ -291,7 +288,15 @@ const updateSettings = async (req, res) => {
  * Update social media links only (Admin only)
  */
 const updateSocialMedia = async (req, res) => {
-  const { instagram, telegram, whatsapp, twitter, linkedin, facebook, youtube } = req.body;
+  const {
+    instagram,
+    telegram,
+    whatsapp,
+    twitter,
+    linkedin,
+    facebook,
+    youtube,
+  } = req.body;
 
   let settings = await prisma.siteSettings.findFirst();
 
@@ -325,7 +330,7 @@ const updateSocialMedia = async (req, res) => {
 
   res.json({
     success: true,
-    message: 'لینک‌های شبکه‌های اجتماعی با موفقیت به‌روزرسانی شد',
+    message: "لینک‌های شبکه‌های اجتماعی با موفقیت به‌روزرسانی شد",
     data: {
       socialMedia: {
         instagram: settings.instagram,
@@ -378,4 +383,3 @@ module.exports = {
   updateSocialMedia,
   getSocialMedia,
 };
-
