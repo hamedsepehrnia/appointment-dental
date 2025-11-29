@@ -4,6 +4,8 @@ const smsService = require('../services/smsService');
 const { generateOtp, formatPhoneNumber, generateRandomPassword } = require('../utils/helpers');
 const { AppError } = require('../middlewares/errorHandler');
 const { generateCsrfToken } = require('../middlewares/csrf');
+const path = require('path');
+const fs = require('fs').promises;
 
 /**
  * Login with password (Admin/Secretary only)
@@ -234,6 +236,7 @@ const getCurrentUser = async (req, res) => {
       nationalCode: true,
       address: true,
       gender: true,
+      profileImage: true,
       clinic: {
         select: {
           id: true,
@@ -259,15 +262,44 @@ const getCurrentUser = async (req, res) => {
 const updateProfile = async (req, res) => {
   const { firstName, lastName, nationalCode, address, gender } = req.body;
 
+  // Get current user to check for existing profile image
+  const currentUser = await prisma.user.findUnique({
+    where: { id: req.session.userId },
+    select: { profileImage: true },
+  });
+
+  if (!currentUser) {
+    throw new AppError('کاربر یافت نشد', 404);
+  }
+
+  // Prepare update data
+  const updateData = {};
+  if (firstName) updateData.firstName = firstName;
+  if (lastName) updateData.lastName = lastName;
+  if (nationalCode !== undefined) updateData.nationalCode = nationalCode || null;
+  if (address !== undefined) updateData.address = address || null;
+  if (gender) updateData.gender = gender;
+
+  // Handle profile image upload
+  if (req.file) {
+    // Delete old image if exists
+    if (currentUser.profileImage) {
+      const imagePath = currentUser.profileImage.startsWith('/')
+        ? currentUser.profileImage.slice(1)
+        : currentUser.profileImage;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error('Error deleting old image:', err);
+      }
+    }
+    updateData.profileImage = `/uploads/users/${req.file.filename}`;
+  }
+
   const user = await prisma.user.update({
     where: { id: req.session.userId },
-    data: {
-      ...(firstName && { firstName }),
-      ...(lastName && { lastName }),
-      ...(nationalCode && { nationalCode }),
-      ...(address && { address }),
-      ...(gender && { gender }),
-    },
+    data: updateData,
     select: {
       id: true,
       phoneNumber: true,
@@ -276,6 +308,7 @@ const updateProfile = async (req, res) => {
       nationalCode: true,
       address: true,
       gender: true,
+      profileImage: true,
     },
   });
 

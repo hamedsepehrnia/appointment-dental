@@ -108,8 +108,34 @@
               "raw": "{{baseUrl}}/auth/me",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "me"]
+            },
+            "description": "دریافت اطلاعات کاربر جاری شامل عکس پروفایل"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "me"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"phoneNumber\": \"09123456789\",\n      \"firstName\": \"احمد\",\n      \"lastName\": \"احمدی\",\n      \"role\": \"PATIENT\",\n      \"nationalCode\": \"1234567890\",\n      \"address\": \"تهران، خیابان ولیعصر\",\n      \"gender\": \"MALE\",\n      \"profileImage\": \"/uploads/users/profileImage-1234567890-123456789.png\",\n      \"clinic\": {\n        \"id\": \"uuid\",\n        \"name\": \"نام کلینیک\"\n      }\n    }\n  }\n}"
             }
-          }
+          ]
         },
         {
           "name": "Update Profile",
@@ -117,24 +143,104 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
                 "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
+                "value": "{{csrfToken}}",
+                "description": "Get CSRF token first from /auth/csrf-token"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"احمد\",\n  \"lastName\": \"احمدی\",\n  \"nationalCode\": \"1234567890\",\n  \"address\": \"تهران، خیابان ولیعصر\",\n  \"gender\": \"MALE\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "احمد",
+                  "type": "text",
+                  "description": "نام (اختیاری)"
+                },
+                {
+                  "key": "lastName",
+                  "value": "احمدی",
+                  "type": "text",
+                  "description": "نام خانوادگی (اختیاری)"
+                },
+                {
+                  "key": "nationalCode",
+                  "value": "1234567890",
+                  "type": "text",
+                  "description": "کد ملی (اختیاری)"
+                },
+                {
+                  "key": "address",
+                  "value": "تهران، خیابان ولیعصر",
+                  "type": "text",
+                  "description": "آدرس (اختیاری)"
+                },
+                {
+                  "key": "gender",
+                  "value": "MALE",
+                  "type": "text",
+                  "description": "جنسیت: MALE, FEMALE, OTHER (اختیاری)"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": [],
+                  "description": "تصویر پروفایل (اختیاری) - فرمت‌های مجاز: JPG, JPEG, PNG, WEBP"
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/auth/me",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "me"]
+            },
+            "description": "به‌روزرسانی پروفایل کاربر جاری. می‌توانید عکس پروفایل را آپلود کنید. در صورت آپلود عکس جدید، عکس قبلی به‌صورت خودکار حذف می‌شود."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "firstName",
+                      "value": "احمد",
+                      "type": "text"
+                    },
+                    {
+                      "key": "profileImage",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "me"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"پروفایل با موفقیت به‌روزرسانی شد\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"phoneNumber\": \"09123456789\",\n      \"firstName\": \"احمد\",\n      \"lastName\": \"احمدی\",\n      \"nationalCode\": \"1234567890\",\n      \"address\": \"تهران، خیابان ولیعصر\",\n      \"gender\": \"MALE\",\n      \"profileImage\": \"/uploads/users/profileImage-1234567890-123456789.png\"\n    }\n  }\n}"
             }
-          }
+          ]
         },
         {
           "name": "Logout",

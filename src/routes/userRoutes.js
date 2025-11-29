@@ -1,85 +1,87 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Joi = require('joi');
-const userController = require('../controllers/userController');
-const { isAdmin } = require('../middlewares/auth');
-const { validate, schemas } = require('../middlewares/validation');
-const upload = require('../middlewares/upload');
-const asyncHandler = require('../middlewares/asyncHandler');
-const { csrfProtection } = require('../middlewares/csrf');
+const Joi = require("joi");
+const userController = require("../controllers/userController");
+const { isAdminOrSecretary } = require("../middlewares/auth");
+const { validate, schemas } = require("../middlewares/validation");
+const upload = require("../middlewares/upload");
+const asyncHandler = require("../middlewares/asyncHandler");
+const { csrfProtection } = require("../middlewares/csrf");
 
-// Get all users (Admin only)
+// Get all users (Admin/Secretary)
 router.get(
-  '/',
-  isAdmin,
+  "/",
+  isAdminOrSecretary,
   validate(
     schemas.pagination.keys({
-      role: Joi.string().valid('ADMIN', 'SECRETARY', 'PATIENT'),
-      search: Joi.string().allow(''),
+      role: Joi.string().valid("ADMIN", "SECRETARY", "PATIENT"),
+      search: Joi.string().allow(""),
       clinicId: Joi.string().uuid(),
     }),
-    'query'
+    "query"
   ),
   asyncHandler(userController.getUsers)
 );
 
-// Get single user by ID (Admin only)
+// Get single user by ID (Admin/Secretary)
 router.get(
-  '/:id',
-  isAdmin,
+  "/:id",
+  isAdminOrSecretary,
   validate(
     Joi.object({
       id: schemas.id,
     }),
-    'params'
+    "params"
   ),
   asyncHandler(userController.getUser)
 );
 
-// Create user (Admin only)
+// Create user (Admin/Secretary)
 router.post(
-  '/',
-  isAdmin,
+  "/",
+  isAdminOrSecretary,
   csrfProtection,
-  upload.single('profileImage'),
+  upload.single("profileImage"),
   validate(
     Joi.object({
       phoneNumber: schemas.phoneNumber,
       firstName: Joi.string().required().min(2).max(50).messages({
-        'any.required': 'نام الزامی است',
-        'string.min': 'نام باید حداقل ۲ کاراکتر باشد',
-        'string.max': 'نام باید حداکثر ۵۰ کاراکتر باشد',
+        "any.required": "نام الزامی است",
+        "string.min": "نام باید حداقل ۲ کاراکتر باشد",
+        "string.max": "نام باید حداکثر ۵۰ کاراکتر باشد",
       }),
       lastName: Joi.string().required().min(2).max(50).messages({
-        'any.required': 'نام خانوادگی الزامی است',
-        'string.min': 'نام خانوادگی باید حداقل ۲ کاراکتر باشد',
-        'string.max': 'نام خانوادگی باید حداکثر ۵۰ کاراکتر باشد',
+        "any.required": "نام خانوادگی الزامی است",
+        "string.min": "نام خانوادگی باید حداقل ۲ کاراکتر باشد",
+        "string.max": "نام خانوادگی باید حداکثر ۵۰ کاراکتر باشد",
       }),
       password: Joi.string().required().min(8).messages({
-        'any.required': 'رمز عبور الزامی است',
-        'string.min': 'رمز عبور باید حداقل ۸ کاراکتر باشد',
+        "any.required": "رمز عبور الزامی است",
+        "string.min": "رمز عبور باید حداقل ۸ کاراکتر باشد",
       }),
-      role: Joi.string().valid('ADMIN', 'SECRETARY', 'PATIENT').default('PATIENT'),
-      nationalCode: schemas.nationalCode.optional().allow(null).allow(''),
-      address: Joi.string().max(500).allow(''),
-      gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
-      clinicId: Joi.string().uuid().allow(null).allow(''),
+      role: Joi.string()
+        .valid("ADMIN", "SECRETARY", "PATIENT")
+        .default("PATIENT"),
+      nationalCode: schemas.nationalCode.optional().allow(null).allow(""),
+      address: Joi.string().max(500).allow(""),
+      gender: Joi.string().valid("MALE", "FEMALE", "OTHER"),
+      clinicId: Joi.string().uuid().allow(null).allow(""),
     })
   ),
   asyncHandler(userController.createUser)
 );
 
-// Update user (Admin only)
+// Update user (Admin/Secretary)
 router.patch(
-  '/:id',
-  isAdmin,
+  "/:id",
+  isAdminOrSecretary,
   csrfProtection,
-  upload.single('profileImage'),
+  upload.single("profileImage"),
   validate(
     Joi.object({
       id: schemas.id,
     }),
-    'params'
+    "params"
   ),
   validate(
     Joi.object({
@@ -87,29 +89,29 @@ router.patch(
       firstName: Joi.string().min(2).max(50),
       lastName: Joi.string().min(2).max(50),
       password: Joi.string().min(8),
-      role: Joi.string().valid('ADMIN', 'SECRETARY', 'PATIENT'),
-      nationalCode: schemas.nationalCode.optional().allow(null).allow(''),
-      address: Joi.string().max(500).allow(''),
-      gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
-      clinicId: Joi.string().uuid().allow(null).allow(''),
+      role: Joi.string().valid("ADMIN", "SECRETARY", "PATIENT"),
+      nationalCode: schemas.nationalCode.optional().allow(null).allow(""),
+      address: Joi.string().max(500).allow(""),
+      gender: Joi.string().valid("MALE", "FEMALE", "OTHER"),
+      clinicId: Joi.string().uuid().allow(null).allow(""),
+      removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
   asyncHandler(userController.updateUser)
 );
 
-// Delete user (Admin only)
+// Delete user (Admin/Secretary)
 router.delete(
-  '/:id',
-  isAdmin,
+  "/:id",
+  isAdminOrSecretary,
   csrfProtection,
   validate(
     Joi.object({
       id: schemas.id,
     }),
-    'params'
+    "params"
   ),
   asyncHandler(userController.deleteUser)
 );
 
 module.exports = router;
-

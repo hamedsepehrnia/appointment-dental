@@ -1,21 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Joi = require('joi');
-const authController = require('../controllers/authController');
-const { isAuthenticated } = require('../middlewares/auth');
-const { validate, schemas } = require('../middlewares/validation');
-const asyncHandler = require('../middlewares/asyncHandler');
-const { csrfProtection } = require('../middlewares/csrf');
+const Joi = require("joi");
+const authController = require("../controllers/authController");
+const { isAuthenticated } = require("../middlewares/auth");
+const { validate, schemas } = require("../middlewares/validation");
+const asyncHandler = require("../middlewares/asyncHandler");
+const { csrfProtection } = require("../middlewares/csrf");
+const upload = require("../middlewares/upload");
 
 // Login with password (Admin/Secretary only)
 router.post(
-  '/login',
+  "/login",
   validate(
     Joi.object({
       phoneNumber: schemas.phoneNumber,
       password: Joi.string().required().min(8).messages({
-        'any.required': 'رمز عبور الزامی است',
-        'string.min': 'رمز عبور باید حداقل ۸ کاراکتر باشد',
+        "any.required": "رمز عبور الزامی است",
+        "string.min": "رمز عبور باید حداقل ۸ کاراکتر باشد",
       }),
     })
   ),
@@ -23,11 +24,15 @@ router.post(
 );
 
 // Get CSRF Token (requires authentication)
-router.get('/csrf-token', isAuthenticated, asyncHandler(authController.getCsrfToken));
+router.get(
+  "/csrf-token",
+  isAuthenticated,
+  asyncHandler(authController.getCsrfToken)
+);
 
 // Request OTP
 router.post(
-  '/request-otp',
+  "/request-otp",
   validate(
     Joi.object({
       phoneNumber: schemas.phoneNumber,
@@ -38,7 +43,7 @@ router.post(
 
 // Verify OTP and login/register
 router.post(
-  '/verify-otp',
+  "/verify-otp",
   validate(
     Joi.object({
       phoneNumber: schemas.phoneNumber,
@@ -51,27 +56,32 @@ router.post(
 );
 
 // Logout
-router.post('/logout', isAuthenticated, csrfProtection, asyncHandler(authController.logout));
+router.post(
+  "/logout",
+  isAuthenticated,
+  csrfProtection,
+  asyncHandler(authController.logout)
+);
 
 // Get current user
-router.get('/me', isAuthenticated, asyncHandler(authController.getCurrentUser));
+router.get("/me", isAuthenticated, asyncHandler(authController.getCurrentUser));
 
 // Update profile
 router.patch(
-  '/me',
+  "/me",
   isAuthenticated,
   csrfProtection,
+  upload.single("profileImage"),
   validate(
     Joi.object({
       firstName: Joi.string().min(2).max(50),
       lastName: Joi.string().min(2).max(50),
-      nationalCode: schemas.nationalCode.optional().allow(null).allow(''),
-      address: Joi.string().max(500),
-      gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
+      nationalCode: schemas.nationalCode.optional().allow(null).allow(""),
+      address: Joi.string().max(500).allow("").allow(null).optional(),
+      gender: Joi.string().valid("MALE", "FEMALE", "OTHER"),
     })
   ),
   asyncHandler(authController.updateProfile)
 );
 
 module.exports = router;
-

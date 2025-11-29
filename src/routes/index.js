@@ -16,6 +16,7 @@ const categoryRoutes = require('./categoryRoutes');
 const doctorApplicationRoutes = require('./doctorApplicationRoutes');
 const uploadRoutes = require('./uploadRoutes');
 const userRoutes = require('./userRoutes');
+const reviewRoutes = require('./reviewRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -33,6 +34,7 @@ router.use('/categories', categoryRoutes);
 router.use('/doctor-applications', doctorApplicationRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/users', userRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Health check
 router.get("/health", (req, res) => {

@@ -1,4 +1,4 @@
-const { AppError } = require('../middlewares/errorHandler');
+const { AppError } = require("../middlewares/errorHandler");
 
 /**
  * Upload image for CKEditor
@@ -7,15 +7,15 @@ const { AppError } = require('../middlewares/errorHandler');
  */
 const uploadImage = async (req, res) => {
   if (!req.file) {
-    throw new AppError('لطفاً یک تصویر انتخاب کنید', 400);
+    throw new AppError("لطفاً یک تصویر انتخاب کنید", 400);
   }
 
   // Construct the image URL path
   const imageUrl = `/uploads/images/${req.file.filename}`;
-  
+
   // Get the full URL (protocol + host + path)
   // This ensures CKEditor gets a complete URL that works in the editor
-  const fullImageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+  const fullImageUrl = `${req.protocol}://${req.get("host")}${imageUrl}`;
 
   // CKEditor expects a specific response format: { url: "..." }
   res.json({
@@ -26,4 +26,3 @@ const uploadImage = async (req, res) => {
 module.exports = {
   uploadImage,
 };
-

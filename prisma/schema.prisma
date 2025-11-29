@@ -283,10 +283,14 @@ model SiteSettings {
   // About Us Page
   aboutUsImage String? @map("about_us_image") // عکس صفحه درباره ما
   aboutUsVideo String? @map("about_us_video") // فیلم صفحه درباره ما
+  aboutUsContent String? @db.Text @map("about_us_content") // محتوای صفحه درباره ما
   
   // Contact Us Page
   contactUsImage String? @map("contact_us_image") // عکس صفحه تماس با ما
   contactUsVideo String? @map("contact_us_video") // فیلم صفحه تماس با ما
+  
+  // Become Doctor Page
+  becomeDoctorContent String? @db.Text @map("become_doctor_content") // محتوای صفحه دکتر شوید
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -368,5 +372,20 @@ model DoctorApplication {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("doctor_applications")
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  name        String   // نام کاربر
+  content     String   @db.Text // متن نظر
+  rating      Int      // امتیاز از ۱ تا ۵
+  profileImage String? @map("profile_image") // تصویر کاربر (اختیاری)
+  published   Boolean  @default(false) // وضعیت انتشار
+  order       Int      @default(0) // ترتیب نمایش
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("reviews")
 }
 

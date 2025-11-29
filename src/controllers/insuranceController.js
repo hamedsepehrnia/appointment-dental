@@ -6,16 +6,24 @@ const { paginate, createPaginationMeta, formatPhoneNumberOptional } = require('.
  * Get all insurance organizations (Public)
  */
 const getInsuranceOrganizations = async (req, res) => {
-  const { page = 1, limit = 10, published } = req.query;
+  // Convert query params to numbers (they come as strings)
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const { published } = req.query;
+  
   const { skip, take } = paginate(page, limit);
 
   const where = {};
   
   // Only show published insurances to non-admin/secretary users
-  if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
+  const isAdminOrSecretary = req.session?.userRole === 'ADMIN' || req.session?.userRole === 'SECRETARY';
+  
+  // FIX: برای ادمین/منشی فقط وقتی published مشخص شده فیلتر کن
+  if (!isAdminOrSecretary) {
     where.published = true;
-  } else if (published !== undefined) {
-    where.published = published === 'true' || published === true;
+  } else if (published !== undefined && published !== null && published !== '') {
+    // FIX: چک کردن مقادیر مختلف published
+    where.published = published === 'true' || published === true || published === '1';
   }
 
   const [organizations, total] = await Promise.all([
