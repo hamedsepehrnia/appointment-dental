@@ -1,0 +1,68 @@
+{
+  "success": true,
+  "data": {
+    "comments": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "content": "مقاله بسیار مفید و جامعی بود. ممنون از نویسنده",
+        "rating": 5,
+        "published": true,
+        "userId": "660e8400-e29b-41d4-a716-446655440001",
+        "articleId": "770e8400-e29b-41d4-a716-446655440002",
+        "doctorId": null,
+        "serviceId": null,
+        "parentId": null,
+        "createdAt": "2024-01-15T10:30:00.000Z",
+        "updatedAt": "2024-01-15T10:30:00.000Z",
+        "user": {
+          "firstName": "علی",
+          "lastName": "احمدی"
+        },
+        "replies": [
+          {
+            "id": "880e8400-e29b-41d4-a716-446655440003",
+            "content": "خوشحالیم که مفید بوده",
+            "rating": null,
+            "published": true,
+            "userId": "990e8400-e29b-41d4-a716-446655440004",
+            "articleId": "770e8400-e29b-41d4-a716-446655440002",
+            "doctorId": null,
+            "serviceId": null,
+            "parentId": "550e8400-e29b-41d4-a716-446655440000",
+            "createdAt": "2024-01-15T11:00:00.000Z",
+            "updatedAt": "2024-01-15T11:00:00.000Z",
+            "user": {
+              "firstName": "محمد",
+              "lastName": "رضایی"
+            }
+          }
+        ]
+      },
+      {
+        "id": "aa0e8400-e29b-41d4-a716-446655440005",
+        "content": "ممنون از اطلاعات خوبتون",
+        "rating": 4,
+        "published": true,
+        "userId": "bb0e8400-e29b-41d4-a716-446655440006",
+        "articleId": "770e8400-e29b-41d4-a716-446655440002",
+        "doctorId": null,
+        "serviceId": null,
+        "parentId": null,
+        "createdAt": "2024-01-14T09:20:00.000Z",
+        "updatedAt": "2024-01-14T09:20:00.000Z",
+        "user": {
+          "firstName": "فاطمه",
+          "lastName": "کریمی"
+        },
+        "replies": []
+      }
+    ]
+  },
+  "meta": {
+    "total": 2,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+
