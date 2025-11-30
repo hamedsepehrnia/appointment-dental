@@ -72,7 +72,10 @@ app.use(
     exposedHeaders: ["Content-Length", "Content-Type"],
   })
 );
-
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 // Rate limiting with better key generation
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
