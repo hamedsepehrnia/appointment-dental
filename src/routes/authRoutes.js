@@ -50,6 +50,7 @@ router.post(
       code: schemas.otpCode,
       firstName: Joi.string().min(2).max(50),
       lastName: Joi.string().min(2).max(50),
+      gender: Joi.string().valid("MALE", "FEMALE", "OTHER").optional(),
     })
   ),
   asyncHandler(authController.verifyOtp)

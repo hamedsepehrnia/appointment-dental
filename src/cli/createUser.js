@@ -35,6 +35,28 @@ const createUser = async (role) => {
       process.exit(1);
     }
 
+    // Ask for gender
+    console.log('\nGender options:');
+    console.log('  1. MALE');
+    console.log('  2. FEMALE');
+    console.log('  3. OTHER');
+    console.log('  4. Skip (optional)');
+    const genderChoice = await question('Select gender (1-4): ');
+    
+    let gender = null;
+    if (genderChoice === '1') {
+      gender = 'MALE';
+    } else if (genderChoice === '2') {
+      gender = 'FEMALE';
+    } else if (genderChoice === '3') {
+      gender = 'OTHER';
+    } else if (genderChoice === '4' || !genderChoice) {
+      gender = null;
+    } else {
+      console.error('Error: Invalid gender selection');
+      process.exit(1);
+    }
+
     const phoneNumber = await question('Phone Number (09xxxxxxxxx or Persian digits): ');
     if (!phoneNumber || phoneNumber.trim().length < 10) {
       console.error('Error: Phone number is required and must be at least 10 characters');
@@ -106,6 +128,7 @@ const createUser = async (role) => {
         password: hashedPassword,
         role: role === 'admin' ? 'ADMIN' : 'SECRETARY',
         ...(clinicId && { clinicId }),
+        ...(gender && { gender }),
       },
     });
 
@@ -113,6 +136,9 @@ const createUser = async (role) => {
     console.log(`   Name: ${user.firstName} ${user.lastName}`);
     console.log(`   Phone: ${user.phoneNumber}`);
     console.log(`   Role: ${user.role}`);
+    if (user.gender) {
+      console.log(`   Gender: ${user.gender}`);
+    }
     if (clinicId) {
       const clinic = await prisma.clinic.findUnique({ where: { id: clinicId } });
       console.log(`   Clinic: ${clinic.name}`);

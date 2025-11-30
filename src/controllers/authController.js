@@ -142,7 +142,7 @@ const requestOtp = async (req, res) => {
  * Verify OTP and login/register
  */
 const verifyOtp = async (req, res) => {
-  const { phoneNumber, code, firstName, lastName } = req.body;
+  const { phoneNumber, code, firstName, lastName, gender } = req.body;
   const formattedPhone = formatPhoneNumber(phoneNumber);
 
   // Find valid OTP
@@ -187,6 +187,7 @@ const verifyOtp = async (req, res) => {
         lastName,
         password: hashedPassword,
         role: "PATIENT",
+        ...(gender && { gender }),
       },
     });
   }
