@@ -17,6 +17,7 @@ const doctorApplicationRoutes = require('./doctorApplicationRoutes');
 const uploadRoutes = require('./uploadRoutes');
 const userRoutes = require('./userRoutes');
 const reviewRoutes = require('./reviewRoutes');
+const heroSliderRoutes = require('./heroSliderRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -35,6 +36,7 @@ router.use('/doctor-applications', doctorApplicationRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/users', userRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/hero-sliders', heroSliderRoutes);
 
 // Health check
 router.get("/health", (req, res) => {

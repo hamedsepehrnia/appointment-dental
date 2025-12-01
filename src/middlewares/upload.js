@@ -27,6 +27,8 @@ const storage = multer.diskStorage({
       uploadPath += "images/";
     } else if (file.fieldname === "galleryImage") {
       uploadPath += "gallery/";
+    } else if (file.fieldname === "heroSliderImage") {
+      uploadPath += "images/";
     } else if (file.fieldname === "documents") {
       uploadPath += "documents/";
     } else if (file.fieldname === "logo") {

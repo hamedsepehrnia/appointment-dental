@@ -389,3 +389,19 @@ model Review {
   @@map("reviews")
 }
 
+model HeroSlider {
+  id          String   @id @default(uuid())
+  title       String?  // عنوان باکس (اختیاری)
+  description String?  @db.Text // توضیحات باکس (اختیاری)
+  buttonText  String?  @map("button_text") // متن دکمه (اختیاری)
+  buttonLink  String?  @map("button_link") // لینک دکمه (اختیاری)
+  image       String   // مسیر تصویر اسلایدر
+  order       Int      @default(0) // ترتیب نمایش
+  published   Boolean  @default(true) // وضعیت انتشار
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("hero_sliders")
+}
+
