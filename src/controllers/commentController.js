@@ -700,6 +700,44 @@ const toggleCommentStatus = async (req, res) => {
 };
 
 /**
+ * Toggle comment read status (Admin only)
+ */
+const toggleCommentReadStatus = async (req, res) => {
+  const { id } = req.params;
+
+  const comment = await prisma.comment.findUnique({
+    where: { id },
+  });
+
+  if (!comment) {
+    throw new AppError("نظر یافت نشد", 404);
+  }
+
+  const updatedComment = await prisma.comment.update({
+    where: { id },
+    data: {
+      read: !comment.read,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  res.json({
+    success: true,
+    message: `نظر به عنوان ${
+      updatedComment.read ? "خوانده شده" : "خوانده نشده"
+    } علامت‌گذاری شد`,
+    data: { comment: updatedComment },
+  });
+};
+
+/**
  * Delete comment (Owner or Admin)
  */
 const deleteComment = async (req, res) => {
@@ -732,18 +770,105 @@ const deleteComment = async (req, res) => {
 };
 
 const getCommentsStats = async (req, res) => {
-  const [total, published, unpublished] = await Promise.all([
-    prisma.comment.count(),
-    prisma.comment.count({ where: { published: true } }),
-    prisma.comment.count({ where: { published: false } }),
+  // Stats for doctor comments
+  const [
+    doctorTotal,
+    doctorPublished,
+    doctorUnpublished,
+    doctorRead,
+    doctorUnread,
+  ] = await Promise.all([
+    prisma.comment.count({
+      where: { doctorId: { not: null }, parentId: null },
+    }),
+    prisma.comment.count({
+      where: { doctorId: { not: null }, parentId: null, published: true },
+    }),
+    prisma.comment.count({
+      where: { doctorId: { not: null }, parentId: null, published: false },
+    }),
+    prisma.comment.count({
+      where: { doctorId: { not: null }, parentId: null, read: true },
+    }),
+    prisma.comment.count({
+      where: { doctorId: { not: null }, parentId: null, read: false },
+    }),
+  ]);
+
+  // Stats for article comments
+  const [
+    articleTotal,
+    articlePublished,
+    articleUnpublished,
+    articleRead,
+    articleUnread,
+  ] = await Promise.all([
+    prisma.comment.count({
+      where: { articleId: { not: null }, parentId: null },
+    }),
+    prisma.comment.count({
+      where: { articleId: { not: null }, parentId: null, published: true },
+    }),
+    prisma.comment.count({
+      where: { articleId: { not: null }, parentId: null, published: false },
+    }),
+    prisma.comment.count({
+      where: { articleId: { not: null }, parentId: null, read: true },
+    }),
+    prisma.comment.count({
+      where: { articleId: { not: null }, parentId: null, read: false },
+    }),
+  ]);
+
+  // Stats for service comments
+  const [
+    serviceTotal,
+    servicePublished,
+    serviceUnpublished,
+    serviceRead,
+    serviceUnread,
+  ] = await Promise.all([
+    prisma.comment.count({
+      where: { serviceId: { not: null }, parentId: null },
+    }),
+    prisma.comment.count({
+      where: { serviceId: { not: null }, parentId: null, published: true },
+    }),
+    prisma.comment.count({
+      where: { serviceId: { not: null }, parentId: null, published: false },
+    }),
+    prisma.comment.count({
+      where: { serviceId: { not: null }, parentId: null, read: true },
+    }),
+    prisma.comment.count({
+      where: { serviceId: { not: null }, parentId: null, read: false },
+    }),
   ]);
 
   res.json({
     success: true,
     data: {
-      total,
-      published,
-      unpublished,
+      doctor: {
+        total: doctorTotal,
+        published: doctorPublished,
+        unpublished: doctorUnpublished,
+        read: doctorRead,
+        unread: doctorUnread,
+      },
+      article: {
+        total: articleTotal,
+        published: articlePublished,
+        unpublished: articleUnpublished,
+        read: articleRead,
+        unread: articleUnread,
+      },
+      service: {
+        total: serviceTotal,
+        published: servicePublished,
+        unpublished: serviceUnpublished,
+        read: serviceRead,
+        unread: serviceUnread,
+      },
     },
   });
 };
@@ -761,6 +886,7 @@ module.exports = {
   replyToComment,
   updateComment,
   toggleCommentStatus,
+  toggleCommentReadStatus,
   deleteComment,
   getCommentsStats,
 };

@@ -215,6 +215,7 @@ model Comment {
   content   String   @db.Text
   rating    Int?     // امتیاز از ۱ تا ۵ (اختیاری)
   published Boolean  @default(false) // وضعیت انتشار کامنت
+  read      Boolean  @default(false) // آیا کامنت خوانده شده است
   
   // Relations
   userId    String   @map("user_id")

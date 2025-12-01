@@ -66,6 +66,15 @@ router.patch(
   asyncHandler(commentController.toggleCommentStatus)
 );
 
+// Toggle comment read status (Admin only)
+router.patch(
+  '/:id/toggle-read',
+  isAuthenticated,
+  isAdminOrSecretary,
+  csrfProtection,
+  asyncHandler(commentController.toggleCommentReadStatus)
+);
+
 // Get comments for a doctor (public)
 router.get(
   '/doctor/:doctorId',
