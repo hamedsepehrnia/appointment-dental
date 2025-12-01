@@ -231,10 +231,11 @@ const getDoctorComments = async (req, res) => {
   const where = { doctorId };
 
   // Only show published comments to non-admin users
-  if (
-    req.session.userRole !== "ADMIN" &&
-    req.session.userRole !== "SECRETARY"
-  ) {
+  // Default to showing only published comments unless user is admin/secretary
+  const isAdminOrSecretary =
+    req.session?.userRole === "ADMIN" || req.session?.userRole === "SECRETARY";
+
+  if (!isAdminOrSecretary) {
     where.published = true;
   }
 
@@ -242,8 +243,6 @@ const getDoctorComments = async (req, res) => {
   where.parentId = null;
 
   // Filter replies by published status for non-admin users
-  const isAdminOrSecretary =
-    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
   const repliesWhere = isAdminOrSecretary ? {} : { published: true };
 
   const [comments, total] = await Promise.all([
@@ -294,10 +293,11 @@ const getArticleComments = async (req, res) => {
   const where = { articleId };
 
   // Only show published comments to non-admin users
-  if (
-    req.session.userRole !== "ADMIN" &&
-    req.session.userRole !== "SECRETARY"
-  ) {
+  // Default to showing only published comments unless user is admin/secretary
+  const isAdminOrSecretary =
+    req.session?.userRole === "ADMIN" || req.session?.userRole === "SECRETARY";
+
+  if (!isAdminOrSecretary) {
     where.published = true;
   }
 
@@ -305,8 +305,6 @@ const getArticleComments = async (req, res) => {
   where.parentId = null;
 
   // Filter replies by published status for non-admin users
-  const isAdminOrSecretary =
-    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
   const repliesWhere = isAdminOrSecretary ? {} : { published: true };
 
   const [comments, total] = await Promise.all([
@@ -357,10 +355,11 @@ const getServiceComments = async (req, res) => {
   const where = { serviceId };
 
   // Only show published comments to non-admin users
-  if (
-    req.session.userRole !== "ADMIN" &&
-    req.session.userRole !== "SECRETARY"
-  ) {
+  // Default to showing only published comments unless user is admin/secretary
+  const isAdminOrSecretary =
+    req.session?.userRole === "ADMIN" || req.session?.userRole === "SECRETARY";
+
+  if (!isAdminOrSecretary) {
     where.published = true;
   }
 
@@ -368,8 +367,6 @@ const getServiceComments = async (req, res) => {
   where.parentId = null;
 
   // Filter replies by published status for non-admin users
-  const isAdminOrSecretary =
-    req.session.userRole === "ADMIN" || req.session.userRole === "SECRETARY";
   const repliesWhere = isAdminOrSecretary ? {} : { published: true };
 
   const [comments, total] = await Promise.all([
@@ -436,6 +433,7 @@ const createDoctorComment = async (req, res) => {
       rating: rating ? parseInt(rating) : null,
       userId: req.session.userId,
       doctorId,
+      published: false, // نظرات کاربران باید توسط ادمین تایید شوند
     },
     include: {
       user: {
@@ -481,6 +479,7 @@ const createArticleComment = async (req, res) => {
       rating: rating ? parseInt(rating) : null,
       userId: req.session.userId,
       articleId,
+      published: false, // نظرات کاربران باید توسط ادمین تایید شوند
     },
     include: {
       user: {
@@ -526,6 +525,7 @@ const createServiceComment = async (req, res) => {
       rating: rating ? parseInt(rating) : null,
       userId: req.session.userId,
       serviceId,
+      published: false, // نظرات کاربران باید توسط ادمین تایید شوند
     },
     include: {
       user: {
@@ -576,6 +576,7 @@ const replyToComment = async (req, res) => {
       doctorId: parentComment.doctorId,
       articleId: parentComment.articleId,
       serviceId: parentComment.serviceId,
+      published: false, // پاسخ‌ها هم باید توسط ادمین تایید شوند
     },
     include: {
       user: {
