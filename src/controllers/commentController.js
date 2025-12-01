@@ -731,6 +731,23 @@ const deleteComment = async (req, res) => {
   });
 };
 
+const getCommentsStats = async (req, res) => {
+  const [total, published, unpublished] = await Promise.all([
+    prisma.comment.count(),
+    prisma.comment.count({ where: { published: true } }),
+    prisma.comment.count({ where: { published: false } }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      total,
+      published,
+      unpublished,
+    },
+  });
+};
+
 module.exports = {
   getAllDoctorComments,
   getAllArticleComments,
@@ -745,4 +762,5 @@ module.exports = {
   updateComment,
   toggleCommentStatus,
   deleteComment,
+  getCommentsStats,
 };

@@ -50,6 +50,13 @@ router.get(
   asyncHandler(commentController.getAllServiceComments)
 );
 
+router.get(
+  '/stats',
+  isAuthenticated,
+  isAdminOrSecretary,
+  asyncHandler(commentController.getCommentsStats)
+);
+
 // Toggle comment published status (Admin only)
 router.patch(
   '/:id/toggle-status',
