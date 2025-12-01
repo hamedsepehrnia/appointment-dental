@@ -2,7 +2,7 @@
   "info": {
     "name": "Dental Appointment API",
     "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.",
-    "version": "2.5.0",
+    "version": "2.6.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -1342,8 +1342,11 @@
               "path": ["comments", "service", ":serviceId"]
             }
           }
-=======
-          "name": "Public APIs",
+        }
+      ]
+    },
+    {
+      "name": "Public APIs",
           "item": [
             {
               "name": "Get Doctor Comments",
@@ -1964,6 +1967,186 @@
               "raw": "{{baseUrl}}/gallery/reorder",
               "host": ["{{baseUrl}}"],
               "path": ["gallery", "reorder"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hero Sliders",
+      "item": [
+        {
+          "name": "Get All Hero Sliders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hero-sliders?page=1&limit=10&published=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["hero-sliders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Hero Slider",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hero-sliders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["hero-sliders", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Create Hero Slider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "عنوان اسلایدر",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات اسلایدر",
+                  "type": "text"
+                },
+                {
+                  "key": "buttonText",
+                  "value": "درخواست نوبت",
+                  "type": "text"
+                },
+                {
+                  "key": "buttonLink",
+                  "value": "/appointment",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "heroSliderImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hero-sliders",
+              "host": ["{{baseUrl}}"],
+              "path": ["hero-sliders"]
+            }
+          }
+        },
+        {
+          "name": "Update Hero Slider",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "عنوان اسلایدر",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "توضیحات اسلایدر",
+                  "type": "text"
+                },
+                {
+                  "key": "buttonText",
+                  "value": "درخواست نوبت",
+                  "type": "text"
+                },
+                {
+                  "key": "buttonLink",
+                  "value": "/appointment",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "published",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "heroSliderImage",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "removeHeroSliderImage",
+                  "value": "false",
+                  "type": "text",
+                  "description": "برای حذف تصویر، مقدار را 'true' قرار دهید"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hero-sliders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["hero-sliders", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Delete Hero Slider",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hero-sliders/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["hero-sliders", ":id"]
             }
           }
         }
