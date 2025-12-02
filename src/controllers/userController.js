@@ -237,7 +237,7 @@ const createUser = async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Handle profile image
-  const profileImage = req.file ? `/uploads/users/${req.file.filename}` : null;
+  let profileImage = req.file ? `/uploads/users/${req.file.filename}` : null;
 
   // Create user
   const user = await prisma.user.create({

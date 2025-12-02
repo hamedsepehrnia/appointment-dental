@@ -188,6 +188,7 @@ const verifyOtp = async (req, res) => {
         password: hashedPassword,
         role: "PATIENT",
         ...(gender && { gender }),
+        profileImage: null,
       },
     });
   }
