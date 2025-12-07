@@ -30,9 +30,7 @@ router.post(
       address: Joi.string().required().messages({
         'any.required': 'آدرس الزامی است',
       }),
-      phoneNumber: Joi.string().required().messages({
-        'any.required': 'شماره تلفن الزامی است',
-      }),
+      phoneNumber: Joi.string().allow(''),
       description: Joi.string().allow(''),
       latitude: Joi.number().min(-90).max(90).allow(null).messages({
         'number.min': 'عرض جغرافیایی باید بین -90 تا 90 باشد',
