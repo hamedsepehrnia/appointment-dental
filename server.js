@@ -57,17 +57,19 @@ app.use(
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
   "http://localhost:3000",
+  'https://avatar-distinguished-rim-heights.trycloudflare.com'
 ];
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    // origin: (origin, callback) => {
+    //   // Allow requests with no origin (like mobile apps or curl requests)
+    //   if (!origin || allowedOrigins.includes(origin)) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error("Not allowed by CORS"));
+    //   }
+    // },
+    origin:true, 
     credentials: true,
     exposedHeaders: ["Content-Length", "Content-Type"],
   })

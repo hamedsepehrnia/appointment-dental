@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -76,7 +76,7 @@ model Doctor {
   shortDescription  String?  @db.Text @map("short_description") // توضیحات کوتاه پزشک
   university        String
   biography         String?  @db.Text
-  skills            String[] // Array of skills
+  skills            Json     @default("[]") // Array of skills stored as JSON
   medicalLicenseNo  String   @unique @map("medical_license_no")
   workingDays       Json?    @map("working_days") // روزهای کاری و ساعات: {"saturday": "14:00-15:00", "friday": "15:00-17:00"}
   

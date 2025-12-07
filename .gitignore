@@ -29,3 +29,5 @@ prisma/migrations/
 # Build
 dist/
 build/
+prisma/archive.tar.gz
+archive.tar.gz

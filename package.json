@@ -18,7 +18,7 @@
     "appointment",
     "clinic",
     "express",
-    "postgresql"
+    "mysql"
   ],
   "author": "",
   "license": "ISC",
@@ -27,7 +27,7 @@
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
-    "connect-pg-simple": "^9.0.1",
+    "express-mysql-session": "^3.0.3",
     "cors": "^2.8.5",
     "csrf": "^3.1.0",
     "dotenv": "^16.3.1",
@@ -38,7 +38,7 @@
     "joi": "^17.11.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "pg": "^8.11.3",
+    "mysql2": "^3.11.4",
     "sanitize-html": "^2.11.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",

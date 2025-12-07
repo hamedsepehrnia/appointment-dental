@@ -130,7 +130,7 @@ npm install
 
 ```env
 # Database
-DATABASE_URL="postgresql://username:password@localhost:5432/appointment_dental?schema=public"
+DATABASE_URL="mysql://username:password@localhost:3306/appointment_dental"
 
 # Server
 PORT=3000
