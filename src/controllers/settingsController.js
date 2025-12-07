@@ -1,6 +1,5 @@
 const prisma = require("../config/database");
 const { AppError } = require("../middlewares/errorHandler");
-const { formatPhoneNumberOptional } = require("../utils/helpers");
 const fs = require("fs").promises;
 const path = require("path");
 
@@ -57,12 +56,6 @@ const updateSettings = async (req, res) => {
 
   // Get existing settings or create new one
   let settings = await prisma.siteSettings.findFirst();
-
-  // Normalize phone number if provided
-  const normalizedPhoneNumber =
-    phoneNumber !== undefined
-      ? formatPhoneNumberOptional(phoneNumber)
-      : undefined;
 
   // Handle file uploads and removals (logo, aboutUsImage, contactUsImage, aboutUsVideo, contactUsVideo)
   let logoPath = undefined;
@@ -217,7 +210,7 @@ const updateSettings = async (req, res) => {
         description,
         logo: logoPath !== undefined ? logoPath : null,
         email,
-        phoneNumber: normalizedPhoneNumber,
+        phoneNumber,
         address,
         instagram,
         telegram,
@@ -247,9 +240,7 @@ const updateSettings = async (req, res) => {
         ...(description !== undefined && { description }),
         ...(logoPath !== undefined && { logo: logoPath }),
         ...(email !== undefined && { email }),
-        ...(normalizedPhoneNumber !== undefined && {
-          phoneNumber: normalizedPhoneNumber,
-        }),
+        ...(phoneNumber !== undefined && { phoneNumber }),
         ...(address !== undefined && { address }),
         ...(instagram !== undefined && { instagram }),
         ...(telegram !== undefined && { telegram }),

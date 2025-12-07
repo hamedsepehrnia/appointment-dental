@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta, createSlug, formatPhoneNumberOptional } = require('../utils/helpers');
+const { paginate, createPaginationMeta, createSlug } = require('../utils/helpers');
 
 /**
  * Get all clinics
@@ -79,9 +79,6 @@ const getClinic = async (req, res) => {
  */
 const createClinic = async (req, res) => {
   const { name, address, phoneNumber, description, latitude, longitude } = req.body;
-  
-  // Normalize phone number if provided
-  const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
 
   // Generate unique slug
   let baseSlug = createSlug(name);
@@ -103,7 +100,7 @@ const createClinic = async (req, res) => {
       name,
       slug,
       address,
-      phoneNumber: normalizedPhoneNumber || '',
+      phoneNumber: phoneNumber || '',
       description,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
@@ -168,19 +165,13 @@ const updateClinic = async (req, res) => {
       longitude === null || longitude === "" ? null : parseFloat(longitude);
   }
 
-  // Normalize phone number if provided
-  let normalizedPhoneNumber = undefined;
-  if (phoneNumber !== undefined) {
-    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || '';
-  }
-
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
       ...(name && { name }),
       ...(slug && { slug }),
       ...(address && { address }),
-      ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
+      ...(phoneNumber !== undefined && { phoneNumber: phoneNumber || '' }),
       ...(description !== undefined && { description }),
       ...(latitude !== undefined && { latitude: parsedLatitude }),
       ...(longitude !== undefined && { longitude: parsedLongitude }),
