@@ -26,7 +26,7 @@ Thumbs.db
 prisma/migrations/
 
 # Build
-dist/
+# dist/
 build/
 prisma/archive.tar.gz
 archive.tar.gz
