@@ -168,22 +168,16 @@ app.use("/api", routes);
 const swaggerSetup = require("./swagger-setup");
 swaggerSetup(app);
 
-// Root endpoint
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Dental Appointment System API",
-    version: "1.0.0",
-    endpoints: {
-      health: "/api/health",
-      auth: "/api/auth",
-      clinics: "/api/clinics",
-      doctors: "/api/doctors",
-      articles: "/api/articles",
-      services: "/api/services",
-      comments: "/api/comments",
-    },
-  });
+// Serve static files from React app (dist folder)
+app.use(express.static(path.join(__dirname, "dist")));
+
+// Serve React app for all non-API routes (for client-side routing)
+app.get("*", (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith("/api")) {
+    return res.status(404).json({ success: false, message: "Route not found" });
+  }
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // 404 handler
