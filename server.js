@@ -16,6 +16,9 @@ const { setupCleanupJob } = require("./src/utils/cleanupJob");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Serve mode: 'combined' = serve frontend + backend, 'backend' = backend API only
+const SERVE_MODE = process.env.SERVE_MODE || "combined";
+
 // Security middleware with enhanced configuration
 app.use(
   helmet({
@@ -171,30 +174,58 @@ app.use("/api", routes);
 const swaggerSetup = require("./swagger-setup");
 swaggerSetup(app);
 
-// Serve static files from React app (dist folder) with caching
-app.use(express.static(path.join(__dirname, "dist"), {
-  maxAge: "1y", // Cache assets for 1 year (they have hash in filename)
-  etag: true,
-  lastModified: true,
-  setHeaders: (res, filePath) => {
-    // Don't cache index.html (so updates are reflected immediately)
-    if (filePath.endsWith("index.html")) {
-      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+// Combined mode: Serve frontend from dist folder
+if (SERVE_MODE === "combined") {
+  // Serve static files from React app (dist folder) with caching
+  app.use(express.static(path.join(__dirname, "dist"), {
+    maxAge: "1y", // Cache assets for 1 year (they have hash in filename)
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      // Don't cache index.html (so updates are reflected immediately)
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
     }
-  }
-}));
+  }));
 
-// Serve React app for all non-API routes (for client-side routing)
-app.get("*", (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith("/api")) {
-    return res.status(404).json({ success: false, message: "Route not found" });
-  }
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
+  // Serve React app for all non-API routes (for client-side routing)
+  app.get("*", (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith("/api")) {
+      return res.status(404).json({ success: false, message: "Route not found" });
+    }
+    res.sendFile(path.join(__dirname, "dist", "index.html"));
+  });
+} else {
+  // Backend mode: API only with root endpoint info
+  app.get("/", (req, res) => {
+    res.json({
+      success: true,
+      message: "Dental Appointment System API",
+      version: "1.0.0",
+      mode: "backend",
+      endpoints: {
+        health: "/api/health",
+        auth: "/api/auth",
+        clinics: "/api/clinics",
+        doctors: "/api/doctors",
+        articles: "/api/articles",
+        services: "/api/services",
+        comments: "/api/comments",
+        swagger: "/api-docs",
+      },
+    });
+  });
 
-// 404 handler
-app.use(notFound);
+  // 404 handler for backend mode
+  app.use(notFound);
+}
+
+// 404 handler for combined mode (after React catch-all)
+if (SERVE_MODE === "combined") {
+  app.use(notFound);
+}
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -203,6 +234,7 @@ app.use(errorHandler);
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🎯 Serve Mode: ${SERVE_MODE === "combined" ? "Combined (Frontend + Backend)" : "Backend Only"}`);
   console.log(`🔗 http://localhost:${PORT}`);
 
   // Setup cleanup job for expired OTPs
