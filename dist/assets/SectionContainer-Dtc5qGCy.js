@@ -1,1 +1,0 @@
-import{j as p}from"./query-vendor-DvaUDqTV.js";import{c as i}from"./index-aQCH0W4b.js";import"./react-vendor-dTsWsAAn.js";function l(t){const r=i.c(2),{children:e}=t;let o;return r[0]!==e?(o=p.jsx("div",{className:"bg-purple-300/80  border-2 border-purple-400 backdrop-blur-[2px]  p-6 min-h-50 rounded-xl shadow-lg",children:e}),r[0]=e,r[1]=o):o=r[1],o}export{l as S};
