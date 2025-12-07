@@ -106,16 +106,16 @@ const formatPhoneNumber = (phoneNumber) => {
 
 /**
  * Format phone number to standard format (optional version)
- * Returns null if phoneNumber is empty/null/undefined, otherwise formats it
+ * Returns null if phoneNumber is empty/null/undefined, otherwise returns the phone number as-is
  * @param {string|null|undefined} phoneNumber - Input phone number (can be optional)
- * @returns {string|null} - Formatted phone number or null if input is empty
- * @throws {Error} - If phone number format is invalid (when provided)
+ * @returns {string|null} - Phone number or null if input is empty
  */
 const formatPhoneNumberOptional = (phoneNumber) => {
   if (!phoneNumber || (typeof phoneNumber === 'string' && phoneNumber.trim() === '')) {
     return null;
   }
-  return formatPhoneNumber(phoneNumber);
+  // Return phone number as-is without validation (for clinic, settings, etc.)
+  return phoneNumber.trim();
 };
 
 /**
