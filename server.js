@@ -74,7 +74,8 @@ app.use(
     exposedHeaders: ["Content-Length", "Content-Type"],
   })
 );
-app.use((req, res, next) => {
+// Disable cache only for API routes
+app.use("/api", (req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
@@ -138,7 +139,7 @@ app.use(compression());
 // Session
 app.use(session(sessionConfig));
 
-// Static files (uploads) - with CORS headers
+// Static files (uploads) - with CORS headers and caching
 app.use(
   "/uploads",
   (req, res, next) => {
@@ -156,6 +157,8 @@ app.use(
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
     }
+    // Cache uploads for 1 day
+    res.setHeader("Cache-Control", "public, max-age=86400");
     next();
   },
   express.static(path.join(__dirname, "uploads"))
@@ -168,8 +171,18 @@ app.use("/api", routes);
 const swaggerSetup = require("./swagger-setup");
 swaggerSetup(app);
 
-// Serve static files from React app (dist folder)
-app.use(express.static(path.join(__dirname, "dist")));
+// Serve static files from React app (dist folder) with caching
+app.use(express.static(path.join(__dirname, "dist"), {
+  maxAge: "1y", // Cache assets for 1 year (they have hash in filename)
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    // Don't cache index.html (so updates are reflected immediately)
+    if (filePath.endsWith("index.html")) {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    }
+  }
+}));
 
 // Serve React app for all non-API routes (for client-side routing)
 app.get("*", (req, res) => {
