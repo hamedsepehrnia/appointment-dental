@@ -12,6 +12,7 @@ const sessionConfig = require("./src/config/session");
 const routes = require("./src/routes");
 const { errorHandler, notFound } = require("./src/middlewares/errorHandler");
 const { setupCleanupJob } = require("./src/utils/cleanupJob");
+const { setupReminderJob } = require("./src/utils/reminderJob");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -239,6 +240,9 @@ const server = app.listen(PORT, () => {
 
   // Setup cleanup job for expired OTPs
   setupCleanupJob();
+  
+  // Setup reminder job for appointment reminders
+  setupReminderJob();
 });
 
 // Graceful shutdown

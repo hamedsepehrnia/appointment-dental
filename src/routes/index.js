@@ -18,6 +18,8 @@ const uploadRoutes = require('./uploadRoutes');
 const userRoutes = require('./userRoutes');
 const reviewRoutes = require('./reviewRoutes');
 const heroSliderRoutes = require('./heroSliderRoutes');
+const appointmentRoutes = require('./appointmentRoutes');
+const notificationRoutes = require('./notificationRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -37,6 +39,8 @@ router.use('/upload', uploadRoutes);
 router.use('/users', userRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/hero-sliders', heroSliderRoutes);
+router.use('/appointments', appointmentRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Health check
 router.get("/health", (req, res) => {

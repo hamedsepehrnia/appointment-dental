@@ -39,6 +39,7 @@ model User {
   clinic       Clinic?   @relation(fields: [clinicId], references: [id])
   
   comments     Comment[]
+  appointments Appointment[] // نوبت‌های کاربر
   
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
@@ -61,6 +62,8 @@ model Clinic {
   doctors            DoctorClinic[]
   contactMessages    ContactMessage[]
   doctorApplications DoctorApplication[]
+  appointments       Appointment[]      // نوبت‌های کلینیک
+  notifications      Notification[]     // نوتیفیکیشن‌های کلینیک
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -84,6 +87,7 @@ model Doctor {
   // Relations
   clinics           DoctorClinic[]
   comments          Comment[]
+  appointments      Appointment[]  // نوبت‌های پزشک
   
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
@@ -405,5 +409,90 @@ model HeroSlider {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("hero_sliders")
+}
+
+// ==================== سیستم نوبت‌دهی ====================
+
+enum AppointmentStatus {
+  PENDING           // در انتظار بررسی منشی
+  APPROVED_BY_USER  // تأیید اولیه توسط کاربر (ثبت شده)
+  CANCELED          // لغو شده
+  FINAL_APPROVED    // تأیید نهایی توسط منشی
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  
+  // اطلاعات کاربر رزرو کننده
+  userId          String            @map("user_id")
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // نام مراجع (اگر برای شخص دیگری نوبت گرفته شده)
+  patientName     String?           @map("patient_name")
+  
+  // کلینیک (اجباری)
+  clinicId        String            @map("clinic_id")
+  clinic          Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  
+  // پزشک (اختیاری)
+  doctorId        String?           @map("doctor_id")
+  doctor          Doctor?           @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  
+  // تاریخ و ساعت نوبت
+  appointmentDate DateTime          @map("appointment_date")
+  
+  // وضعیت نوبت
+  status          AppointmentStatus @default(APPROVED_BY_USER)
+  
+  // یادآوری‌ها ارسال شده
+  reminder24hSent Boolean           @default(false) @map("reminder_24h_sent")
+  reminder30mSent Boolean           @default(false) @map("reminder_30m_sent")
+  
+  // توضیحات اضافی
+  notes           String?           @db.Text
+  
+  // نوتیفیکیشن‌های مرتبط
+  notifications   Notification[]
+  
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([clinicId])
+  @@index([doctorId])
+  @@index([appointmentDate])
+  @@index([status])
+  @@map("appointments")
+}
+
+// نوتیفیکیشن برای پنل ادمین/منشی
+model Notification {
+  id            String       @id @default(uuid())
+  
+  // نوع نوتیفیکیشن
+  type          String       // appointment_new, appointment_reminder, etc.
+  title         String       // عنوان نوتیفیکیشن
+  message       String       @db.Text // متن نوتیفیکیشن
+  
+  // لینک مرتبط (برای رفتن به صفحه مربوطه)
+  link          String?
+  
+  // خوانده شده یا نه
+  read          Boolean      @default(false)
+  
+  // ارتباط با نوبت (اختیاری)
+  appointmentId String?      @map("appointment_id")
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  
+  // ارتباط با کلینیک (برای نمایش به منشی کلینیک مربوطه)
+  clinicId      String?      @map("clinic_id")
+  clinic        Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  @@index([clinicId])
+  @@index([read])
+  @@index([type])
+  @@map("notifications")
 }
 
