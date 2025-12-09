@@ -3,18 +3,14 @@ const MySQLStore = require('express-mysql-session')(session);
 
 // Parse DATABASE_URL for MySQL connection
 const parseDbUrl = (url) => {
-  const regex = /mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/;
-  const match = url.match(regex);
-  if (match) {
-    return {
-      user: match[1],
-      password: match[2],
-      host: match[3],
-      port: parseInt(match[4]),
-      database: match[5],
-    };
-  }
-  throw new Error('Invalid DATABASE_URL format');
+  const parsedUrl = new URL(url);
+  return {
+    user: parsedUrl.username,
+    password: parsedUrl.password,
+    host: parsedUrl.hostname,
+    port: parseInt(parsedUrl.port) || 3306,
+    database: parsedUrl.pathname.slice(1), // Remove leading '/'
+  };
 };
 
 const dbConfig = parseDbUrl(process.env.DATABASE_URL);
