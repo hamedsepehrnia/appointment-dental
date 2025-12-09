@@ -11,7 +11,8 @@
     "prisma:studio": "prisma studio",
     "create:admin": "node src/cli/createUser.js admin",
     "create:secretary": "node src/cli/createUser.js secretary",
-    "seed:doctors": "node src/cli/seedDoctors.js"
+    "seed:doctors": "node src/cli/seedDoctors.js",
+    "create:env": "node src/cli/createEnv.js"
   },
   "keywords": [
     "dental",
