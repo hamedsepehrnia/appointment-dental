@@ -1,162 +1,177 @@
-# سیستم مدیریت نوبت‌دهی کلینیک دندانپزشکی
+<p align="center">
+  <a href="README.md"><img src="https://img.shields.io/badge/English-007ACC?style=for-the-badge&logo=readme&logoColor=white" alt="English"></a>
+  <a href="README.fa.md"><img src="https://img.shields.io/badge/فارسی-00A550?style=for-the-badge&logo=readme&logoColor=white" alt="Persian"></a>
+</p>
 
-یک API کامل و حرفه‌ای برای مدیریت نوبت‌دهی کلینیک دندانپزشکی با استفاده از Express.js، PostgreSQL و Prisma.
+---
 
-## 📋 فهرست مطالب
+# 🦷 Dental Clinic Appointment Management System
 
-- [ویژگی‌ها](#ویژگیها)
-- [تکنولوژی‌های استفاده شده](#تکنولوژیهای-استفاده-شده)
-- [پیش‌نیازها](#پیشنیازها)
-- [نصب و راه‌اندازی](#نصب-و-راهاندازی)
-- [ساختار پروژه](#ساختار-پروژه)
-- [API Documentation](#api-documentation)
-- [احراز هویت](#احراز-هویت)
-- [نقش‌های کاربری](#نقشهای-کاربری)
-- [امنیت](#امنیت)
+A complete and professional API for dental clinic appointment management using Express.js, MySQL, and Prisma.
 
-## ✨ ویژگی‌ها
+---
 
-### مدیریت کاربران
+## 📋 Table of Contents
 
-- سیستم احراز هویت با دو روش: رمز عبور (Admin/Secretary) و OTP (همه کاربران)
-- سه نقش کاربری: مدیر، منشی، بیمار
-- مدیریت پروفایل کاربران
-- تنظیمات session با PostgreSQL store
+- [Features](#-features)
+- [Technologies](#-technologies)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [CLI Tools](#-cli-tools)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
+- [Appointment System](#-appointment-system)
+- [Notification System](#-notification-system)
+- [Authentication](#-authentication)
+- [User Roles](#-user-roles)
+- [Security](#-security)
+- [Troubleshooting](#-troubleshooting)
 
-### مدیریت کلینیک‌ها
+---
 
-- ثبت و مدیریت اطلاعات کلینیک‌ها
-- اختصاص منشی به هر کلینیک (رابطه Many-to-One)
-- مدیریت دسترسی‌های ویرایش توسط منشی
+## ✨ Features
 
-### مدیریت پزشکان
+### 📅 Appointment System
 
-- ثبت اطلاعات کامل پزشکان (نام، دانشگاه، بیوگرافی، مهارت‌ها)
-- آپلود تصویر پروفایل
-- ارتباط با چندین کلینیک (Many-to-Many)
-- جستجو و فیلتر بر اساس کلینیک
+- ✅ Book appointments with or without selecting a doctor
+- ✅ Book for yourself or others
+- ✅ Secretary approval workflow
+- ✅ Automatic SMS notifications
+- ✅ 24-hour and 30-minute reminders
+- ✅ Admin notification panel
 
-### سیستم مقالات
+### 👥 User Management
 
-- ایجاد، ویرایش و حذف مقالات
-- حالت پیش‌نویس و منتشرشده
-- آپلود تصویر کاور
-- سیستم slug برای URL‌های SEO-friendly
-- جستجو و فیلتر بر اساس وضعیت انتشار
+- ✅ Dual authentication: Password (Admin/Secretary) & OTP (All users)
+- ✅ Three user roles: Admin, Secretary, Patient
+- ✅ Profile management
+- ✅ Session management with MySQL store
 
-### مدیریت خدمات
+### 🏥 Clinic Management
 
-- ثبت خدمات دندانپزشکی با تعرفه و مدت زمان
-- توصیه‌های قبل و بعد از درمان
-- آپلود تصویر کاور
-- سیستم slug برای URL‌های SEO-friendly
+- ✅ Clinic registration and management
+- ✅ Assign secretary to each clinic
+- ✅ Many-to-One relationship
 
-### سیستم نظرات
+### 👨‍⚕️ Doctor Management
 
-- ثبت نظر و امتیاز برای پزشکان، مقالات و خدمات
-- محاسبه خودکار میانگین امتیاز
-- مدیریت نظرات توسط کاربران (ویرایش/حذف)
-- سیستم polymorphic برای پشتیبانی از انواع مختلف کامنت
-- نمایش لیست نظرات با pagination
+- ✅ Complete doctor profiles
+- ✅ Profile image upload
+- ✅ Many-to-Many clinic relationship
+- ✅ Filter and search by clinic
 
-### مدیریت سوالات متداول (FAQ)
+### 📝 Content Management
 
-- ایجاد و مدیریت FAQ
-- ترتیب‌بندی قابل تنظیم
-- حالت منتشرشده/پیش‌نویس
-- سیستم reorder برای تغییر ترتیب
+- ✅ Articles with SEO-friendly slugs
+- ✅ Services with pricing and duration
+- ✅ FAQ management with reordering
+- ✅ Gallery with image management
+- ✅ Site settings and social media
+- ✅ Insurance organizations
 
-### مدیریت گالری
+### 💬 Review System
 
-- آپلود تصاویر گالری
-- مدیریت عنوان، توضیحات و ترتیب
-- حالت منتشرشده/پیش‌نویس
-- سیستم reorder برای تغییر ترتیب
+- ✅ Reviews for doctors, articles, services
+- ✅ Automatic rating calculation
+- ✅ Polymorphic comment system
 
-### مدیریت تنظیمات
+---
 
-- تنظیمات عمومی سایت (نام، لوگو، آدرس، تماس)
-- مدیریت لینک‌های شبکه‌های اجتماعی
-- تنظیمات ساعات کاری
+## 🛠 Technologies
 
-### مدیریت سازمان‌های بیمه
+| Category | Technology |
+|----------|------------|
+| **Framework** | Express.js |
+| **Database** | MySQL |
+| **ORM** | Prisma |
+| **Authentication** | Session-based (express-session + mysql2) |
+| **SMS Service** | Kavenegar |
+| **File Upload** | Multer |
+| **Validation** | Joi |
+| **Security** | Helmet, CORS, Rate Limiting, CSRF |
+| **Password Hashing** | bcryptjs |
+| **Logging** | Winston, Morgan |
+| **Documentation** | Swagger/OpenAPI |
+| **HTML Sanitization** | sanitize-html |
+| **Compression** | express-compression |
 
-- ثبت و مدیریت سازمان‌های بیمه تحت پوشش
-- امکان فعال/غیرفعال کردن سازمان‌ها
-- ترتیب‌بندی سازمان‌ها
-- مدیریت کامل اطلاعات (وب‌سایت، تماس، ایمیل)
+---
 
-## 🛠 تکنولوژی‌های استفاده شده
+## 📦 Prerequisites
 
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Authentication**: Session-based با express-session و connect-pg-simple
-- **SMS Service**: کاوه‌نگار (Kavenegar)
-- **File Upload**: Multer
-- **Validation**: Joi
-- **Security**: Helmet, CORS, Rate Limiting, CSRF Protection
-- **Password Hashing**: bcryptjs
-- **Logging**: Winston, Morgan
-- **Documentation**: Swagger/OpenAPI
-- **HTML Sanitization**: sanitize-html
-- **Compression**: express-compression
+| Requirement | Version |
+|-------------|---------|
+| Node.js | v16+ |
+| MySQL | v8+ |
+| npm or yarn | Latest |
+| Kavenegar API Key | For SMS |
 
-## 📦 پیش‌نیازها
+---
 
-- Node.js (v16 یا بالاتر)
-- PostgreSQL (v13 یا بالاتر)
-- npm یا yarn
-- API Key کاوه‌نگار (برای ارسال SMS)
+## 🚀 Quick Start
 
-## 🚀 نصب و راه‌اندازی
-
-### 1. کلون کردن پروژه
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd appointment-dental
 ```
 
-### 2. نصب وابستگی‌ها
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. تنظیم متغیرهای محیطی
+### 3. Create environment file
 
-فایل `.env` ایجاد کنید و متغیرهای زیر را تنظیم کنید:
+Use the interactive CLI tool to create your `.env` file:
+
+```bash
+npm run create:env
+```
+
+This will guide you through setting up:
+- Environment (Development/Production)
+- Database credentials
+- Session configuration
+- SMS service (Kavenegar)
+- CORS settings
+- And more...
+
+**Or manually create `.env`:**
 
 ```env
 # Database
 DATABASE_URL="mysql://username:password@localhost:3306/appointment_dental"
 
 # Server
-PORT=3000
+PORT=4000
 NODE_ENV=development
+SERVE_MODE=combined
 
 # Session
-SESSION_SECRET=your-super-secret-session-key-change-this-in-production
+SESSION_SECRET=your-super-secret-key-here
 SESSION_MAX_AGE=2592000000
 
-# Kavenegar SMS API
-KAVENEGAR_API_KEY=your-kavenegar-api-key
+# Kavenegar SMS
+KAVENEGAR_API_KEY=your-api-key
 KAVENEGAR_SENDER=your-sender-number
 OTP_TEMPLATE=verify
+SMS_LOG_ONLY=true
 
-# OTP Configuration
+# OTP
 OTP_EXPIRY_SECONDS=300
 
 # CORS
-ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # File Upload
 MAX_FILE_SIZE=5242880
 UPLOAD_PATH=uploads
 ```
 
-### 4. راه‌اندازی دیتابیس
+### 4. Setup database
 
 ```bash
 # Generate Prisma Client
@@ -165,27 +180,27 @@ npm run prisma:generate
 # Run migrations
 npm run prisma:migrate
 
-# (اختیاری) باز کردن Prisma Studio
+# (Optional) Open Prisma Studio
 npm run prisma:studio
 ```
 
-### 5. ایجاد فولدرهای آپلود
+### 5. Create upload directories
 
 ```bash
 # Linux/Mac
-mkdir -p uploads/doctors uploads/gallery uploads/images
+mkdir -p uploads/{doctors,gallery,images,documents,insurance,site,users,videos}
 
 # Windows PowerShell
-New-Item -ItemType Directory -Force -Path uploads/doctors, uploads/gallery, uploads/images
+New-Item -ItemType Directory -Force -Path uploads/doctors, uploads/gallery, uploads/images, uploads/documents, uploads/insurance, uploads/site, uploads/users, uploads/videos
 ```
 
-### 6. ایجاد کاربر مدیر
+### 6. Create admin user
 
 ```bash
 npm run create:admin
 ```
 
-### 7. اجرای سرور
+### 7. Run server
 
 ```bash
 # Development mode
@@ -195,22 +210,89 @@ npm run dev
 npm start
 ```
 
-سرور روی `http://localhost:3000` (یا پورت تنظیم شده) اجرا می‌شود.
+Server runs at `http://localhost:4000` (or your configured port).
 
-## 📁 ساختار پروژه
+---
+
+## 🔧 CLI Tools
+
+### Environment Setup
+
+```bash
+npm run create:env
+```
+
+Interactive CLI that creates your `.env` file with:
+
+| Feature | Description |
+|---------|-------------|
+| Environment Selection | Choose Development or Production |
+| Database Config | Set username, password, database name |
+| Session Secret | Auto-generated 128-character secret |
+| SMS Config | Kavenegar API key and sender |
+| CORS Config | Allowed origins |
+| Auto Defaults | PORT, MAX_FILE_SIZE, UPLOAD_PATH, etc. |
+
+**Development Mode Settings:**
+- `NODE_ENV=development`
+- `SERVE_MODE=combined`
+- `SMS_LOG_ONLY=true` (OTP codes logged, not sent)
+
+**Production Mode Settings:**
+- `NODE_ENV=production`
+- `SERVE_MODE=combined`
+- `SMS_LOG_ONLY=false` (Real SMS sent)
+
+---
+
+### User Management
+
+```bash
+# Create admin user
+npm run create:admin
+
+# Create secretary user
+npm run create:secretary
+
+# Seed sample doctors
+npm run seed:doctors
+```
+
+---
+
+### Database Commands
+
+```bash
+# Generate Prisma Client
+npm run prisma:generate
+
+# Run migrations
+npm run prisma:migrate
+
+# Open Prisma Studio (GUI)
+npm run prisma:studio
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 appointment-dental/
 ├── prisma/
-│   ├── migrations/          # Prisma migrations
+│   ├── migrations/          # Database migrations
 │   └── schema.prisma        # Prisma schema
 ├── src/
 │   ├── cli/
-│   │   └── createUser.js    # CLI برای ساخت مدیر/منشی
+│   │   ├── createEnv.js     # Environment setup CLI
+│   │   ├── createUser.js    # Admin/Secretary creation
+│   │   └── seedDoctors.js   # Sample data seeder
 │   ├── config/
-│   │   ├── database.js      # تنظیمات Prisma
-│   │   └── session.js        # تنظیمات Session
-│   ├── controllers/         # Controllers
+│   │   ├── database.js      # Prisma configuration
+│   │   └── session.js       # Session configuration
+│   ├── controllers/
+│   │   ├── appointmentController.js  # 📅 Appointments
+│   │   ├── notificationController.js # 🔔 Notifications
 │   │   ├── authController.js
 │   │   ├── clinicController.js
 │   │   ├── doctorController.js
@@ -223,72 +305,271 @@ appointment-dental/
 │   │   ├── insuranceController.js
 │   │   └── uploadController.js
 │   ├── middlewares/
-│   │   ├── auth.js          # Authentication middleware
+│   │   ├── auth.js          # Authentication
 │   │   ├── csrf.js          # CSRF protection
 │   │   ├── errorHandler.js  # Error handling
 │   │   ├── validation.js    # Joi validation
 │   │   ├── upload.js        # File upload
-│   │   ├── parseFormData.js # Form data parser
 │   │   └── asyncHandler.js  # Async wrapper
-│   ├── routes/              # Route definitions
-│   │   ├── authRoutes.js
-│   │   ├── clinicRoutes.js
-│   │   ├── doctorRoutes.js
-│   │   ├── articleRoutes.js
-│   │   ├── serviceRoutes.js
-│   │   ├── commentRoutes.js
-│   │   ├── faqRoutes.js
-│   │   ├── galleryRoutes.js
-│   │   ├── settingsRoutes.js
-│   │   ├── insuranceRoutes.js
-│   │   ├── uploadRoutes.js
-│   │   └── index.js
+│   ├── routes/
+│   │   ├── appointmentRoutes.js  # 📅
+│   │   ├── notificationRoutes.js # 🔔
+│   │   └── ... (other routes)
 │   ├── services/
-│   │   └── smsService.js     # Kavenegar SMS
+│   │   └── smsService.js    # Kavenegar SMS
 │   └── utils/
-│       ├── helpers.js        # Helper functions
-│       ├── sanitizeHtml.js   # HTML sanitization
-│       └── cleanupJob.js     # Cleanup expired OTPs
-├── uploads/                 # فایل‌های آپلود شده
-│   ├── doctors/             # تصاویر پزشکان
-│   ├── gallery/             # تصاویر گالری
-│   ├── images/              # تصاویر مقالات، خدمات و CKEditor
-│   ├── documents/           # اسناد
-│   └── insurance/           # لوگوهای بیمه
-├── logs/                    # فایل‌های لاگ
-├── docs/                    # مستندات
-│   ├── CKEDITOR_UPLOAD.md   # راهنمای آپلود تصویر CKEditor
-├── .env                     # متغیرهای محیطی
-├── .gitignore
-├── package.json
+│       ├── helpers.js       # Helper functions
+│       ├── sanitizeHtml.js  # HTML sanitization
+│       ├── cleanupJob.js    # OTP cleanup
+│       └── reminderJob.js   # Appointment reminders
+├── uploads/                 # Uploaded files
+├── logs/                    # Log files
+├── docs/                    # Documentation
+├── dist/                    # Frontend build (combined mode)
+├── .env                     # Environment variables
 ├── server.js                # Entry point
-├── swagger-setup.js         # Swagger configuration
+├── swagger-setup.js         # Swagger config
 └── README.md
 ```
+
+---
 
 ## 📚 API Documentation
 
 ### Base URL
 
 ```
-http://localhost:3000/api
+http://localhost:4000/api
 ```
-
-**نکته:** در development، پورت پیش‌فرض 3000 است. اگر در `.env` تغییر داده باشید، از همان استفاده کنید.
 
 ### Swagger Documentation
 
-برای مشاهده مستندات کامل Swagger:
-
 ```
-http://localhost:3000/api-docs
+http://localhost:4000/api-docs
 ```
 
 ---
 
-## Authentication Endpoints
+## 📅 Appointment System
 
-### 1. ورود با رمز عبور (مدیر/منشی)
+### Appointment Flow
+
+```
+Patient books appointment
+         │
+         ▼
+   ┌─────────────────────────┐
+   │ Status: APPROVED_BY_USER│  SMS sent to patient & secretary
+   │ (Waiting for secretary) │  Notification created
+   └─────────────────────────┘
+              │
+       ┌──────┴──────┐
+       │             │
+       ▼             ▼
+   [Approve]      [Cancel]
+       │             │
+       ▼             ▼
+┌─────────────┐ ┌─────────────┐
+│FINAL_APPROVED│ │  CANCELED   │
+│ SMS: Confirm │ │ SMS: Cancel │
+└─────────────┘ └─────────────┘
+       │
+       ▼
+┌─────────────────────┐
+│  24h Reminder SMS   │
+│  30min Reminder SMS │
+└─────────────────────┘
+```
+
+### Appointment Statuses
+
+| Status | Description |
+|--------|-------------|
+| `PENDING` | Pending (not used) |
+| `APPROVED_BY_USER` | Waiting for secretary approval |
+| `FINAL_APPROVED` | Confirmed |
+| `CANCELED` | Canceled |
+
+### Appointment Endpoints
+
+#### Create Appointment
+
+```http
+POST /api/appointments
+X-CSRF-Token: <token>
+Content-Type: application/json
+
+{
+  "clinicId": "uuid",
+  "doctorId": "uuid",          // Optional
+  "appointmentDate": "2025-12-15T14:30:00.000Z",
+  "patientName": "John Doe",   // Optional (for booking for others)
+  "notes": "Notes"             // Optional
+}
+```
+
+#### Get My Appointments
+
+```http
+GET /api/appointments/my?page=1&limit=10&status=FINAL_APPROVED
+```
+
+#### Get All Appointments (Admin/Secretary)
+
+```http
+GET /api/appointments?page=1&limit=10&status=APPROVED_BY_USER&search=john
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `page` | Page number |
+| `limit` | Items per page |
+| `status` | Filter by status |
+| `clinicId` | Filter by clinic (Admin only) |
+| `doctorId` | Filter by doctor |
+| `fromDate` | From date (ISO) |
+| `toDate` | To date (ISO) |
+| `search` | Search in name, phone |
+
+#### Get Single Appointment
+
+```http
+GET /api/appointments/:id
+```
+
+#### Approve Appointment
+
+```http
+PATCH /api/appointments/:id/approve
+X-CSRF-Token: <token>
+```
+
+#### Cancel Appointment
+
+```http
+PATCH /api/appointments/:id/cancel
+X-CSRF-Token: <token>
+Content-Type: application/json
+
+{
+  "reason": "Cancellation reason"  // Optional
+}
+```
+
+#### Update Appointment
+
+```http
+PATCH /api/appointments/:id
+X-CSRF-Token: <token>
+Content-Type: application/json
+
+{
+  "appointmentDate": "2025-12-16T15:00:00.000Z",
+  "doctorId": "uuid",
+  "patientName": "New Name",
+  "notes": "New notes"
+}
+```
+
+#### Delete Appointment (Admin only)
+
+```http
+DELETE /api/appointments/:id
+X-CSRF-Token: <token>
+```
+
+#### Appointment Statistics
+
+```http
+GET /api/appointments/stats
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "stats": {
+      "total": 150,
+      "pending": 0,
+      "approvedByUser": 12,
+      "finalApproved": 120,
+      "canceled": 18,
+      "todayAppointments": 5
+    }
+  }
+}
+```
+
+### SMS Notifications
+
+| Event | Recipient | Description |
+|-------|-----------|-------------|
+| Appointment Created | Patient | Confirmation + waiting for approval |
+| Appointment Created | Secretary | New appointment notification |
+| Appointment Approved | Patient | Confirmation with details |
+| Appointment Canceled | Patient | Cancellation notice |
+| 24h Before | Patient | Reminder |
+| 30min Before | Patient | Urgent reminder |
+
+---
+
+## 🔔 Notification System
+
+### Notification Endpoints
+
+#### Get Notifications
+
+```http
+GET /api/notifications?page=1&limit=20&read=false
+```
+
+#### Get Unread Count
+
+```http
+GET /api/notifications/unread-count
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "unreadCount": 3
+  }
+}
+```
+
+#### Mark as Read
+
+```http
+PATCH /api/notifications/:id/read
+X-CSRF-Token: <token>
+```
+
+#### Mark All as Read
+
+```http
+PATCH /api/notifications/read-all
+X-CSRF-Token: <token>
+```
+
+#### Delete Notification
+
+```http
+DELETE /api/notifications/:id
+X-CSRF-Token: <token>
+```
+
+---
+
+## 🔐 Authentication
+
+### Two Authentication Methods
+
+#### 1. Password Login (Admin/Secretary)
 
 ```http
 POST /api/auth/login
@@ -300,52 +581,9 @@ Content-Type: application/json
 }
 ```
 
-**Response (200):**
+#### 2. OTP Login (All Users)
 
-```json
-{
-  "success": true,
-  "message": "ورود موفقیت‌آمیز بود",
-  "data": {
-    "user": {
-      "id": "uuid",
-      "phoneNumber": "09123456789",
-      "firstName": "John",
-      "lastName": "Doe",
-      "role": "ADMIN"
-    }
-  }
-}
-```
-
-**نکته:** این endpoint فقط برای مدیر و منشی است. بیماران نمی‌توانند از این روش استفاده کنند.
-
-### 2. دریافت CSRF Token
-
-```http
-GET /api/auth/csrf-token
-```
-
-**نکته:** این endpoint نیاز به احراز هویت دارد. برای درخواست‌های POST/PATCH/DELETE باید از این token استفاده کنید.
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "csrfToken": "csrf-token-here"
-  }
-}
-```
-
-**استفاده:** در header درخواست‌های بعدی این token را ارسال کنید:
-
-```
-X-CSRF-Token: csrf-token-here
-```
-
-### 3. درخواست کد OTP
+**Step 1: Request OTP**
 
 ```http
 POST /api/auth/request-otp
@@ -356,16 +594,7 @@ Content-Type: application/json
 }
 ```
 
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "message": "کد تأیید ارسال شد"
-}
-```
-
-### 4. تایید OTP و ورود/ثبت‌نام
+**Step 2: Verify OTP**
 
 ```http
 POST /api/auth/verify-otp
@@ -374,994 +603,174 @@ Content-Type: application/json
 {
   "phoneNumber": "09123456789",
   "code": "12345",
-  "firstName": "نام",        // فقط برای کاربران جدید
-  "lastName": "نام خانوادگی"  // فقط برای کاربران جدید
+  "firstName": "John",      // Required for new users
+  "lastName": "Doe"         // Required for new users
 }
 ```
 
-**Response (200):**
+### Other Auth Endpoints
 
-```json
-{
-  "success": true,
-  "message": "ورود موفقیت‌آمیز بود",
-  "data": {
-    "user": {
-      "id": "uuid",
-      "phoneNumber": "09123456789",
-      "firstName": "John",
-      "lastName": "Doe",
-      "role": "PATIENT"
-    }
-  }
-}
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/csrf-token` | GET | Get CSRF token |
+| `/api/auth/me` | GET | Get current user |
+| `/api/auth/me` | PATCH | Update profile |
+| `/api/auth/logout` | POST | Logout |
 
-### 5. خروج از حساب
+### Cookie Settings
 
-```http
-POST /api/auth/logout
-X-CSRF-Token: your-csrf-token
-```
-
-**نکته:** نیاز به احراز هویت و CSRF token دارد.
-
-### 6. دریافت اطلاعات کاربر جاری
-
-```http
-GET /api/auth/me
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "uuid",
-      "phoneNumber": "09123456789",
-      "firstName": "John",
-      "lastName": "Doe",
-      "role": "ADMIN",
-      "nationalCode": "1234567890",
-      "address": "Tehran",
-      "gender": "MALE"
-    }
-  }
-}
-```
-
-### 7. به‌روزرسانی پروفایل
-
-```http
-PATCH /api/auth/me
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "firstName": "نام",
-  "lastName": "نام خانوادگی",
-  "nationalCode": "1234567890",
-  "address": "آدرس",
-  "gender": "MALE"  // MALE, FEMALE, OTHER
-}
-```
+| Property | Value |
+|----------|-------|
+| Name | `dental.sid` |
+| HttpOnly | `true` |
+| Secure | `true` (production) |
+| SameSite | `lax` |
+| Max Age | 30 days |
 
 ---
 
-## Clinic Endpoints
-
-### 1. لیست کلینیک‌ها
-
-```http
-GET /api/clinics?page=1&limit=10
-```
-
-**Query Parameters:**
-
-- `page` (optional): شماره صفحه (default: 1)
-- `limit` (optional): تعداد در هر صفحه (default: 10)
-
-### 2. دریافت کلینیک
-
-```http
-GET /api/clinics/:id
-```
-
-### 3. ایجاد کلینیک (فقط مدیر)
-
-```http
-POST /api/clinics
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "name": "نام کلینیک",
-  "address": "آدرس",
-  "phoneNumber": "02188776655",
-  "description": "توضیحات"
-}
-```
-
-### 4. به‌روزرسانی کلینیک (مدیر/منشی)
-
-```http
-PATCH /api/clinics/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "name": "نام جدید",
-  "address": "آدرس جدید",
-  "phoneNumber": "02188776655",
-  "description": "توضیحات جدید"
-}
-```
-
-**نکته:** منشی فقط می‌تواند کلینیک خود را ویرایش کند.
-
-### 5. حذف کلینیک (فقط مدیر)
-
-```http
-DELETE /api/clinics/:id
-X-CSRF-Token: your-csrf-token
-```
-
----
-
-## Doctor Endpoints
-
-### 1. لیست پزشکان
-
-```http
-GET /api/doctors?page=1&limit=10&clinicId=uuid
-```
-
-**Query Parameters:**
-
-- `page` (optional): شماره صفحه
-- `limit` (optional): تعداد در هر صفحه
-- `clinicId` (optional): فیلتر بر اساس کلینیک
-
-### 2. دریافت پزشک
-
-```http
-GET /api/doctors/:id
-```
-
-### 3. ایجاد پزشک (مدیر/منشی)
-
-```http
-POST /api/doctors
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "firstName": "نام",
-  "lastName": "نام خانوادگی",
-  "university": "دانشگاه",
-  "biography": "بیوگرافی",
-  "skills": ["مهارت 1", "مهارت 2"],  // JSON array string
-  "medicalLicenseNo": "12345",
-  "clinicIds": ["uuid1", "uuid2"],   // JSON array string
-  "profileImage": <file>
-}
-```
-
-**نکته:** `skills` و `clinicIds` باید به صورت JSON string ارسال شوند.
-
-### 4. به‌روزرسانی پزشک (مدیر/منشی)
-
-```http
-PATCH /api/doctors/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "firstName": "نام جدید",
-  "skills": ["مهارت جدید"],
-  "clinicIds": ["uuid1"],
-  "profileImage": <file>  // optional
-}
-```
-
-### 5. حذف پزشک (فقط مدیر)
-
-```http
-DELETE /api/doctors/:id
-X-CSRF-Token: your-csrf-token
-```
-
----
-
-## Article Endpoints
-
-### 1. لیست مقالات
-
-```http
-GET /api/articles?page=1&limit=10&published=true
-```
-
-**Query Parameters:**
-
-- `page` (optional): شماره صفحه
-- `limit` (optional): تعداد در هر صفحه
-- `published` (optional): true/false برای فیلتر مقالات منتشر شده
-
-### 2. دریافت مقاله
-
-```http
-GET /api/articles/:identifier
-```
-
-**نکته:** می‌تواند با ID یا slug استفاده شود.
-
-### 3. ایجاد مقاله (مدیر/منشی)
-
-```http
-POST /api/articles
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "عنوان",
-  "content": "محتوا",
-  "excerpt": "خلاصه",
-  "published": true,
-  "coverImage": <file>
-}
-```
-
-### 4. به‌روزرسانی مقاله (مدیر/منشی)
-
-```http
-PATCH /api/articles/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "عنوان جدید",
-  "content": "محتوا جدید",
-  "published": false,
-  "coverImage": <file>  // optional
-}
-```
-
-### 5. حذف مقاله (مدیر/منشی)
-
-```http
-DELETE /api/articles/:id
-X-CSRF-Token: your-csrf-token
-```
-
----
-
-## Service Endpoints
-
-### 1. لیست خدمات
-
-```http
-GET /api/services?page=1&limit=10
-```
-
-### 2. دریافت خدمت
-
-```http
-GET /api/services/:identifier
-```
-
-**نکته:** می‌تواند با ID یا slug استفاده شود.
-
-### 3. ایجاد خدمت (مدیر/منشی)
-
-```http
-POST /api/services
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "عنوان",
-  "description": "توضیحات",
-  "beforeTreatmentTips": "توصیه‌های قبل از درمان",
-  "afterTreatmentTips": "توصیه‌های بعد از درمان",
-  "price": 1000000,
-  "durationMinutes": 60,
-  "coverImage": <file>
-}
-```
-
-### 4. به‌روزرسانی خدمت (مدیر/منشی)
-
-```http
-PATCH /api/services/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "عنوان جدید",
-  "price": 1200000,
-  "coverImage": <file>  // optional
-}
-```
-
-### 5. حذف خدمت (مدیر/منشی)
-
-```http
-DELETE /api/services/:id
-X-CSRF-Token: your-csrf-token
-```
-
----
-
-## Comment Endpoints
-
-### 1. نظرات پزشکان
-
-#### لیست نظرات
-
-```http
-GET /api/comments/doctor/:doctorId?page=1&limit=10
-```
-
-#### ثبت نظر
-
-```http
-POST /api/comments/doctor/:doctorId
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "content": "پزشک بسیار حرفه‌ای و دلسوزی هستند",
-  "rating": 5
-}
-```
-
-**نکته:** فقط کاربران احراز هویت شده می‌توانند نظر ثبت کنند.
-
-### 2. نظرات مقالات
-
-#### لیست نظرات
-
-```http
-GET /api/comments/article/:articleId?page=1&limit=10
-```
-
-#### ثبت نظر
-
-```http
-POST /api/comments/article/:articleId
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "content": "مقاله بسیار مفیدی بود، ممنون",
-  "rating": 5
-}
-```
-
-### 3. نظرات خدمات
-
-#### لیست نظرات
-
-```http
-GET /api/comments/service/:serviceId?page=1&limit=10
-```
-
-#### ثبت نظر
-
-```http
-POST /api/comments/service/:serviceId
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "content": "خدمات عالی ارائه می‌دهند",
-  "rating": 4
-}
-```
-
-### 4. مدیریت نظرات
-
-#### به‌روزرسانی نظر
-
-```http
-PATCH /api/comments/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "content": "متن جدید",
-  "rating": 4
-}
-```
-
-**نکته:** فقط صاحب نظر می‌تواند آن را ویرایش کند.
-
-#### حذف نظر
-
-```http
-DELETE /api/comments/:id
-X-CSRF-Token: your-csrf-token
-```
-
-**نکته:** صاحب نظر یا مدیر می‌تواند نظر را حذف کند.
-
----
-
-## FAQ Endpoints
-
-### 1. لیست سوالات متداول
-
-```http
-GET /api/faqs?page=1&limit=10&published=true
-```
-
-### 2. دریافت سوال متداول
-
-```http
-GET /api/faqs/:id
-```
-
-### 3. ایجاد سوال متداول (مدیر/منشی)
-
-```http
-POST /api/faqs
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "question": "آیا درمان ریشه درد دارد؟",
-  "answer": "درمان ریشه با بی‌حسی موضعی انجام می‌شود و درد ندارد",
-  "order": 1,
-  "published": true
-}
-```
-
-### 4. به‌روزرسانی سوال متداول (مدیر/منشی)
-
-```http
-PATCH /api/faqs/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "question": "سوال جدید",
-  "answer": "پاسخ جدید",
-  "order": 1,
-  "published": true
-}
-```
-
-### 5. حذف سوال متداول (مدیر/منشی)
-
-```http
-DELETE /api/faqs/:id
-X-CSRF-Token: your-csrf-token
-```
-
-### 6. ترتیب‌بندی سوالات متداول (مدیر/منشی)
-
-```http
-POST /api/faqs/reorder
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "faqs": [
-    {
-      "id": "uuid1",
-      "order": 1
-    },
-    {
-      "id": "uuid2",
-      "order": 2
-    }
-  ]
-}
-```
-
----
-
-## Gallery Endpoints
-
-### 1. لیست تصاویر گالری
-
-```http
-GET /api/gallery?page=1&limit=10&published=true
-```
-
-### 2. دریافت تصویر گالری
-
-```http
-GET /api/gallery/:id
-```
-
-### 3. آپلود تصویر گالری (مدیر/منشی)
-
-```http
-POST /api/gallery
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "تصویر کلینیک",
-  "description": "توضیحات تصویر",
-  "order": 1,
-  "published": "true",
-  "galleryImage": <file>
-}
-```
-
-### 4. به‌روزرسانی تصویر گالری (مدیر/منشی)
-
-```http
-PATCH /api/gallery/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: multipart/form-data
-
-{
-  "title": "عنوان جدید",
-  "published": "false",
-  "galleryImage": <file>  // optional
-}
-```
-
-### 5. حذف تصویر گالری (مدیر/منشی)
-
-```http
-DELETE /api/gallery/:id
-X-CSRF-Token: your-csrf-token
-```
-
-### 6. ترتیب‌بندی تصاویر گالری (مدیر/منشی)
-
-```http
-POST /api/gallery/reorder
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "images": [
-    {
-      "id": "uuid1",
-      "order": 1
-    },
-    {
-      "id": "uuid2",
-      "order": 2
-    }
-  ]
-}
-```
-
----
-
-## Settings Endpoints
-
-### 1. دریافت تنظیمات سایت
-
-```http
-GET /api/settings
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "siteName": "کلینیک دندانپزشکی",
-    "siteTitle": "بهترین خدمات",
-    "description": "توضیحات",
-    "logo": "logo.png",
-    "email": "info@clinic.com",
-    "phoneNumber": "021-12345678",
-    "address": "تهران",
-    "workingHours": "شنبه تا پنج‌شنبه: 9-18",
-    "socialMedia": {
-      "instagram": "https://instagram.com/clinic",
-      "telegram": "https://t.me/clinic",
-      "whatsapp": "09123456789"
-    }
-  }
-}
-```
-
-### 2. دریافت لینک‌های شبکه‌های اجتماعی
-
-```http
-GET /api/settings/social-media
-```
-
-### 3. به‌روزرسانی تنظیمات سایت (فقط مدیر)
-
-```http
-PATCH /api/settings
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "siteName": "کلینیک دندانپزشکی تهران",
-  "siteTitle": "کلینیک دندانپزشکی",
-  "description": "بهترین خدمات دندانپزشکی",
-  "logo": "logo.png",
-  "email": "info@clinic.com",
-  "phoneNumber": "021-12345678",
-  "address": "تهران، خیابان ولیعصر",
-  "workingHours": "شنبه تا پنج‌شنبه: 9-18",
-  "instagram": "https://instagram.com/clinic",
-  "telegram": "https://t.me/clinic",
-  "whatsapp": "09123456789",
-  "twitter": "https://twitter.com/clinic",
-  "linkedin": "https://linkedin.com/clinic",
-  "facebook": "https://facebook.com/clinic",
-  "youtube": "https://youtube.com/clinic"
-}
-```
-
-### 4. به‌روزرسانی لینک‌های شبکه‌های اجتماعی (فقط مدیر)
-
-```http
-PATCH /api/settings/social-media
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "instagram": "https://instagram.com/clinic",
-  "telegram": "https://t.me/clinic",
-  "whatsapp": "09123456789",
-  "twitter": "https://twitter.com/clinic",
-  "linkedin": "https://linkedin.com/clinic",
-  "facebook": "https://facebook.com/clinic",
-  "youtube": "https://youtube.com/clinic"
-}
-```
-
----
-
-## Insurance Endpoints
-
-### 1. لیست سازمان‌های بیمه
-
-```http
-GET /api/insurance?page=1&limit=10&published=true
-```
-
-### 2. دریافت سازمان بیمه
-
-```http
-GET /api/insurance/:id
-```
-
-### 3. ایجاد سازمان بیمه (فقط مدیر)
-
-```http
-POST /api/insurance
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "name": "تأمین اجتماعی",
-  "description": "سازمان تأمین اجتماعی ایران",
-  "website": "https://tamin.ir",
-  "phoneNumber": "021-12345678",
-  "email": "info@tamin.ir",
-  "logo": "tamin-logo.png",
-  "published": true,
-  "order": 1
-}
-```
-
-### 4. به‌روزرسانی سازمان بیمه (فقط مدیر)
-
-```http
-PATCH /api/insurance/:id
-X-CSRF-Token: your-csrf-token
-Content-Type: application/json
-
-{
-  "name": "تأمین اجتماعی",
-  "description": "توضیحات جدید",
-  "published": false,
-  "order": 2
-}
-```
-
-### 5. حذف سازمان بیمه (فقط مدیر)
-
-```http
-DELETE /api/insurance/:id
-X-CSRF-Token: your-csrf-token
-```
-
-### 6. تغییر وضعیت انتشار سازمان بیمه (فقط مدیر)
-
-```http
-PATCH /api/insurance/:id/toggle-status
-X-CSRF-Token: your-csrf-token
-```
-
----
-
-## Upload Endpoints
-
-### آپلود تصویر برای CKEditor
-
-```http
-POST /api/upload
-Content-Type: multipart/form-data
-
-file: <image-file>
-```
-
-**Response (200):**
-
-```json
-{
-  "url": "http://localhost:4000/uploads/images/file-1234567890-987654321.jpg"
-}
-```
-
-**نکات:**
-
-- این endpoint عمومی است و نیاز به authentication ندارد
-- فقط فایل‌های تصویری مجاز هستند (jpg, jpeg, png, webp)
-- حداکثر حجم فایل: 5MB (قابل تنظیم در `.env`)
-- فایل‌ها در `uploads/images/` ذخیره می‌شوند
-
-**مستندات کامل:** برای راهنمای کامل پیاده‌سازی در Frontend، به [مستندات CKEditor Upload](./docs/CKEDITOR_UPLOAD.md) مراجعه کنید.
-
----
-
-## Health Check
-
-### بررسی وضعیت سرور
-
-```http
-GET /api/health
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "message": "Server is running",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
----
-
-## 🔐 احراز هویت
-
-این سیستم از **Session-based authentication** استفاده می‌کند. پس از ورود موفق، یک session برای کاربر ایجاد می‌شود که در دیتابیس PostgreSQL ذخیره می‌گردد.
-
-### دو روش ورود:
-
-#### 1️⃣ ورود با رمز عبور (Admin & Secretary)
-
-```http
-POST /api/auth/login
-{
-  "phoneNumber": "09123456789",
-  "password": "your-password"
-}
-```
-
-- فقط برای مدیر و منشی
-- سریع و بدون نیاز به SMS
-- رمز عبور هنگام ایجاد کاربر در CLI تنظیم می‌شود
-
-#### 2️⃣ ورود با OTP (همه کاربران)
-
-1. کاربر شماره تلفن خود را وارد می‌کند → `/api/auth/request-otp`
-2. سیستم یک کد OTP 5 رقمی ارسال می‌کند
-3. کاربر کد را وارد می‌کند → `/api/auth/verify-otp`
-4. اگر کاربر جدید باشد، نام و نام خانوادگی نیز درخواست می‌شود
-5. Session ایجاد می‌شود و کاربر وارد می‌گردد
-
-**نکته:** بیماران فقط از روش OTP می‌توانند استفاده کنند. مدیر و منشی می‌توانند از هر دو روش استفاده کنند.
-
-### Cookie Settings:
-
-- نام: `dental.sid`
-- HttpOnly: true
-- Secure: true (در production)
-- SameSite: lax
-- مدت اعتبار: 30 روز (قابل تنظیم در `.env`)
-
----
-
-## 👥 نقش‌های کاربری
-
-### مدیر (ADMIN)
-
-**دسترسی‌ها:**
-
-- دسترسی کامل به تمام بخش‌ها
-- ایجاد/حذف کلینیک
-- ایجاد/حذف پزشک
-- مدیریت مقالات و خدمات
-- مدیریت سوالات متداول و گالری
-- مدیریت تنظیمات سایت
-- مدیریت سازمان‌های بیمه
-- حذف نظرات
-
-**روش ورود:**
-
-- Password Login
-- OTP Login
-
-**ساخت اکانت:**
-
+## 👥 User Roles
+
+### Admin
+
+| Permission | Access |
+|------------|--------|
+| Full access to all sections | ✅ |
+| Create/delete clinics | ✅ |
+| Create/delete doctors | ✅ |
+| Manage all appointments | ✅ |
+| Delete appointments | ✅ |
+| Manage site settings | ✅ |
+| Manage insurance organizations | ✅ |
+| Delete any comment | ✅ |
+
+**Create:**
 ```bash
 npm run create:admin
 ```
 
-### منشی (SECRETARY)
+### Secretary
 
-**دسترسی‌ها:**
+| Permission | Access |
+|------------|--------|
+| View/edit own clinic | ✅ |
+| Create/edit doctors | ✅ |
+| Manage appointments (own clinic) | ✅ |
+| Approve/cancel appointments | ✅ |
+| Manage articles/services | ✅ |
+| Manage FAQ/gallery | ✅ |
 
-- مربوط به یک کلینیک خاص
-- ویرایش اطلاعات کلینیک خود
-- ایجاد/ویرایش پزشک
-- مدیریت مقالات و خدمات
-- مدیریت سوالات متداول و گالری
-
-**روش ورود:**
-
-- Password Login (پیشنهادی)
-- OTP Login
-
-**ساخت اکانت:**
-
+**Create:**
 ```bash
 npm run create:secretary
 ```
 
-### بیمار (PATIENT)
+### Patient
 
-**دسترسی‌ها:**
+| Permission | Access |
+|------------|--------|
+| View public information | ✅ |
+| Book appointments | ✅ |
+| View/cancel own appointments | ✅ |
+| Submit reviews | ✅ |
+| Manage own profile | ✅ |
 
-- مشاهده اطلاعات عمومی
-- ثبت نظر برای پزشکان، مقالات و خدمات
-- مدیریت پروفایل خود
-- (آینده) رزرو نوبت
-
-**روش ورود:**
-
-- OTP Login (فقط)
-
-**ساخت اکانت:**
-
-- خودکار هنگام اولین ورود با OTP
+**Create:**
+Auto-created on first OTP login.
 
 ---
 
-## 🛡️ امنیت
+## 🛡️ Security
 
 ### CSRF Protection
 
-تمام درخواست‌های POST, PATCH, DELETE نیاز به CSRF token دارند:
+All POST, PATCH, DELETE requests require CSRF token:
 
-1. ابتدا CSRF token را دریافت کنید:
+```javascript
+// 1. Get token
+const { data } = await api.get('/auth/csrf-token');
+const csrfToken = data.data.csrfToken;
 
-   ```http
-   GET /api/auth/csrf-token
-   ```
-
-2. در header درخواست‌های بعدی ارسال کنید:
-   ```
-   X-CSRF-Token: your-csrf-token
-   ```
+// 2. Use in request
+await api.post('/appointments', formData, {
+  headers: { 'X-CSRF-Token': csrfToken }
+});
+```
 
 ### Rate Limiting
 
-**محدودیت‌های عمومی:**
+| Endpoint | Limit |
+|----------|-------|
+| All endpoints | 100 requests / 15 min |
+| Request OTP | 5 requests / 15 min |
+| Verify OTP | 10 requests / 15 min |
+| Login | 10 requests / 15 min |
 
-- همه endpoints: 100 درخواست در 15 دقیقه
-
-**محدودیت‌های Authentication:**
-
-- Request OTP: 5 درخواست در 15 دقیقه
-- Verify OTP: 10 درخواست در 15 دقیقه
-- Login: 10 درخواست در 15 دقیقه
-
-این محدودیت‌ها برای جلوگیری از حملات brute force و spam طراحی شده‌اند.
-
-### Security Headers
-
-سیستم از Helmet برای تنظیمات امنیتی استفاده می‌کند:
+### Security Headers (Helmet)
 
 - Content Security Policy (CSP)
-- HSTS (HTTP Strict Transport Security)
+- HSTS
 - XSS Protection
-- و سایر هدرهای امنیتی
+- And more...
 
-### Validation
+### Input Validation
 
-تمام ورودی‌ها با Joi validation شده و HTML content با sanitize-html پاکسازی می‌شود.
-
-### Session Security
-
-- Session ها در PostgreSQL ذخیره می‌شوند
-- HttpOnly cookies برای جلوگیری از XSS
-- Secure flag در production
-- SameSite: lax برای جلوگیری از CSRF
+- All inputs validated with Joi
+- HTML content sanitized with sanitize-html
 
 ---
 
-## 🔧 دستورات مفید
+## 🐛 Troubleshooting
 
-```bash
-# اجرای سرور در حالت توسعه
-npm run dev
+### Database Connection Error
 
-# اجرای سرور در حالت production
-npm start
+| Check | Solution |
+|-------|----------|
+| MySQL running | Start MySQL service |
+| DATABASE_URL | Verify in `.env` |
+| User permissions | Check MySQL user access |
 
-# Generate Prisma Client
-npm run prisma:generate
+### SMS Error
 
-# ایجاد migration جدید
-npm run prisma:migrate
+| Check | Solution |
+|-------|----------|
+| API Key | Verify Kavenegar API key |
+| Account balance | Check Kavenegar credit |
+| Sender number | Verify sender number |
 
-# باز کردن Prisma Studio
-npm run prisma:studio
+### File Upload Error
 
-# ایجاد کاربر مدیر
-npm run create:admin
+| Check | Solution |
+|-------|----------|
+| Directories exist | Create upload folders |
+| Permissions | Check folder permissions |
+| File size | Max 5MB (configurable) |
 
-# ایجاد کاربر منشی
-npm run create:secretary
-```
+### CSRF Token Error
+
+| Check | Solution |
+|-------|----------|
+| Session active | Ensure logged in |
+| Token fetched | Get from `/api/auth/csrf-token` |
+| Header sent | Include `X-CSRF-Token` |
+
+### Rate Limit Error
+
+| Solution |
+|----------|
+| Wait for limit to reset |
+| Or whitelist IP in development |
 
 ---
 
-## 📝 نکات مهم
+## 📝 Important Notes
 
-1. **امنیت**: حتماً `SESSION_SECRET` را در production تغییر دهید
-2. **SMS**: برای استفاده از سیستم OTP، حتماً API Key کاوه‌نگار را تنظیم کنید
-3. **آپلود فایل**: حداکثر حجم فایل پیش‌فرض 5MB است (قابل تنظیم در `.env`)
-4. **Rate Limiting**: برای جلوگیری از حملات، محدودیت درخواست اعمال شده است
-5. **CORS**: دامنه‌های مجاز را در `ALLOWED_ORIGINS` تنظیم کنید
-6. **CSRF Token**: برای درخواست‌های POST/PATCH/DELETE حتماً CSRF token دریافت و ارسال کنید
-7. **OTP Expiry**: OTP ها به صورت خودکار بعد از 5 دقیقه پاک می‌شوند (قابل تنظیم)
-
----
-
-## 🐛 رفع مشکلات رایج
-
-### خطای اتصال به دیتابیس
-
-- مطمئن شوید PostgreSQL در حال اجرا است
-- `DATABASE_URL` را بررسی کنید
-- دسترسی کاربر دیتابیس را چک کنید
-
-### خطای ارسال SMS
-
-- API Key کاوه‌نگار را بررسی کنید
-- اعتبار حساب را چک کنید
-- شماره فرستنده (SENDER) را بررسی کنید
-
-### خطای آپلود فایل
-
-- مطمئن شوید فولدرهای `uploads/doctors`، `uploads/gallery` و `uploads/images` وجود دارند
-- دسترسی‌های فولدر را بررسی کنید
-- حجم فایل را چک کنید (حداکثر 5MB)
-
-### خطای CSRF Token
-
-- مطمئن شوید session فعال است
-- CSRF token را از endpoint مربوطه دریافت کنید
-- header `X-CSRF-Token` را ارسال کنید
-
-### خطای Rate Limit
-
-- صبر کنید تا زمان محدودیت تمام شود
-- یا IP خود را از محدودیت حذف کنید (در development)
+1. **Security**: Always change `SESSION_SECRET` in production
+2. **SMS**: Configure Kavenegar API for OTP system
+3. **File Upload**: Default max size is 5MB (configurable)
+4. **CORS**: Configure `ALLOWED_ORIGINS` for your domains
+5. **CSRF**: Always send CSRF token for POST/PATCH/DELETE
+6. **OTP Expiry**: Codes expire after 5 minutes (configurable)
 
 ---
 
@@ -1369,6 +778,12 @@ npm run create:secretary
 
 MIT
 
-## 👨‍💻 توسعه‌دهنده
+---
 
-این پروژه توسط تیم توسعه سیستم مدیریت کلینیک دندانپزشکی ساخته شده است.
+## 👨‍💻 Developer
+
+Built by the Dental Clinic Management System development team.
+
+---
+
+📅 Last Updated: December 2024
