@@ -78,7 +78,7 @@ const getClinic = async (req, res) => {
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const { name, address, phoneNumber, description, latitude, longitude } = req.body;
+  const { name, address, phoneNumber, description, latitude, longitude, workingHours } = req.body;
   
   // Normalize phone number if provided
   const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
@@ -98,6 +98,20 @@ const createClinic = async (req, res) => {
   const parsedLatitude = latitude ? parseFloat(latitude) : null;
   const parsedLongitude = longitude ? parseFloat(longitude) : null;
 
+  // Parse workingHours if it's a string (from form-data)
+  let parsedWorkingHours = null;
+  if (workingHours) {
+    if (typeof workingHours === 'string') {
+      try {
+        parsedWorkingHours = JSON.parse(workingHours);
+      } catch (error) {
+        throw new AppError('فرمت ساعات کاری معتبر نیست', 400);
+      }
+    } else {
+      parsedWorkingHours = workingHours;
+    }
+  }
+
   const clinic = await prisma.clinic.create({
     data: {
       name,
@@ -107,6 +121,7 @@ const createClinic = async (req, res) => {
       description,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
+      workingHours: parsedWorkingHours,
     },
   });
 
@@ -122,7 +137,7 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const { name, address, phoneNumber, description, latitude, longitude } =
+  const { name, address, phoneNumber, description, latitude, longitude, workingHours } =
     req.body;
 
   // If secretary, check if they belong to this clinic
@@ -174,6 +189,22 @@ const updateClinic = async (req, res) => {
     normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || '';
   }
 
+  // Parse workingHours if it's a string (from form-data)
+  let parsedWorkingHours = undefined;
+  if (workingHours !== undefined) {
+    if (workingHours === null || workingHours === '') {
+      parsedWorkingHours = null;
+    } else if (typeof workingHours === 'string') {
+      try {
+        parsedWorkingHours = JSON.parse(workingHours);
+      } catch (error) {
+        throw new AppError('فرمت ساعات کاری معتبر نیست', 400);
+      }
+    } else {
+      parsedWorkingHours = workingHours;
+    }
+  }
+
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
@@ -184,6 +215,7 @@ const updateClinic = async (req, res) => {
       ...(description !== undefined && { description }),
       ...(latitude !== undefined && { latitude: parsedLatitude }),
       ...(longitude !== undefined && { longitude: parsedLongitude }),
+      ...(parsedWorkingHours !== undefined && { workingHours: parsedWorkingHours }),
     },
   });
 

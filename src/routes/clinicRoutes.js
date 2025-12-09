@@ -17,6 +17,17 @@ router.get(
 // Get single clinic (public)
 router.get('/:id', asyncHandler(clinicController.getClinic));
 
+// Working hours schema (same as doctor's workingDays)
+const workingHoursSchema = Joi.object({
+  saturday: Joi.string().allow('', null).optional(),   // شنبه
+  sunday: Joi.string().allow('', null).optional(),     // یکشنبه
+  monday: Joi.string().allow('', null).optional(),     // دوشنبه
+  tuesday: Joi.string().allow('', null).optional(),    // سه‌شنبه
+  wednesday: Joi.string().allow('', null).optional(),  // چهارشنبه
+  thursday: Joi.string().allow('', null).optional(),   // پنج‌شنبه
+  friday: Joi.string().allow('', null).optional(),     // جمعه
+}).optional();
+
 // Create clinic (Admin only)
 router.post(
   '/',
@@ -40,6 +51,7 @@ router.post(
         'number.min': 'طول جغرافیایی باید بین -180 تا 180 باشد',
         'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
       }),
+      workingHours: workingHoursSchema,
     })
   ),
   asyncHandler(clinicController.createClinic)
@@ -64,6 +76,7 @@ router.patch(
         'number.min': 'طول جغرافیایی باید بین -180 تا 180 باشد',
         'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
       }),
+      workingHours: workingHoursSchema,
     })
   ),
   asyncHandler(clinicController.updateClinic)
