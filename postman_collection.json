@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "Dental Appointment API",
-    "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.",
-    "version": "2.6.0",
+    "description": "Complete API collection for Dental Appointment Management System.\n\n⚠️ IMPORTANT: CSRF Protection is enabled.\nBefore making any POST, PATCH, DELETE requests:\n1. First call 'Get CSRF Token' from Authentication folder\n2. Copy the csrfToken from response\n3. Add X-CSRF-Token header to your request with the value\n\nMost POST/PATCH/DELETE requests already have X-CSRF-Token header configured.\nYou just need to get a token first and update the {{csrfToken}} variable.\n\n📅 Appointment System:\n- Users can book appointments for themselves or others\n- Secretaries can approve/cancel appointments\n- Automatic SMS notifications are sent at various stages\n- Reminder SMS sent 24h and 30min before appointment\n- Notification system for secretaries when new appointments are created",
+    "version": "2.7.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -813,6 +813,355 @@
       ]
     },
     {
+      "name": "Appointments",
+      "description": "سیستم مدیریت نوبت‌دهی - رزرو، تأیید و مدیریت نوبت‌ها",
+      "item": [
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "description": "Get CSRF token first from /auth/csrf-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinicId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"doctorId\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"appointmentDate\": \"2025-12-15T14:30:00.000Z\",\n  \"patientName\": \"علی محمدی\",\n  \"notes\": \"نیاز به پارکینگ دارم\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"]
+            },
+            "description": "ایجاد نوبت جدید توسط کاربر لاگین شده. پس از ثبت، نوبت در وضعیت APPROVED_BY_USER قرار می‌گیرد و منتظر تأیید منشی می‌ماند."
+          }
+        },
+        {
+          "name": "Get My Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/my?page=1&limit=10&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "my"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "شماره صفحه"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "تعداد در صفحه"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "فیلتر وضعیت: PENDING, APPROVED_BY_USER, FINAL_APPROVED, CANCELED",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "دریافت لیست نوبت‌های کاربر جاری (نیاز به احراز هویت)"
+          }
+        },
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments?page=1&limit=10&status=&clinicId=&doctorId=&fromDate=&toDate=&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "شماره صفحه"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "تعداد در صفحه"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "فیلتر وضعیت: PENDING, APPROVED_BY_USER, FINAL_APPROVED, CANCELED",
+                  "disabled": true
+                },
+                {
+                  "key": "clinicId",
+                  "value": "",
+                  "description": "فیلتر بر اساس کلینیک (فقط Admin)",
+                  "disabled": true
+                },
+                {
+                  "key": "doctorId",
+                  "value": "",
+                  "description": "فیلتر بر اساس پزشک",
+                  "disabled": true
+                },
+                {
+                  "key": "fromDate",
+                  "value": "",
+                  "description": "از تاریخ (ISO format)",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "",
+                  "description": "تا تاریخ (ISO format)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "جستجو در نام، نام‌خانوادگی و شماره تلفن",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "دریافت لیست همه نوبت‌ها (نیاز به احراز هویت Admin یا Secretary). منشی فقط نوبت‌های کلینیک خودش را می‌بیند."
+          }
+        },
+        {
+          "name": "Get Single Appointment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", ":id"]
+            },
+            "description": "دریافت اطلاعات یک نوبت (نیاز به احراز هویت). کاربر فقط نوبت خودش را می‌بیند، Admin و Secretary همه نوبت‌ها را می‌بینند."
+          }
+        },
+        {
+          "name": "Update Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"2025-12-16T15:00:00.000Z\",\n  \"doctorId\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"patientName\": \"نام جدید\",\n  \"notes\": \"توضیحات جدید\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", ":id"]
+            },
+            "description": "به‌روزرسانی نوبت (نیاز به احراز هویت Admin یا Secretary). اگر تاریخ تغییر کند، فلگ‌های یادآوری ریست می‌شوند."
+          }
+        },
+        {
+          "name": "Approve Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", ":id", "approve"]
+            },
+            "description": "تأیید نوبت توسط منشی یا ادمین (نیاز به احراز هویت Admin یا Secretary). پس از تأیید، وضعیت نوبت به FINAL_APPROVED تغییر می‌کند و پیامک به مراجع ارسال می‌شود."
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"بیمار درخواست لغو داد\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", ":id", "cancel"]
+            },
+            "description": "لغو نوبت. کاربر می‌تواند نوبت خودش را لغو کند. Admin و Secretary می‌توانند هر نوبتی را لغو کنند. اگر منشی نوبت را لغو کند، پیامک به مراجع ارسال می‌شود."
+          }
+        },
+        {
+          "name": "Delete Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", ":id"]
+            },
+            "description": "حذف نوبت (فقط Admin). این عملیات غیرقابل بازگشت است."
+          }
+        },
+        {
+          "name": "Get Appointment Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "stats"]
+            },
+            "description": "دریافت آمار نوبت‌ها برای داشبورد (نیاز به احراز هویت Admin یا Secretary). شامل تعداد کل، تعداد در هر وضعیت و تعداد نوبت‌های امروز."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "سیستم نوتیفیکیشن برای منشی و ادمین - اطلاع‌رسانی نوبت‌های جدید",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20&read=&type=",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "شماره صفحه"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "تعداد در صفحه"
+                },
+                {
+                  "key": "read",
+                  "value": "",
+                  "description": "فیلتر خوانده شده: true یا false",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "فیلتر نوع نوتیفیکیشن (مثلاً appointment_new)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "دریافت لیست نوتیفیکیشن‌ها (نیاز به احراز هویت Admin یا Secretary). منشی فقط نوتیفیکیشن‌های کلینیک خودش را می‌بیند."
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "unread-count"]
+            },
+            "description": "دریافت تعداد نوتیفیکیشن‌های خوانده نشده (نیاز به احراز هویت Admin یا Secretary). برای نمایش badge در UI استفاده می‌شود."
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":id", "read"]
+            },
+            "description": "علامت‌گذاری یک نوتیفیکیشن به عنوان خوانده شده (نیاز به احراز هویت Admin یا Secretary)"
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            },
+            "description": "علامت‌گذاری همه نوتیفیکیشن‌ها به عنوان خوانده شده (نیاز به احراز هویت Admin یا Secretary)"
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":id"]
+            },
+            "description": "حذف یک نوتیفیکیشن (نیاز به احراز هویت Admin یا Secretary)"
+          }
+        }
+      ]
+    },
+    {
       "name": "Articles",
       "item": [
         {
@@ -1204,149 +1553,149 @@
           "item": [
             {
               "name": "Get Doctor Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/doctor/:doctorId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "doctor", ":doctorId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/doctor/:doctorId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "doctor", ":doctorId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Doctor Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"پزشک بسیار حرفه‌ای و دلسوزی هستند\",\n  \"rating\": 5\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/comments/doctor/:doctorId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "doctor", ":doctorId"]
-            }
-          }
-        },
-        {
-          "name": "Get Article Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/article/:articleId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "article", ":articleId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+            {
+              "name": "Create Doctor Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"پزشک بسیار حرفه‌ای و دلسوزی هستند\",\n  \"rating\": 5\n}"
                 },
-                {
-                  "key": "limit",
-                  "value": "10"
+                "url": {
+                  "raw": "{{baseUrl}}/comments/doctor/:doctorId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "doctor", ":doctorId"]
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Article Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"مقاله بسیار مفیدی بود، ممنون\",\n  \"rating\": 5\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/comments/article/:articleId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "article", ":articleId"]
-            }
-          }
-        },
-        {
-          "name": "Get Service Comments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/comments/service/:serviceId?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "service", ":serviceId"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+            {
+              "name": "Get Article Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/article/:articleId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "article", ":articleId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Article Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"مقاله بسیار مفیدی بود، ممنون\",\n  \"rating\": 5\n}"
                 },
-                {
-                  "key": "limit",
-                  "value": "10"
+                "url": {
+                  "raw": "{{baseUrl}}/comments/article/:articleId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "article", ":articleId"]
                 }
-              ]
+              }
+            },
+            {
+              "name": "Get Service Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/service/:serviceId?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "service", ":serviceId"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Service Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrfToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"خدمات عالی ارائه می‌دهند\",\n  \"rating\": 4\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comments/service/:serviceId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "service", ":serviceId"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Create Service Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{csrfToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"خدمات عالی ارائه می‌دهند\",\n  \"rating\": 4\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/comments/service/:serviceId",
-              "host": ["{{baseUrl}}"],
-              "path": ["comments", "service", ":serviceId"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Public APIs",
+          "name": "Public APIs",
           "item": [
             {
               "name": "Get Doctor Comments",

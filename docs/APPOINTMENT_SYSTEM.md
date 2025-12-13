@@ -30,6 +30,7 @@
 سیستم نوبت‌دهی به کاربران اجازه می‌دهد برای خود یا دیگران نوبت رزرو کنند. منشی کلینیک می‌تواند نوبت‌ها را تأیید یا لغو کند و سیستم به صورت خودکار پیامک یادآوری ارسال می‌کند.
 
 ### ویژگی‌های کلیدی:
+
 - ✅ رزرو نوبت با یا بدون انتخاب پزشک
 - ✅ امکان رزرو برای شخص دیگر
 - ✅ سیستم نوتیفیکیشن برای منشی
@@ -137,37 +138,37 @@
 
 ## وضعیت‌های نوبت
 
-| وضعیت | مقدار | توضیحات |
-|-------|-------|---------|
-| در انتظار بررسی | `PENDING` | (فعلاً استفاده نمی‌شود) |
-| تأیید اولیه | `APPROVED_BY_USER` | نوبت توسط کاربر ثبت شده، منتظر تأیید منشی |
-| تأیید نهایی | `FINAL_APPROVED` | نوبت توسط منشی تأیید شده |
-| لغو شده | `CANCELED` | نوبت لغو شده (توسط کاربر یا منشی) |
+| وضعیت           | مقدار              | توضیحات                                   |
+| --------------- | ------------------ | ----------------------------------------- |
+| در انتظار بررسی | `PENDING`          | (فعلاً استفاده نمی‌شود)                   |
+| تأیید اولیه     | `APPROVED_BY_USER` | نوبت توسط کاربر ثبت شده، منتظر تأیید منشی |
+| تأیید نهایی     | `FINAL_APPROVED`   | نوبت توسط منشی تأیید شده                  |
+| لغو شده         | `CANCELED`         | نوبت لغو شده (توسط کاربر یا منشی)         |
 
 ### نمایش وضعیت در UI:
 
 ```javascript
 const statusConfig = {
   PENDING: {
-    label: 'در انتظار بررسی',
-    color: 'gray',
-    icon: 'clock'
+    label: "در انتظار بررسی",
+    color: "gray",
+    icon: "clock",
   },
   APPROVED_BY_USER: {
-    label: 'در انتظار تأیید منشی',
-    color: 'yellow',
-    icon: 'hourglass'
+    label: "در انتظار تأیید منشی",
+    color: "yellow",
+    icon: "hourglass",
   },
   FINAL_APPROVED: {
-    label: 'تأیید شده',
-    color: 'green',
-    icon: 'check-circle'
+    label: "تأیید شده",
+    color: "green",
+    icon: "check-circle",
   },
   CANCELED: {
-    label: 'لغو شده',
-    color: 'red',
-    icon: 'x-circle'
-  }
+    label: "لغو شده",
+    color: "red",
+    icon: "x-circle",
+  },
 };
 ```
 
@@ -176,6 +177,7 @@ const statusConfig = {
 ## API Endpoints
 
 ### Base URL
+
 ```
 http://localhost:3000/api
 ```
@@ -202,13 +204,13 @@ POST /api/appointments
 
 #### Request Body
 
-| فیلد | نوع | اجباری | توضیحات |
-|------|-----|--------|---------|
-| `clinicId` | UUID | ✅ | شناسه کلینیک |
-| `doctorId` | UUID | ❌ | شناسه پزشک (اختیاری) |
-| `appointmentDate` | ISO DateTime | ✅ | تاریخ و ساعت نوبت |
-| `patientName` | String | ❌ | نام مراجع (اگر برای شخص دیگری است) |
-| `notes` | String | ❌ | توضیحات اضافی |
+| فیلد              | نوع          | اجباری | توضیحات                            |
+| ----------------- | ------------ | ------ | ---------------------------------- |
+| `clinicId`        | UUID         | ✅     | شناسه کلینیک                       |
+| `doctorId`        | UUID         | ❌     | شناسه پزشک (اختیاری)               |
+| `appointmentDate` | ISO DateTime | ✅     | تاریخ و ساعت نوبت                  |
+| `patientName`     | String       | ❌     | نام مراجع (اگر برای شخص دیگری است) |
+| `notes`           | String       | ❌     | توضیحات اضافی                      |
 
 #### نمونه درخواست
 
@@ -276,12 +278,12 @@ POST /api/appointments
 
 #### خطاهای احتمالی
 
-| کد | پیام |
-|----|------|
+| کد  | پیام                               |
+| --- | ---------------------------------- |
 | 400 | اعتبارسنجی ناموفق (فیلدهای اجباری) |
-| 401 | لطفاً ابتدا وارد شوید |
-| 403 | CSRF token missing/invalid |
-| 404 | کلینیک/پزشک یافت نشد |
+| 401 | لطفاً ابتدا وارد شوید              |
+| 403 | CSRF token missing/invalid         |
+| 404 | کلینیک/پزشک یافت نشد               |
 
 ---
 
@@ -295,11 +297,11 @@ GET /api/appointments/my
 
 #### Query Parameters
 
-| پارامتر | نوع | توضیحات |
-|---------|-----|---------|
-| `page` | Number | شماره صفحه (پیش‌فرض: 1) |
-| `limit` | Number | تعداد در صفحه (پیش‌فرض: 10) |
-| `status` | Enum | فیلتر وضعیت |
+| پارامتر  | نوع    | توضیحات                     |
+| -------- | ------ | --------------------------- |
+| `page`   | Number | شماره صفحه (پیش‌فرض: 1)     |
+| `limit`  | Number | تعداد در صفحه (پیش‌فرض: 10) |
+| `status` | Enum   | فیلتر وضعیت                 |
 
 #### نمونه درخواست
 
@@ -357,16 +359,16 @@ GET /api/appointments
 
 #### Query Parameters
 
-| پارامتر | نوع | توضیحات |
-|---------|-----|---------|
-| `page` | Number | شماره صفحه |
-| `limit` | Number | تعداد در صفحه |
-| `status` | Enum | فیلتر وضعیت |
-| `clinicId` | UUID | فیلتر کلینیک (فقط Admin) |
-| `doctorId` | UUID | فیلتر پزشک |
-| `fromDate` | ISO Date | از تاریخ |
-| `toDate` | ISO Date | تا تاریخ |
-| `search` | String | جستجو در نام، نام‌خانوادگی، شماره تلفن |
+| پارامتر    | نوع      | توضیحات                                |
+| ---------- | -------- | -------------------------------------- |
+| `page`     | Number   | شماره صفحه                             |
+| `limit`    | Number   | تعداد در صفحه                          |
+| `status`   | Enum     | فیلتر وضعیت                            |
+| `clinicId` | UUID     | فیلتر کلینیک (فقط Admin)               |
+| `doctorId` | UUID     | فیلتر پزشک                             |
+| `fromDate` | ISO Date | از تاریخ                               |
+| `toDate`   | ISO Date | تا تاریخ                               |
+| `search`   | String   | جستجو در نام، نام‌خانوادگی، شماره تلفن |
 
 #### نمونه درخواست
 
@@ -495,7 +497,7 @@ X-CSRF-Token: <csrf-token>
   "data": {
     "appointment": {
       "id": "uuid",
-      "status": "FINAL_APPROVED",
+      "status": "FINAL_APPROVED"
       // ... سایر فیلدها
     }
   }
@@ -504,12 +506,12 @@ X-CSRF-Token: <csrf-token>
 
 #### خطاهای احتمالی
 
-| کد | پیام |
-|----|------|
-| 400 | این نوبت قبلاً تأیید شده است |
+| کد  | پیام                               |
+| --- | ---------------------------------- |
+| 400 | این نوبت قبلاً تأیید شده است       |
 | 400 | این نوبت لغو شده و قابل تأیید نیست |
-| 403 | شما دسترسی به این نوبت ندارید |
-| 404 | نوبت یافت نشد |
+| 403 | شما دسترسی به این نوبت ندارید      |
+| 404 | نوبت یافت نشد                      |
 
 ---
 
@@ -701,8 +703,8 @@ DELETE /api/notifications/:id
 
 ```typescript
 // hooks/useAppointments.ts
-import { useState } from 'react';
-import api from '../utils/api';
+import { useState } from "react";
+import api from "../utils/api";
 
 interface CreateAppointmentData {
   clinicId: string;
@@ -720,20 +722,23 @@ export const useAppointments = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/appointments', data);
+      const response = await api.post("/appointments", data);
       return response.data;
     } catch (err: any) {
-      setError(err.response?.data?.message || 'خطا در ثبت نوبت');
+      setError(err.response?.data?.message || "خطا در ثبت نوبت");
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const getMyAppointments = async (params?: { page?: number; status?: string }) => {
+  const getMyAppointments = async (params?: {
+    page?: number;
+    status?: string;
+  }) => {
     setLoading(true);
     try {
-      const response = await api.get('/appointments/my', { params });
+      const response = await api.get("/appointments/my", { params });
       return response.data;
     } catch (err: any) {
       setError(err.response?.data?.message);
@@ -746,7 +751,9 @@ export const useAppointments = () => {
   const cancelAppointment = async (id: string, reason?: string) => {
     setLoading(true);
     try {
-      const response = await api.patch(`/appointments/${id}/cancel`, { reason });
+      const response = await api.patch(`/appointments/${id}/cancel`, {
+        reason,
+      });
       return response.data;
     } catch (err: any) {
       setError(err.response?.data?.message);
@@ -770,8 +777,8 @@ export const useAppointments = () => {
 
 ```tsx
 // components/AppointmentForm.tsx
-import { useState } from 'react';
-import { useAppointments } from '../hooks/useAppointments';
+import { useState } from "react";
+import { useAppointments } from "../hooks/useAppointments";
 
 interface Props {
   clinics: Array<{ id: string; name: string }>;
@@ -781,18 +788,18 @@ interface Props {
 
 export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
   const { createAppointment, loading, error } = useAppointments();
-  
+
   const [formData, setFormData] = useState({
-    clinicId: '',
-    doctorId: '',
-    appointmentDate: '',
-    patientName: '',
+    clinicId: "",
+    doctorId: "",
+    appointmentDate: "",
+    patientName: "",
     isForOther: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await createAppointment({
         clinicId: formData.clinicId,
@@ -800,7 +807,7 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
         appointmentDate: new Date(formData.appointmentDate).toISOString(),
         patientName: formData.isForOther ? formData.patientName : undefined,
       });
-      
+
       onSuccess();
     } catch (err) {
       // Error handled by hook
@@ -810,17 +817,17 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded">
-          {error}
-        </div>
+        <div className="bg-red-100 text-red-700 p-3 rounded">{error}</div>
       )}
-      
+
       {/* انتخاب کلینیک */}
       <div>
         <label>کلینیک *</label>
         <select
           value={formData.clinicId}
-          onChange={(e) => setFormData({ ...formData, clinicId: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, clinicId: e.target.value })
+          }
           required
         >
           <option value="">انتخاب کنید</option>
@@ -837,7 +844,9 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
         <label>پزشک (اختیاری)</label>
         <select
           value={formData.doctorId}
-          onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, doctorId: e.target.value })
+          }
         >
           <option value="">هر پزشکی</option>
           {doctors.map((doctor) => (
@@ -854,7 +863,9 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
         <input
           type="datetime-local"
           value={formData.appointmentDate}
-          onChange={(e) => setFormData({ ...formData, appointmentDate: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, appointmentDate: e.target.value })
+          }
           required
         />
       </div>
@@ -865,7 +876,9 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
           <input
             type="checkbox"
             checked={formData.isForOther}
-            onChange={(e) => setFormData({ ...formData, isForOther: e.target.checked })}
+            onChange={(e) =>
+              setFormData({ ...formData, isForOther: e.target.checked })
+            }
           />
           رزرو برای شخص دیگر
         </label>
@@ -877,14 +890,16 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
           <input
             type="text"
             value={formData.patientName}
-            onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, patientName: e.target.value })
+            }
             required
           />
         </div>
       )}
 
       <button type="submit" disabled={loading}>
-        {loading ? 'در حال ثبت...' : 'ثبت نوبت'}
+        {loading ? "در حال ثبت..." : "ثبت نوبت"}
       </button>
     </form>
   );
@@ -895,8 +910,8 @@ export const AppointmentForm = ({ clinics, doctors, onSuccess }: Props) => {
 
 ```typescript
 // hooks/useNotifications.ts
-import { useState, useEffect } from 'react';
-import api from '../utils/api';
+import { useState, useEffect } from "react";
+import api from "../utils/api";
 
 export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -904,16 +919,19 @@ export const useNotifications = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await api.get('/notifications/unread-count');
+      const response = await api.get("/notifications/unread-count");
       setUnreadCount(response.data.data.unreadCount);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchNotifications = async (params?: { page?: number; read?: boolean }) => {
+  const fetchNotifications = async (params?: {
+    page?: number;
+    read?: boolean;
+  }) => {
     try {
-      const response = await api.get('/notifications', { params });
+      const response = await api.get("/notifications", { params });
       setNotifications(response.data.data.notifications);
       return response.data;
     } catch (err) {
@@ -932,7 +950,7 @@ export const useNotifications = () => {
 
   const markAllAsRead = async () => {
     try {
-      await api.patch('/notifications/read-all');
+      await api.patch("/notifications/read-all");
       setUnreadCount(0);
     } catch (err) {
       console.error(err);
@@ -969,6 +987,7 @@ export const useNotifications = () => {
 ```
 
 > **توجه:** عنوان جنسیت بر اساس فیلد `gender` کاربر تعیین می‌شود:
+>
 > - `MALE` → آقای
 > - `FEMALE` → خانم
 > - `null/OTHER` → بدون عنوان
@@ -1033,25 +1052,27 @@ export const useNotifications = () => {
 
 ```javascript
 // استفاده از date-fns-jalali یا moment-jalaali
-import { format } from 'date-fns-jalali';
+import { format } from "date-fns-jalali";
 
 const formatPersianDate = (date) => {
-  return format(new Date(date), 'EEEE d MMMM yyyy ساعت HH:mm', { locale: faIR });
+  return format(new Date(date), "EEEE d MMMM yyyy ساعت HH:mm", {
+    locale: faIR,
+  });
 };
 ```
 
 ### 2. دسترسی‌ها
 
-| عملیات | کاربر عادی | منشی | ادمین |
-|--------|-----------|------|-------|
-| ایجاد نوبت | ✅ | ✅ | ✅ |
-| مشاهده نوبت خود | ✅ | ✅ | ✅ |
-| مشاهده همه نوبت‌ها | ❌ | ✅ (کلینیک خود) | ✅ |
-| تأیید نوبت | ❌ | ✅ | ✅ |
-| لغو نوبت خود | ✅ | ✅ | ✅ |
-| لغو نوبت دیگران | ❌ | ✅ | ✅ |
-| ویرایش نوبت | ❌ | ✅ | ✅ |
-| حذف نوبت | ❌ | ❌ | ✅ |
+| عملیات             | کاربر عادی | منشی            | ادمین |
+| ------------------ | ---------- | --------------- | ----- |
+| ایجاد نوبت         | ✅         | ✅              | ✅    |
+| مشاهده نوبت خود    | ✅         | ✅              | ✅    |
+| مشاهده همه نوبت‌ها | ❌         | ✅ (کلینیک خود) | ✅    |
+| تأیید نوبت         | ❌         | ✅              | ✅    |
+| لغو نوبت خود       | ✅         | ✅              | ✅    |
+| لغو نوبت دیگران    | ❌         | ✅              | ✅    |
+| ویرایش نوبت        | ❌         | ✅              | ✅    |
+| حذف نوبت           | ❌         | ❌              | ✅    |
 
 ### 3. CSRF Token
 
@@ -1059,12 +1080,12 @@ const formatPersianDate = (date) => {
 
 ```javascript
 // دریافت CSRF Token
-const { data } = await api.get('/auth/csrf-token');
+const { data } = await api.get("/auth/csrf-token");
 const csrfToken = data.data.csrfToken;
 
 // استفاده در درخواست
-await api.post('/appointments', formData, {
-  headers: { 'X-CSRF-Token': csrfToken }
+await api.post("/appointments", formData, {
+  headers: { "X-CSRF-Token": csrfToken },
 });
 ```
 
@@ -1077,7 +1098,7 @@ useEffect(() => {
   const interval = setInterval(() => {
     fetchUnreadCount();
   }, 30000); // هر 30 ثانیه
-  
+
   return () => clearInterval(interval);
 }, []);
 ```
@@ -1092,16 +1113,16 @@ VITE_API_URL=http://localhost:3000/api
 
 ## خطاهای رایج
 
-| کد | پیام | راه‌حل |
-|----|------|--------|
-| 400 | انتخاب کلینیک الزامی است | clinicId را ارسال کنید |
-| 400 | تاریخ و ساعت نوبت الزامی است | appointmentDate را ارسال کنید |
-| 401 | لطفاً ابتدا وارد شوید | کاربر باید لاگین کند |
-| 403 | CSRF token missing | CSRF token را در header ارسال کنید |
-| 403 | شما دسترسی به این نوبت ندارید | کاربر مجوز ندارد |
-| 404 | کلینیک یافت نشد | clinicId نامعتبر است |
-| 404 | پزشک یافت نشد | doctorId نامعتبر است |
-| 404 | نوبت یافت نشد | appointment id نامعتبر است |
+| کد  | پیام                          | راه‌حل                             |
+| --- | ----------------------------- | ---------------------------------- |
+| 400 | انتخاب کلینیک الزامی است      | clinicId را ارسال کنید             |
+| 400 | تاریخ و ساعت نوبت الزامی است  | appointmentDate را ارسال کنید      |
+| 401 | لطفاً ابتدا وارد شوید         | کاربر باید لاگین کند               |
+| 403 | CSRF token missing            | CSRF token را در header ارسال کنید |
+| 403 | شما دسترسی به این نوبت ندارید | کاربر مجوز ندارد                   |
+| 404 | کلینیک یافت نشد               | clinicId نامعتبر است               |
+| 404 | پزشک یافت نشد                 | doctorId نامعتبر است               |
+| 404 | نوبت یافت نشد                 | appointment id نامعتبر است         |
 
 ---
 
@@ -1112,4 +1133,3 @@ VITE_API_URL=http://localhost:3000/api
 ---
 
 📅 آخرین به‌روزرسانی: آذر ۱۴۰۴
-
