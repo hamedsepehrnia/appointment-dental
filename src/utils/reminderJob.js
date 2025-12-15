@@ -90,7 +90,7 @@ const send24HourReminders = async () => {
 آدرس: ${appointment.clinic.address}
 لطفاً به موقع حضور داشته باشید.`;
 
-      await smsService.sendSimpleSms(appointment.user.phoneNumber, message);
+      await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '⏰ یادآوری ۲۴ ساعته');
 
       // علامت‌گذاری به عنوان ارسال شده
       await prisma.appointment.update({
@@ -162,7 +162,7 @@ const send30MinuteReminders = async () => {
 یادآوری فوری: نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} تا ۳۰ دقیقه دیگر (ساعت ${time}) است.
 آدرس: ${appointment.clinic.address}`;
 
-      await smsService.sendSimpleSms(appointment.user.phoneNumber, message);
+      await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '🚨 یادآوری فوری ۳۰ دقیقه');
 
       // علامت‌گذاری به عنوان ارسال شده
       await prisma.appointment.update({

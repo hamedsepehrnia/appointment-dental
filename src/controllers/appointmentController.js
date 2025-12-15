@@ -142,7 +142,7 @@ const createAppointment = async (req, res) => {
 نوبت شما در کلینیک ${clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} ثبت شد و در دست بررسی می‌باشد.
 لطفاً تا تأیید نهایی صبر کنید.`;
 
-  await smsService.sendSimpleSms(user.phoneNumber, patientSmsMessage);
+  await smsService.sendSimpleSms(user.phoneNumber, patientSmsMessage, 'بیمار', '🗓️ ثبت نوبت');
 
   // پیدا کردن منشی‌های کلینیک
   const secretaries = await prisma.user.findMany({
@@ -174,7 +174,7 @@ ${adminLink}`;
 
   // ارسال پیامک به همه منشی‌ها
   for (const secretary of secretaries) {
-    await smsService.sendSimpleSms(secretary.phoneNumber, secretarySmsMessage);
+    await smsService.sendSimpleSms(secretary.phoneNumber, secretarySmsMessage, 'منشی', '🔔 درخواست نوبت جدید');
   }
 
   // ایجاد نوتیفیکیشن برای پنل ادمین
@@ -519,7 +519,7 @@ const approveAppointment = async (req, res) => {
 نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} تأیید شد.
 لطفاً در تاریخ و زمان مقرر به کلینیک مراجعه نمایید.`;
 
-  await smsService.sendSimpleSms(appointment.user.phoneNumber, confirmSmsMessage);
+  await smsService.sendSimpleSms(appointment.user.phoneNumber, confirmSmsMessage, 'بیمار', '✅ تأیید نوبت');
 
   res.json({
     success: true,
@@ -607,7 +607,7 @@ const cancelAppointment = async (req, res) => {
 ${reason ? `دلیل: ${reason}` : ''}
 برای رزرو مجدد با کلینیک تماس بگیرید.`;
 
-    await smsService.sendSimpleSms(appointment.user.phoneNumber, cancelSmsMessage);
+    await smsService.sendSimpleSms(appointment.user.phoneNumber, cancelSmsMessage, 'بیمار', '❌ لغو نوبت');
   }
 
   res.json({
