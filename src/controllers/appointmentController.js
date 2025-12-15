@@ -293,7 +293,7 @@ const getAppointments = async (req, res) => {
           }
         }
       },
-      orderBy: { appointmentDate: 'desc' }
+      orderBy: { createdAt: 'desc' }  // تازه‌ترین ها اول
     }),
     prisma.appointment.count({ where })
   ]);
