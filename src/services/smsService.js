@@ -18,9 +18,6 @@ class SmsService {
    */
   logSmsBox(phoneNumber, message, recipientType = 'کاربر', smsType = 'پیامک') {
     const time = new Date().toLocaleString('fa-IR');
-    const lines = message.split('\n');
-    const maxLineLength = Math.max(...lines.map(l => l.length), 40);
-    const boxWidth = Math.min(maxLineLength + 4, 70);
     
     // رنگ‌ها برای ترمینال
     const colors = {
@@ -32,8 +29,6 @@ class SmsService {
       blue: '\x1b[34m',
       magenta: '\x1b[35m',
       white: '\x1b[37m',
-      bgBlue: '\x1b[44m',
-      bgCyan: '\x1b[46m',
     };
 
     // آیکون بر اساس نوع گیرنده
@@ -42,27 +37,33 @@ class SmsService {
       'منشی': '👩‍💼',
       'مدیر': '👨‍💼',
       'کاربر': '👤',
+      'کاربر جدید': '🆕',
     };
 
     const icon = roleIcons[recipientType] || '📱';
+    const separator = '═'.repeat(60);
+    const thinSeparator = '─'.repeat(60);
     
     console.log('');
-    console.log(`${colors.cyan}╭${'─'.repeat(boxWidth)}╮${colors.reset}`);
-    console.log(`${colors.cyan}│${colors.reset} ${colors.bright}${colors.yellow}📨 ${smsType}${colors.reset}${' '.repeat(boxWidth - smsType.length - 5)}${colors.cyan}│${colors.reset}`);
-    console.log(`${colors.cyan}│${colors.reset} ${colors.bright}خطاب به: ${icon} ${phoneNumber} (${recipientType})${colors.reset}${' '.repeat(Math.max(0, boxWidth - 20 - phoneNumber.length - recipientType.length))}${colors.cyan}│${colors.reset}`);
-    console.log(`${colors.cyan}├${'─'.repeat(boxWidth)}┤${colors.reset}`);
+    console.log(`${colors.cyan}╔${separator}╗${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset} ${colors.bright}${colors.yellow}📨 ${smsType}${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset} ${colors.bright}خطاب به: ${icon} ${phoneNumber} (${recipientType})${colors.reset}`);
+    console.log(`${colors.cyan}╠${separator}╣${colors.reset}`);
     
-    // متن پیام
+    // متن پیام - هر خط جداگانه
+    const lines = message.split('\n');
     for (const line of lines) {
-      const paddedLine = line.padEnd(boxWidth - 2);
-      const truncatedLine = paddedLine.substring(0, boxWidth - 2);
-      console.log(`${colors.cyan}│${colors.reset} ${colors.white}${truncatedLine}${colors.reset} ${colors.cyan}│${colors.reset}`);
+      if (line.trim() === '') {
+        console.log(`${colors.cyan}║${colors.reset}`);
+      } else {
+        console.log(`${colors.cyan}║${colors.reset} ${colors.white}${line}${colors.reset}`);
+      }
     }
     
-    console.log(`${colors.cyan}├${'─'.repeat(boxWidth)}┤${colors.reset}`);
-    console.log(`${colors.cyan}│${colors.reset} ${colors.green}⏰ ${time}${colors.reset}${' '.repeat(Math.max(0, boxWidth - time.length - 5))}${colors.cyan}│${colors.reset}`);
-    console.log(`${colors.cyan}│${colors.reset} ${colors.magenta}📵 حالت لاگ (ارسال نشد)${colors.reset}${' '.repeat(Math.max(0, boxWidth - 26))}${colors.cyan}│${colors.reset}`);
-    console.log(`${colors.cyan}╰${'─'.repeat(boxWidth)}╯${colors.reset}`);
+    console.log(`${colors.cyan}╠${separator}╣${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset} ${colors.green}⏰ ${time}${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset} ${colors.magenta}📵 حالت لاگ (ارسال نشد)${colors.reset}`);
+    console.log(`${colors.cyan}╚${separator}╝${colors.reset}`);
     console.log('');
   }
 
