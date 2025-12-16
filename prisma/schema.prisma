@@ -415,8 +415,7 @@ model HeroSlider {
 // ==================== سیستم نوبت‌دهی ====================
 
 enum AppointmentStatus {
-  PENDING           // در انتظار بررسی منشی
-  APPROVED_BY_USER  // تأیید اولیه توسط کاربر (ثبت شده)
+  APPROVED_BY_USER  // ثبت شده توسط کاربر (در انتظار تأیید منشی)
   CANCELED          // لغو شده
   FINAL_APPROVED    // تأیید نهایی توسط منشی
 }
@@ -430,6 +429,9 @@ model Appointment {
   
   // نام مراجع (اگر برای شخص دیگری نوبت گرفته شده)
   patientName     String?           @map("patient_name")
+  
+  // کد ملی مراجع (اختیاری)
+  nationalCode    String?           @map("national_code")
   
   // کلینیک (اجباری)
   clinicId        String            @map("clinic_id")

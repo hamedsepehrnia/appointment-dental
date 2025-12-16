@@ -48,7 +48,7 @@ const getGenderTitle = (gender) => {
  * POST /api/appointments
  */
 const createAppointment = async (req, res) => {
-  const { clinicId, doctorId, appointmentDate, patientName, notes } = req.body;
+  const { clinicId, doctorId, appointmentDate, patientName, nationalCode, notes } = req.body;
   const userId = req.session.userId;
 
   // بررسی وجود کلینیک
@@ -98,8 +98,9 @@ const createAppointment = async (req, res) => {
       doctorId: doctorId || null,
       appointmentDate: new Date(appointmentDate),
       patientName: patientName || null,
+      nationalCode: nationalCode || null,
       notes: notes || null,
-      status: 'APPROVED_BY_USER', // تأیید اولیه توسط کاربر
+      status: 'APPROVED_BY_USER', // ثبت شده توسط کاربر
     },
     include: {
       user: {
@@ -623,7 +624,7 @@ ${reason ? `دلیل: ${reason}` : ''}
  */
 const updateAppointment = async (req, res) => {
   const { id } = req.params;
-  const { appointmentDate, doctorId, patientName, notes } = req.body;
+  const { appointmentDate, doctorId, patientName, nationalCode, notes } = req.body;
   const userRole = req.session.userRole;
   const userId = req.session.userId;
 
@@ -662,6 +663,10 @@ const updateAppointment = async (req, res) => {
   
   if (patientName !== undefined) {
     updateData.patientName = patientName || null;
+  }
+  
+  if (nationalCode !== undefined) {
+    updateData.nationalCode = nationalCode || null;
   }
   
   if (notes !== undefined) {
@@ -756,14 +761,12 @@ const getAppointmentStats = async (req, res) => {
 
   const [
     totalAppointments,
-    pendingCount,
     approvedByUserCount,
     finalApprovedCount,
     canceledCount,
     todayCount,
   ] = await Promise.all([
     prisma.appointment.count({ where: clinicFilter }),
-    prisma.appointment.count({ where: { ...clinicFilter, status: 'PENDING' } }),
     prisma.appointment.count({ where: { ...clinicFilter, status: 'APPROVED_BY_USER' } }),
     prisma.appointment.count({ where: { ...clinicFilter, status: 'FINAL_APPROVED' } }),
     prisma.appointment.count({ where: { ...clinicFilter, status: 'CANCELED' } }),
@@ -784,11 +787,10 @@ const getAppointmentStats = async (req, res) => {
     data: {
       stats: {
         total: totalAppointments,
-        pending: pendingCount,
-        approvedByUser: approvedByUserCount,
-        finalApproved: finalApprovedCount,
-        canceled: canceledCount,
-        todayAppointments: todayCount,
+        awaitingApproval: approvedByUserCount,  // در انتظار تأیید منشی
+        finalApproved: finalApprovedCount,       // تأیید شده
+        canceled: canceledCount,                  // لغو شده
+        todayAppointments: todayCount,           // نوبت‌های امروز
       }
     }
   });

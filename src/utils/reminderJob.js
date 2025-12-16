@@ -196,7 +196,7 @@ const cleanupOldAppointments = async () => {
         },
         // نوبت‌های گذشته که تأیید نشدند
         {
-          status: { in: ['PENDING', 'APPROVED_BY_USER'] },
+          status: 'APPROVED_BY_USER',  // نوبت‌های در انتظار تأیید منشی
           appointmentDate: { lt: sixMonthsAgo }
         }
       ]

@@ -24,6 +24,10 @@ const createAppointmentSchema = Joi.object({
   patientName: Joi.string().max(100).allow(null, "").optional().messages({
     "string.max": "نام مراجع نباید بیشتر از ۱۰۰ کاراکتر باشد",
   }),
+  nationalCode: Joi.string().length(10).pattern(/^\d+$/).allow(null, "").optional().messages({
+    "string.length": "کد ملی باید ۱۰ رقم باشد",
+    "string.pattern.base": "کد ملی فقط باید شامل اعداد باشد",
+  }),
   notes: Joi.string().max(500).allow(null, "").optional().messages({
     "string.max": "توضیحات نباید بیشتر از ۵۰۰ کاراکتر باشد",
   }),
@@ -39,6 +43,10 @@ const updateAppointmentSchema = Joi.object({
   patientName: Joi.string().max(100).allow(null, "").optional().messages({
     "string.max": "نام مراجع نباید بیشتر از ۱۰۰ کاراکتر باشد",
   }),
+  nationalCode: Joi.string().length(10).pattern(/^\d+$/).allow(null, "").optional().messages({
+    "string.length": "کد ملی باید ۱۰ رقم باشد",
+    "string.pattern.base": "کد ملی فقط باید شامل اعداد باشد",
+  }),
   notes: Joi.string().max(500).allow(null, "").optional().messages({
     "string.max": "توضیحات نباید بیشتر از ۵۰۰ کاراکتر باشد",
   }),
@@ -51,7 +59,7 @@ const cancelAppointmentSchema = Joi.object({
 });
 
 const listAppointmentsSchema = schemas.pagination.keys({
-  status: Joi.string().valid("PENDING", "APPROVED_BY_USER", "CANCELED", "FINAL_APPROVED").optional(),
+  status: Joi.string().valid("APPROVED_BY_USER", "CANCELED", "FINAL_APPROVED").optional(),
   clinicId: Joi.string().uuid().optional(),
   doctorId: Joi.string().uuid().optional(),
   fromDate: Joi.date().iso().optional(),
@@ -82,7 +90,7 @@ router.get(
   isAuthenticated,
   validate(
     schemas.pagination.keys({
-      status: Joi.string().valid("PENDING", "APPROVED_BY_USER", "CANCELED", "FINAL_APPROVED").optional(),
+      status: Joi.string().valid("APPROVED_BY_USER", "CANCELED", "FINAL_APPROVED").optional(),
     }),
     "query"
   ),

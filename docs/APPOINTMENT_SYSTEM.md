@@ -138,22 +138,16 @@
 
 ## وضعیت‌های نوبت
 
-| وضعیت           | مقدار              | توضیحات                                   |
-| --------------- | ------------------ | ----------------------------------------- |
-| در انتظار بررسی | `PENDING`          | (فعلاً استفاده نمی‌شود)                   |
-| تأیید اولیه     | `APPROVED_BY_USER` | نوبت توسط کاربر ثبت شده، منتظر تأیید منشی |
-| تأیید نهایی     | `FINAL_APPROVED`   | نوبت توسط منشی تأیید شده                  |
-| لغو شده         | `CANCELED`         | نوبت لغو شده (توسط کاربر یا منشی)         |
+| وضعیت            | مقدار              | توضیحات                                   |
+| ---------------- | ------------------ | ----------------------------------------- |
+| ثبت شده (منتظر)  | `APPROVED_BY_USER` | نوبت توسط کاربر ثبت شده، منتظر تأیید منشی |
+| تأیید نهایی      | `FINAL_APPROVED`   | نوبت توسط منشی تأیید شده                  |
+| لغو شده          | `CANCELED`         | نوبت لغو شده (توسط کاربر یا منشی)         |
 
 ### نمایش وضعیت در UI:
 
 ```javascript
 const statusConfig = {
-  PENDING: {
-    label: "در انتظار بررسی",
-    color: "gray",
-    icon: "clock",
-  },
   APPROVED_BY_USER: {
     label: "در انتظار تأیید منشی",
     color: "yellow",
@@ -210,6 +204,7 @@ POST /api/appointments
 | `doctorId`        | UUID         | ❌     | شناسه پزشک (اختیاری)               |
 | `appointmentDate` | ISO DateTime | ✅     | تاریخ و ساعت نوبت                  |
 | `patientName`     | String       | ❌     | نام مراجع (اگر برای شخص دیگری است) |
+| `nationalCode`    | String(10)   | ❌     | کد ملی مراجع (۱۰ رقم)              |
 | `notes`           | String       | ❌     | توضیحات اضافی                      |
 
 #### نمونه درخواست
@@ -220,6 +215,7 @@ POST /api/appointments
   "doctorId": "550e8400-e29b-41d4-a716-446655440001",
   "appointmentDate": "2025-12-15T14:30:00.000Z",
   "patientName": "علی محمدی",
+  "nationalCode": "0012345678",
   "notes": "نیاز به پارکینگ دارم"
 }
 ```
@@ -229,7 +225,8 @@ POST /api/appointments
 ```json
 {
   "clinicId": "550e8400-e29b-41d4-a716-446655440000",
-  "appointmentDate": "2025-12-15T14:30:00.000Z"
+  "appointmentDate": "2025-12-15T14:30:00.000Z",
+  "nationalCode": "0012345678"
 }
 ```
 
@@ -247,6 +244,7 @@ POST /api/appointments
       "doctorId": "doctor-uuid",
       "appointmentDate": "2025-12-15T14:30:00.000Z",
       "patientName": "علی محمدی",
+      "nationalCode": "0012345678",
       "status": "APPROVED_BY_USER",
       "notes": "نیاز به پارکینگ دارم",
       "reminder24hSent": false,
@@ -566,6 +564,7 @@ PATCH /api/appointments/:id
   "appointmentDate": "2025-12-16T15:00:00.000Z",
   "doctorId": "new-doctor-uuid",
   "patientName": "نام جدید",
+  "nationalCode": "0012345678",
   "notes": "توضیحات جدید"
 }
 ```
