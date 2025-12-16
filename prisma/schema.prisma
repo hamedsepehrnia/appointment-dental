@@ -54,6 +54,7 @@ model Clinic {
   address     String
   phoneNumber String   @map("phone_number")
   description String?  @db.Text
+  image       String?  // تصویر کلینیک
   latitude    Float?   // مختصات X (طول جغرافیایی) برای نقشه
   longitude   Float?   // مختصات Y (عرض جغرافیایی) برای نقشه
   workingHours Json?   @map("working_hours") // ساعات کاری کلینیک: {"saturday": "09:00-18:00", "sunday": "09:00-18:00", ...}

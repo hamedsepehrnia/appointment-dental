@@ -112,6 +112,9 @@ const createClinic = async (req, res) => {
     }
   }
 
+  // Handle image upload
+  const image = req.file ? `/uploads/${req.file.filename}` : null;
+
   const clinic = await prisma.clinic.create({
     data: {
       name,
@@ -119,6 +122,7 @@ const createClinic = async (req, res) => {
       address,
       phoneNumber: normalizedPhoneNumber || '',
       description,
+      image,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
       workingHours: parsedWorkingHours,
@@ -205,6 +209,9 @@ const updateClinic = async (req, res) => {
     }
   }
 
+  // Handle image upload
+  const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+
   const clinic = await prisma.clinic.update({
     where: { id },
     data: {
@@ -213,6 +220,7 @@ const updateClinic = async (req, res) => {
       ...(address && { address }),
       ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
       ...(description !== undefined && { description }),
+      ...(image && { image }),
       ...(latitude !== undefined && { latitude: parsedLatitude }),
       ...(longitude !== undefined && { longitude: parsedLongitude }),
       ...(parsedWorkingHours !== undefined && { workingHours: parsedWorkingHours }),

@@ -6,6 +6,8 @@ const { isAdminOrSecretary, isAdmin } = require('../middlewares/auth');
 const { validate, schemas } = require('../middlewares/validation');
 const asyncHandler = require('../middlewares/asyncHandler');
 const { csrfProtection } = require('../middlewares/csrf');
+const upload = require('../middlewares/upload');
+const parseFormData = require('../middlewares/parseFormData');
 
 // Get all clinics (public)
 router.get(
@@ -33,6 +35,8 @@ router.post(
   '/',
   isAdmin,
   csrfProtection,
+  upload.single('image'),
+  parseFormData('workingHours'),
   validate(
     Joi.object({
       name: Joi.string().required().messages({
@@ -62,6 +66,8 @@ router.patch(
   '/:id',
   isAdminOrSecretary,
   csrfProtection,
+  upload.single('image'),
+  parseFormData('workingHours'),
   validate(
     Joi.object({
       name: Joi.string(),
