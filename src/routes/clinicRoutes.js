@@ -83,6 +83,7 @@ router.patch(
         'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
       }),
       workingHours: workingHoursSchema,
+      removeImage: Joi.string().valid('true', 'false').optional(),
     })
   ),
   asyncHandler(clinicController.updateClinic)

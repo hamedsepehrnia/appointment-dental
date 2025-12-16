@@ -1,6 +1,13 @@
-const prisma = require('../config/database');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, createPaginationMeta, createSlug, formatPhoneNumberOptional } = require('../utils/helpers');
+const prisma = require("../config/database");
+const { AppError } = require("../middlewares/errorHandler");
+const {
+  paginate,
+  createPaginationMeta,
+  createSlug,
+  formatPhoneNumberOptional,
+} = require("../utils/helpers");
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Get all clinics
@@ -78,8 +85,16 @@ const getClinic = async (req, res) => {
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const { name, address, phoneNumber, description, latitude, longitude, workingHours } = req.body;
-  
+  const {
+    name,
+    address,
+    phoneNumber,
+    description,
+    latitude,
+    longitude,
+    workingHours,
+  } = req.body;
+
   // Normalize phone number if provided
   const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
 
@@ -101,11 +116,11 @@ const createClinic = async (req, res) => {
   // Parse workingHours if it's a string (from form-data)
   let parsedWorkingHours = null;
   if (workingHours) {
-    if (typeof workingHours === 'string') {
+    if (typeof workingHours === "string") {
       try {
         parsedWorkingHours = JSON.parse(workingHours);
       } catch (error) {
-        throw new AppError('فرمت ساعات کاری معتبر نیست', 400);
+        throw new AppError("فرمت ساعات کاری معتبر نیست", 400);
       }
     } else {
       parsedWorkingHours = workingHours;
@@ -120,7 +135,7 @@ const createClinic = async (req, res) => {
       name,
       slug,
       address,
-      phoneNumber: normalizedPhoneNumber || '',
+      phoneNumber: normalizedPhoneNumber || "",
       description,
       image,
       latitude: parsedLatitude,
@@ -141,8 +156,59 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const { name, address, phoneNumber, description, latitude, longitude, workingHours } =
-    req.body;
+  const {
+    name,
+    address,
+    phoneNumber,
+    description,
+    latitude,
+    longitude,
+    workingHours,
+  } = req.body;
+
+  // #region agent log
+  try {
+    const logPath = require("path").join(
+      process.cwd(),
+      "..",
+      ".cursor",
+      "debug.log"
+    );
+    require("fs").mkdirSync(
+      require("path").join(process.cwd(), "..", ".cursor"),
+      { recursive: true }
+    );
+    require("fs").writeFileSync(
+      logPath,
+      JSON.stringify({
+        location: "clinicController.js:157",
+        message: "updateClinic function called",
+        data: {
+          clinicId: id,
+          bodyKeys: Object.keys(req.body),
+          removeImage: req.body.removeImage,
+          removeImageType: typeof req.body.removeImage,
+        },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        runId: "run1",
+        hypothesisId: "C",
+      }) + "\n",
+      { flag: "a" }
+    );
+  } catch (err) {
+    // Ignore logging errors
+  }
+  // #endregion
+
+  // Get current clinic
+  const currentClinic = await prisma.clinic.findUnique({
+    where: { id },
+  });
+
+  if (!currentClinic) {
+    throw new AppError("کلینیک یافت نشد", 404);
+  }
 
   // If secretary, check if they belong to this clinic
   if (req.session.userRole === "SECRETARY") {
@@ -190,42 +256,203 @@ const updateClinic = async (req, res) => {
   // Normalize phone number if provided
   let normalizedPhoneNumber = undefined;
   if (phoneNumber !== undefined) {
-    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || '';
+    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || "";
   }
 
   // Parse workingHours if it's a string (from form-data)
   let parsedWorkingHours = undefined;
   if (workingHours !== undefined) {
-    if (workingHours === null || workingHours === '') {
+    if (workingHours === null || workingHours === "") {
       parsedWorkingHours = null;
-    } else if (typeof workingHours === 'string') {
+    } else if (typeof workingHours === "string") {
       try {
         parsedWorkingHours = JSON.parse(workingHours);
       } catch (error) {
-        throw new AppError('فرمت ساعات کاری معتبر نیست', 400);
+        throw new AppError("فرمت ساعات کاری معتبر نیست", 400);
       }
     } else {
       parsedWorkingHours = workingHours;
     }
   }
 
+  // Prepare update data
+  const updateData = {};
+  if (name) {
+    updateData.name = name;
+  }
+  if (slug) {
+    updateData.slug = slug;
+  }
+  if (address) {
+    updateData.address = address;
+  }
+  if (normalizedPhoneNumber !== undefined) {
+    updateData.phoneNumber = normalizedPhoneNumber;
+  }
+  if (description !== undefined) {
+    updateData.description = description;
+  }
+  if (latitude !== undefined) {
+    updateData.latitude = parsedLatitude;
+  }
+  if (longitude !== undefined) {
+    updateData.longitude = parsedLongitude;
+  }
+  if (parsedWorkingHours !== undefined) {
+    updateData.workingHours = parsedWorkingHours;
+  }
+
+  // Handle image removal
+  // #region agent log
+  try {
+    const logData = {
+      removeImage: req.body.removeImage,
+      removeImageType: typeof req.body.removeImage,
+      bodyKeys: Object.keys(req.body),
+      clinicId: id,
+      currentImage: currentClinic.image,
+    };
+    const logPath = require("path").join(
+      process.cwd(),
+      "..",
+      ".cursor",
+      "debug.log"
+    );
+    require("fs").writeFileSync(
+      logPath,
+      JSON.stringify({
+        location: "clinicController.js:251",
+        message: "Checking removeImage",
+        data: logData,
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        runId: "run1",
+        hypothesisId: "C",
+      }) + "\n",
+      { flag: "a" }
+    );
+  } catch (err) {
+    // Ignore logging errors
+  }
+  // #endregion
+  if (req.body.removeImage === "true") {
+    // #region agent log
+    try {
+      const logPath = require("path").join(
+        process.cwd(),
+        "..",
+        ".cursor",
+        "debug.log"
+      );
+      require("fs").writeFileSync(
+        logPath,
+        JSON.stringify({
+          location: "clinicController.js:293",
+          message: "removeImage is true, deleting image",
+          data: { clinicId: id, currentImage: currentClinic.image },
+          timestamp: Date.now(),
+          sessionId: "debug-session",
+          runId: "run1",
+          hypothesisId: "C",
+        }) + "\n",
+        { flag: "a" }
+      );
+    } catch (err) {
+      // Ignore logging errors
+    }
+    // #endregion
+    // Delete old image if exists
+    if (currentClinic.image) {
+      const imagePath = currentClinic.image.startsWith("/")
+        ? currentClinic.image.slice(1)
+        : currentClinic.image;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting image:", err);
+      }
+    }
+    updateData.image = null;
+    // #region agent log
+    try {
+      const logPath = require("path").join(
+        process.cwd(),
+        "..",
+        ".cursor",
+        "debug.log"
+      );
+      require("fs").writeFileSync(
+        logPath,
+        JSON.stringify({
+          location: "clinicController.js:324",
+          message: "updateData.image set to null",
+          data: { clinicId: id, updateDataImage: updateData.image },
+          timestamp: Date.now(),
+          sessionId: "debug-session",
+          runId: "run1",
+          hypothesisId: "C",
+        }) + "\n",
+        { flag: "a" }
+      );
+    } catch (err) {
+      // Ignore logging errors
+    }
+    // #endregion
+  }
   // Handle image upload
-  const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+  else if (req.file) {
+    // Delete old image if exists
+    if (currentClinic.image) {
+      // Remove leading slash if present to make it relative
+      const imagePath = currentClinic.image.startsWith("/")
+        ? currentClinic.image.slice(1)
+        : currentClinic.image;
+      const oldImagePath = path.join(process.cwd(), imagePath);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting old image:", err);
+      }
+    }
+    updateData.image = `/uploads/${req.file.filename}`;
+  }
 
   const clinic = await prisma.clinic.update({
     where: { id },
-    data: {
-      ...(name && { name }),
-      ...(slug && { slug }),
-      ...(address && { address }),
-      ...(normalizedPhoneNumber !== undefined && { phoneNumber: normalizedPhoneNumber }),
-      ...(description !== undefined && { description }),
-      ...(image && { image }),
-      ...(latitude !== undefined && { latitude: parsedLatitude }),
-      ...(longitude !== undefined && { longitude: parsedLongitude }),
-      ...(parsedWorkingHours !== undefined && { workingHours: parsedWorkingHours }),
-    },
+    data: updateData,
   });
+
+  // #region agent log
+  try {
+    const logPath = require("path").join(
+      process.cwd(),
+      "..",
+      ".cursor",
+      "debug.log"
+    );
+    require("fs").writeFileSync(
+      logPath,
+      JSON.stringify({
+        location: "clinicController.js:360",
+        message: "Clinic updated, sending response",
+        data: {
+          clinicId: id,
+          clinicImage: clinic.image,
+          clinicImageNull: clinic.image === null,
+          clinicImageUndefined: clinic.image === undefined,
+        },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        runId: "run1",
+        hypothesisId: "D",
+      }) + "\n",
+      { flag: "a" }
+    );
+  } catch (err) {
+    // Ignore logging errors
+  }
+  // #endregion
 
   res.json({
     success: true,
