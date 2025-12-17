@@ -54,10 +54,10 @@ const biographies = [
   'دندانپزشک با تخصص در ایمپلنت و جراحی دندان'
 ];
 
-// تابع برای ایجاد روزهای کاری رندوم
-const generateWorkingDays = () => {
+// تابع برای ایجاد روزهای کاری رندوم برای یک کلینیک
+const generateWorkingDaysForClinic = () => {
   const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-  const workingDays = {};
+  const clinicWorkingDays = {};
   const selectedDays = [];
   
   // انتخاب 3 تا 5 روز رندوم
@@ -79,7 +79,19 @@ const generateWorkingDays = () => {
   ];
   
   selectedDays.forEach(day => {
-    workingDays[day] = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+    clinicWorkingDays[day] = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+  });
+  
+  return clinicWorkingDays;
+};
+
+// تابع برای ایجاد ساعات کاری به تفکیک کلینیک
+// ساختار جدید: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
+const generateWorkingDays = (clinicIds) => {
+  const workingDays = {};
+  
+  clinicIds.forEach(clinicId => {
+    workingDays[clinicId] = generateWorkingDaysForClinic();
   });
   
   return workingDays;
@@ -136,7 +148,21 @@ const seedDoctors = async (count = 20) => {
       const university = universities[Math.floor(Math.random() * universities.length)];
       const doctorSkills = skills[Math.floor(Math.random() * skills.length)];
       const biography = biographies[Math.floor(Math.random() * biographies.length)];
-      const workingDays = generateWorkingDays();
+
+      // انتخاب کلینیک‌ها اول تا ساعات کاری به تفکیک کلینیک ایجاد شود
+      let selectedClinics = [];
+      let workingDays = null;
+
+      if (clinics.length > 0) {
+        // انتخاب 1 تا 2 کلینیک رندوم برای هر پزشک
+        const numClinics = Math.floor(Math.random() * 2) + 1; // 1 یا 2 کلینیک
+        selectedClinics = [...clinics]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, Math.min(numClinics, clinics.length));
+        
+        // ایجاد ساعات کاری به تفکیک کلینیک
+        workingDays = generateWorkingDays(selectedClinics.map(c => c.id));
+      }
 
       // ایجاد پزشک
       const doctor = await prisma.doctor.create({
@@ -152,14 +178,8 @@ const seedDoctors = async (count = 20) => {
         },
       });
 
-      // لینک کردن به کلینیک‌های رندوم (اگر کلینیک وجود دارد)
-      if (clinics.length > 0) {
-        // انتخاب 1 تا 2 کلینیک رندوم برای هر پزشک
-        const numClinics = Math.floor(Math.random() * 2) + 1; // 1 یا 2 کلینیک
-        const selectedClinics = [...clinics]
-          .sort(() => 0.5 - Math.random())
-          .slice(0, Math.min(numClinics, clinics.length));
-
+      // لینک کردن به کلینیک‌ها
+      if (selectedClinics.length > 0) {
         for (const clinic of selectedClinics) {
           await prisma.doctorClinic.create({
             data: {

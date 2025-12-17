@@ -50,15 +50,19 @@ router.post(
         "any.required": "شماره نظام پزشکی الزامی است",
       }),
       clinicIds: Joi.array().items(Joi.string().uuid()),
-      workingDays: Joi.object({
-        saturday: Joi.string().allow("", null).optional(), // شنبه
-        sunday: Joi.string().allow("", null).optional(), // یکشنبه
-        monday: Joi.string().allow("", null).optional(), // دوشنبه
-        tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
-        wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
-        thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
-        friday: Joi.string().allow("", null).optional(), // جمعه
-      }).optional(),
+      // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
+      workingDays: Joi.object().pattern(
+        Joi.string().uuid(), // کلید: شناسه کلینیک
+        Joi.object({
+          saturday: Joi.string().allow("", null).optional(), // شنبه
+          sunday: Joi.string().allow("", null).optional(), // یکشنبه
+          monday: Joi.string().allow("", null).optional(), // دوشنبه
+          tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
+          wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
+          thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
+          friday: Joi.string().allow("", null).optional(), // جمعه
+        })
+      ).optional(),
     })
   ),
   asyncHandler(doctorController.createDoctor)
@@ -81,15 +85,19 @@ router.patch(
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string(),
       clinicIds: Joi.array().items(Joi.string().uuid()),
-      workingDays: Joi.object({
-        saturday: Joi.string().allow("", null).optional(), // شنبه
-        sunday: Joi.string().allow("", null).optional(), // یکشنبه
-        monday: Joi.string().allow("", null).optional(), // دوشنبه
-        tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
-        wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
-        thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
-        friday: Joi.string().allow("", null).optional(), // جمعه
-      }).optional(),
+      // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
+      workingDays: Joi.object().pattern(
+        Joi.string().uuid(), // کلید: شناسه کلینیک
+        Joi.object({
+          saturday: Joi.string().allow("", null).optional(), // شنبه
+          sunday: Joi.string().allow("", null).optional(), // یکشنبه
+          monday: Joi.string().allow("", null).optional(), // دوشنبه
+          tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
+          wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
+          thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
+          friday: Joi.string().allow("", null).optional(), // جمعه
+        })
+      ).optional(),
       removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
