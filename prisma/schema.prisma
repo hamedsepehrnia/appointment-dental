@@ -84,7 +84,6 @@ model Doctor {
   biography         String?  @db.Text
   skills            Json     @default("[]") // Array of skills stored as JSON
   medicalLicenseNo  String   @unique @map("medical_license_no")
-  workingDays       Json?    @map("working_days") // روزهای کاری و ساعات: {"saturday": "14:00-15:00", "friday": "15:00-17:00"}
   
   // Relations
   clinics           DoctorClinic[]
@@ -99,9 +98,10 @@ model Doctor {
 
 // Many-to-many relation between Doctor and Clinic
 model DoctorClinic {
-  id        String   @id @default(uuid())
-  doctorId  String   @map("doctor_id")
-  clinicId  String   @map("clinic_id")
+  id          String   @id @default(uuid())
+  doctorId    String   @map("doctor_id")
+  clinicId    String   @map("clinic_id")
+  workingDays Json?    @map("working_days") // ساعات کاری پزشک در این کلینیک: {"saturday": "14:00-18:00", "sunday": "09:00-13:00"}
   
   doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)

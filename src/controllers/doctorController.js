@@ -169,6 +169,12 @@ const getDoctor = async (req, res) => {
 
 /**
  * Create doctor (Admin/Secretary)
+ * 
+ * فرمت جدید clinics:
+ * [
+ *   { "clinicId": "uuid", "workingDays": { "saturday": "14:00-18:00", "sunday": "09:00-13:00" } },
+ *   { "clinicId": "uuid", "workingDays": { "saturday": "18:00-21:00" } }
+ * ]
  */
 const createDoctor = async (req, res) => {
   const {
@@ -179,8 +185,8 @@ const createDoctor = async (req, res) => {
     biography,
     skills,
     medicalLicenseNo,
-    clinicIds,
-    workingDays,
+    clinics, // فرمت جدید: آرایه‌ای از { clinicId, workingDays }
+    clinicIds, // فرمت قدیمی: فقط برای سازگاری
   } = req.body;
 
   const profileImage = req.file
@@ -198,18 +204,21 @@ const createDoctor = async (req, res) => {
     counter++;
   }
 
-  // Parse workingDays if it's a string (from form-data)
-  let parsedWorkingDays = null;
-  if (workingDays) {
-    if (typeof workingDays === "string") {
+  // Parse clinics if it's a string (from form-data)
+  let parsedClinics = [];
+  if (clinics) {
+    if (typeof clinics === "string") {
       try {
-        parsedWorkingDays = JSON.parse(workingDays);
+        parsedClinics = JSON.parse(clinics);
       } catch (error) {
-        throw new AppError("فرمت روزهای کاری معتبر نیست", 400);
+        throw new AppError("فرمت کلینیک‌ها معتبر نیست", 400);
       }
     } else {
-      parsedWorkingDays = workingDays;
+      parsedClinics = clinics;
     }
+  } else if (clinicIds && clinicIds.length > 0) {
+    // سازگاری با فرمت قدیمی
+    parsedClinics = clinicIds.map(clinicId => ({ clinicId, workingDays: null }));
   }
 
   // Create doctor
@@ -224,16 +233,16 @@ const createDoctor = async (req, res) => {
       biography,
       skills: skills || [],
       medicalLicenseNo,
-      workingDays: parsedWorkingDays,
     },
   });
 
-  // Link to clinics
-  if (clinicIds && clinicIds.length > 0) {
+  // Link to clinics with working days
+  if (parsedClinics && parsedClinics.length > 0) {
     await prisma.doctorClinic.createMany({
-      data: clinicIds.map((clinicId) => ({
+      data: parsedClinics.map((clinic) => ({
         doctorId: doctor.id,
-        clinicId,
+        clinicId: clinic.clinicId,
+        workingDays: clinic.workingDays || null,
       })),
     });
   }
@@ -263,6 +272,12 @@ const createDoctor = async (req, res) => {
 
 /**
  * Update doctor (Admin/Secretary)
+ * 
+ * فرمت جدید clinics:
+ * [
+ *   { "clinicId": "uuid", "workingDays": { "saturday": "14:00-18:00" } },
+ *   { "clinicId": "uuid", "workingDays": { "saturday": "18:00-21:00" } }
+ * ]
  */
 const updateDoctor = async (req, res) => {
   const { id } = req.params;
@@ -274,8 +289,8 @@ const updateDoctor = async (req, res) => {
     biography,
     skills,
     medicalLicenseNo,
-    clinicIds,
-    workingDays,
+    clinics, // فرمت جدید
+    clinicIds, // فرمت قدیمی برای سازگاری
   } = req.body;
 
   // Get current doctor
@@ -308,22 +323,6 @@ const updateDoctor = async (req, res) => {
     }
   }
 
-  // Parse workingDays if it's a string (from form-data)
-  let parsedWorkingDays = undefined;
-  if (workingDays !== undefined) {
-    if (workingDays === null || workingDays === "") {
-      parsedWorkingDays = null;
-    } else if (typeof workingDays === "string") {
-      try {
-        parsedWorkingDays = JSON.parse(workingDays);
-      } catch (error) {
-        throw new AppError("فرمت روزهای کاری معتبر نیست", 400);
-      }
-    } else {
-      parsedWorkingDays = workingDays;
-    }
-  }
-
   // Prepare update data
   const updateData = {};
   if (firstName) {
@@ -349,9 +348,6 @@ const updateDoctor = async (req, res) => {
   }
   if (medicalLicenseNo) {
     updateData.medicalLicenseNo = medicalLicenseNo;
-  }
-  if (workingDays !== undefined) {
-    updateData.workingDays = parsedWorkingDays;
   }
 
   // Handle profile image removal
@@ -394,19 +390,37 @@ const updateDoctor = async (req, res) => {
     data: updateData,
   });
 
-  // Update clinic associations
-  if (clinicIds) {
+  // Parse clinics if it's a string (from form-data)
+  let parsedClinics = undefined;
+  if (clinics !== undefined) {
+    if (typeof clinics === "string") {
+      try {
+        parsedClinics = JSON.parse(clinics);
+      } catch (error) {
+        throw new AppError("فرمت کلینیک‌ها معتبر نیست", 400);
+      }
+    } else {
+      parsedClinics = clinics;
+    }
+  } else if (clinicIds !== undefined) {
+    // سازگاری با فرمت قدیمی
+    parsedClinics = clinicIds.map(clinicId => ({ clinicId, workingDays: null }));
+  }
+
+  // Update clinic associations with working days
+  if (parsedClinics !== undefined) {
     // Remove existing associations
     await prisma.doctorClinic.deleteMany({
       where: { doctorId: id },
     });
 
-    // Create new associations
-    if (clinicIds.length > 0) {
+    // Create new associations with working days
+    if (parsedClinics.length > 0) {
       await prisma.doctorClinic.createMany({
-        data: clinicIds.map((clinicId) => ({
+        data: parsedClinics.map((clinic) => ({
           doctorId: id,
-          clinicId,
+          clinicId: clinic.clinicId,
+          workingDays: clinic.workingDays || null,
         })),
       });
     }

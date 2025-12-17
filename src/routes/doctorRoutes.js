@@ -25,13 +25,33 @@ router.get(
 // Get single doctor by slug or ID (public)
 router.get("/:identifier", asyncHandler(doctorController.getDoctor));
 
+// اسکیمای ساعات کاری روزهای هفته
+const workingDaysSchema = Joi.object({
+  saturday: Joi.string().allow("", null).optional(), // شنبه
+  sunday: Joi.string().allow("", null).optional(), // یکشنبه
+  monday: Joi.string().allow("", null).optional(), // دوشنبه
+  tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
+  wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
+  thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
+  friday: Joi.string().allow("", null).optional(), // جمعه
+}).allow(null);
+
+// اسکیمای جدید کلینیک با ساعات کاری
+const clinicWithWorkingDaysSchema = Joi.object({
+  clinicId: Joi.string().uuid().required().messages({
+    "any.required": "شناسه کلینیک الزامی است",
+    "string.guid": "شناسه کلینیک نامعتبر است",
+  }),
+  workingDays: workingDaysSchema.optional(),
+});
+
 // Create doctor (Admin/Secretary)
 router.post(
   "/",
   isAdminOrSecretary,
   csrfProtection,
   upload.single("profileImage"),
-  parseFormData("skills", "clinicIds", "workingDays"), // Parse JSON strings to arrays/objects
+  parseFormData("skills", "clinics", "clinicIds"), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string().required().messages({
@@ -49,16 +69,10 @@ router.post(
       medicalLicenseNo: Joi.string().required().messages({
         "any.required": "شماره نظام پزشکی الزامی است",
       }),
-      clinicIds: Joi.array().items(Joi.string().uuid()),
-      workingDays: Joi.object({
-        saturday: Joi.string().allow("", null).optional(), // شنبه
-        sunday: Joi.string().allow("", null).optional(), // یکشنبه
-        monday: Joi.string().allow("", null).optional(), // دوشنبه
-        tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
-        wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
-        thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
-        friday: Joi.string().allow("", null).optional(), // جمعه
-      }).optional(),
+      // فرمت جدید: آرایه‌ای از کلینیک‌ها با ساعات کاری
+      clinics: Joi.array().items(clinicWithWorkingDaysSchema).optional(),
+      // فرمت قدیمی برای سازگاری
+      clinicIds: Joi.array().items(Joi.string().uuid()).optional(),
     })
   ),
   asyncHandler(doctorController.createDoctor)
@@ -70,7 +84,7 @@ router.patch(
   isAdminOrSecretary,
   csrfProtection,
   upload.single("profileImage"),
-  parseFormData("skills", "clinicIds", "workingDays"), // Parse JSON strings to arrays/objects
+  parseFormData("skills", "clinics", "clinicIds"), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string(),
@@ -80,16 +94,10 @@ router.patch(
       biography: Joi.string().allow(""),
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string(),
-      clinicIds: Joi.array().items(Joi.string().uuid()),
-      workingDays: Joi.object({
-        saturday: Joi.string().allow("", null).optional(), // شنبه
-        sunday: Joi.string().allow("", null).optional(), // یکشنبه
-        monday: Joi.string().allow("", null).optional(), // دوشنبه
-        tuesday: Joi.string().allow("", null).optional(), // سه‌شنبه
-        wednesday: Joi.string().allow("", null).optional(), // چهارشنبه
-        thursday: Joi.string().allow("", null).optional(), // پنج‌شنبه
-        friday: Joi.string().allow("", null).optional(), // جمعه
-      }).optional(),
+      // فرمت جدید: آرایه‌ای از کلینیک‌ها با ساعات کاری
+      clinics: Joi.array().items(clinicWithWorkingDaysSchema).optional(),
+      // فرمت قدیمی برای سازگاری
+      clinicIds: Joi.array().items(Joi.string().uuid()).optional(),
       removeProfileImage: Joi.string().valid("true", "false").optional(),
     })
   ),
