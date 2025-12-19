@@ -84,7 +84,7 @@ model Doctor {
   biography         String?  @db.Text
   skills            Json     @default("[]") // Array of skills stored as JSON
   medicalLicenseNo  String   @unique @map("medical_license_no")
-  workingDays       Json?    @map("working_days") // روزهای کاری و ساعات: {"saturday": "14:00-15:00", "friday": "15:00-17:00"}
+  workingDays       Json?    @map("working_days") // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "14:00-18:00", "sunday": "09:00-13:00"}, "clinicId2": {...}}
   
   // Relations
   clinics           DoctorClinic[]
