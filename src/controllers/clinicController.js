@@ -128,7 +128,7 @@ const createClinic = async (req, res) => {
   }
 
   // Handle image upload
-  const image = req.file ? `/uploads/${req.file.filename}` : null;
+  const image = req.file ? `/uploads/clinics/${req.file.filename}` : null;
 
   const clinic = await prisma.clinic.create({
     data: {
@@ -415,7 +415,7 @@ const updateClinic = async (req, res) => {
         console.error("Error deleting old image:", err);
       }
     }
-    updateData.image = `/uploads/${req.file.filename}`;
+    updateData.image = `/uploads/clinics/${req.file.filename}`;
   }
 
   const clinic = await prisma.clinic.update({

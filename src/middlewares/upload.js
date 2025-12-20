@@ -23,6 +23,11 @@ const storage = multer.diskStorage({
       } else {
         uploadPath += "doctors/";
       }
+    } else if (file.fieldname === "image") {
+      // Clinic images
+      const isClinicRoute =
+        req.originalUrl && req.originalUrl.includes("/clinics");
+      uploadPath += isClinicRoute ? "clinics/" : "images/";
     } else if (file.fieldname === "coverImage") {
       uploadPath += "images/";
     } else if (file.fieldname === "galleryImage") {
