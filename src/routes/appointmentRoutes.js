@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
 const appointmentController = require("../controllers/appointmentController");
+const eitaaCallbackController = require("../controllers/eitaaCallbackController");
 const { isAuthenticated, isAdminOrSecretary, isAdmin } = require("../middlewares/auth");
 const { validate, schemas } = require("../middlewares/validation");
 const asyncHandler = require("../middlewares/asyncHandler");
@@ -68,6 +69,27 @@ const listAppointmentsSchema = schemas.pagination.keys({
 });
 
 // ==================== روت‌ها ====================
+
+/**
+ * @route   GET /api/appointments/settings
+ * @desc    دریافت تنظیمات نوبت‌دهی
+ * @access  Public
+ */
+router.get(
+  "/settings",
+  asyncHandler(appointmentController.getAppointmentSettingsHandler)
+);
+
+/**
+ * @route   GET /api/appointments/occupied-slots
+ * @desc    دریافت ساعات اشغال شده یک روز
+ * @access  Authenticated
+ */
+router.get(
+  "/occupied-slots",
+  isAuthenticated,
+  asyncHandler(appointmentController.getOccupiedSlotsHandler)
+);
 
 /**
  * @route   GET /api/appointments/stats
@@ -181,6 +203,39 @@ router.delete(
   isAdmin,
   csrfProtection,
   asyncHandler(appointmentController.deleteAppointment)
+);
+
+// ==================== Callback های ایتا ====================
+// این route ها public هستند چون از ایتا فراخوانی می‌شوند
+
+/**
+ * @route   GET /api/appointments/eitaa/approve/:id
+ * @desc    تایید نوبت از طریق لینک ایتا
+ * @access  Public (از طریق ایتا)
+ */
+router.get(
+  "/eitaa/approve/:id",
+  asyncHandler(eitaaCallbackController.approveAppointment)
+);
+
+/**
+ * @route   GET /api/appointments/eitaa/cancel/:id
+ * @desc    رد/لغو نوبت از طریق لینک ایتا
+ * @access  Public (از طریق ایتا)
+ */
+router.get(
+  "/eitaa/cancel/:id",
+  asyncHandler(eitaaCallbackController.cancelAppointment)
+);
+
+/**
+ * @route   GET /api/appointments/eitaa/contact/:id
+ * @desc    دریافت اطلاعات تماس مراجع از طریق لینک ایتا
+ * @access  Public (از طریق ایتا)
+ */
+router.get(
+  "/eitaa/contact/:id",
+  asyncHandler(eitaaCallbackController.getContactInfo)
 );
 
 module.exports = router;

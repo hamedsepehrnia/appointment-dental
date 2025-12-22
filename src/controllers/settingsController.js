@@ -377,9 +377,346 @@ const getSocialMedia = async (req, res) => {
   });
 };
 
+/**
+ * Get appointment settings (Admin only)
+ */
+const getAppointmentSettings = async (req, res) => {
+  const settings = await prisma.siteSettings.findFirst({
+    select: {
+      id: true,
+      appointmentMode: true,
+      maxAppointmentsPerHour: true,
+      syncApiKeys: {
+        select: {
+          id: true,
+          name: true,
+          clinicId: true,
+          clinic: { select: { id: true, name: true } },
+          isActive: true,
+          lastUsedAt: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+  });
+
+  res.json({
+    success: true,
+    data: {
+      appointmentSettings: {
+        mode: settings?.appointmentMode || "SIMPLE",
+        maxAppointmentsPerHour: settings?.maxAppointmentsPerHour || 10,
+        syncApiKeys: settings?.syncApiKeys || [],
+      },
+    },
+  });
+};
+
+/**
+ * Update appointment settings (Admin only)
+ */
+const updateAppointmentSettings = async (req, res) => {
+  const { appointmentMode, maxAppointmentsPerHour } = req.body;
+
+  // Validate appointmentMode
+  if (appointmentMode && !["SIMPLE", "ADVANCED"].includes(appointmentMode)) {
+    throw new AppError("حالت نوبت‌دهی نامعتبر است", 400);
+  }
+
+  // Validate maxAppointmentsPerHour
+  if (maxAppointmentsPerHour !== undefined) {
+    const max = parseInt(maxAppointmentsPerHour);
+    if (isNaN(max) || max < 1 || max > 100) {
+      throw new AppError("تعداد نوبت در ساعت باید بین ۱ تا ۱۰۰ باشد", 400);
+    }
+  }
+
+  let settings = await prisma.siteSettings.findFirst();
+
+  const updateData = {
+    ...(appointmentMode && { appointmentMode }),
+    ...(maxAppointmentsPerHour !== undefined && {
+      maxAppointmentsPerHour: parseInt(maxAppointmentsPerHour),
+    }),
+  };
+
+  if (!settings) {
+    settings = await prisma.siteSettings.create({
+      data: updateData,
+    });
+  } else {
+    settings = await prisma.siteSettings.update({
+      where: { id: settings.id },
+      data: updateData,
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "تنظیمات نوبت‌دهی با موفقیت به‌روزرسانی شد",
+    data: {
+      appointmentSettings: {
+        mode: settings.appointmentMode,
+        maxAppointmentsPerHour: settings.maxAppointmentsPerHour,
+      },
+    },
+  });
+};
+
+/**
+ * Create a new Sync API Key (Admin only)
+ */
+const createSyncApiKey = async (req, res) => {
+  const { name, clinicId } = req.body;
+
+  if (!name || name.trim().length === 0) {
+    throw new AppError("نام کلید API الزامی است", 400);
+  }
+
+  // Verify clinic exists if provided
+  if (clinicId) {
+    const clinic = await prisma.clinic.findUnique({
+      where: { id: clinicId },
+    });
+    if (!clinic) {
+      throw new AppError("کلینیک یافت نشد", 404);
+    }
+  }
+
+  // Get or create site settings
+  let settings = await prisma.siteSettings.findFirst();
+  if (!settings) {
+    settings = await prisma.siteSettings.create({
+      data: {
+        siteName: "Dental Clinic",
+      },
+    });
+  }
+
+  // Generate unique API key
+  const crypto = require("crypto");
+  const apiKey = crypto.randomBytes(32).toString("hex");
+
+  // Create the API key
+  const syncApiKey = await prisma.syncApiKey.create({
+    data: {
+      name: name.trim(),
+      apiKey,
+      clinicId: clinicId || null,
+      siteSettingsId: settings.id,
+    },
+    include: {
+      clinic: { select: { id: true, name: true } },
+    },
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "کلید API با موفقیت ایجاد شد",
+    data: {
+      syncApiKey: {
+        id: syncApiKey.id,
+        name: syncApiKey.name,
+        apiKey: syncApiKey.apiKey, // فقط یکبار نمایش داده می‌شود
+        clinicId: syncApiKey.clinicId,
+        clinic: syncApiKey.clinic,
+        isActive: syncApiKey.isActive,
+        createdAt: syncApiKey.createdAt,
+      },
+    },
+  });
+};
+
+/**
+ * Delete a Sync API Key (Admin only)
+ */
+const deleteSyncApiKey = async (req, res) => {
+  const { id } = req.params;
+
+  const syncApiKey = await prisma.syncApiKey.findUnique({
+    where: { id },
+  });
+
+  if (!syncApiKey) {
+    throw new AppError("کلید API یافت نشد", 404);
+  }
+
+  await prisma.syncApiKey.delete({
+    where: { id },
+  });
+
+  res.json({
+    success: true,
+    message: "کلید API با موفقیت حذف شد",
+  });
+};
+
+/**
+ * Toggle Sync API Key active status (Admin only)
+ */
+const toggleSyncApiKey = async (req, res) => {
+  const { id } = req.params;
+
+  const syncApiKey = await prisma.syncApiKey.findUnique({
+    where: { id },
+  });
+
+  if (!syncApiKey) {
+    throw new AppError("کلید API یافت نشد", 404);
+  }
+
+  const updated = await prisma.syncApiKey.update({
+    where: { id },
+    data: { isActive: !syncApiKey.isActive },
+    include: {
+      clinic: { select: { id: true, name: true } },
+    },
+  });
+
+  res.json({
+    success: true,
+    message: updated.isActive ? "کلید API فعال شد" : "کلید API غیرفعال شد",
+    data: {
+      syncApiKey: {
+        id: updated.id,
+        name: updated.name,
+        clinicId: updated.clinicId,
+        clinic: updated.clinic,
+        isActive: updated.isActive,
+        lastUsedAt: updated.lastUsedAt,
+      },
+    },
+  });
+};
+
+/**
+ * دریافت تنظیمات نوتیفیکیشن (Admin only)
+ */
+const getNotificationSettings = async (req, res) => {
+  const settings = await prisma.siteSettings.findFirst({
+    select: {
+      secretaryNotificationMethod: true,
+      eitaaApiToken: true,
+    },
+  });
+
+  res.json({
+    success: true,
+    data: {
+      notificationSettings: {
+        method: settings?.secretaryNotificationMethod || "SMS",
+        hasEitaaToken: !!settings?.eitaaApiToken,
+      },
+    },
+  });
+};
+
+/**
+ * به‌روزرسانی تنظیمات نوتیفیکیشن (Admin only)
+ */
+const updateNotificationSettings = async (req, res) => {
+  const { method, eitaaApiToken } = req.body;
+
+  // اعتبارسنجی method
+  if (method && !["SMS", "EITAA", "BOTH"].includes(method)) {
+    throw new AppError("روش ارسال نوتیفیکیشن نامعتبر است", 400);
+  }
+
+  // اگر method ایتا یا هر دو است، توکن الزامی است
+  if ((method === "EITAA" || method === "BOTH") && !eitaaApiToken) {
+    throw new AppError("برای استفاده از ایتا، توکن API الزامی است", 400);
+  }
+
+  let settings = await prisma.siteSettings.findFirst();
+
+  const updateData = {};
+  if (method) {
+    updateData.secretaryNotificationMethod = method;
+  }
+  if (eitaaApiToken !== undefined) {
+    updateData.eitaaApiToken = eitaaApiToken || null;
+  }
+
+  if (!settings) {
+    settings = await prisma.siteSettings.create({
+      data: {
+        siteName: "Dental Clinic",
+        ...updateData,
+      },
+    });
+  } else {
+    settings = await prisma.siteSettings.update({
+      where: { id: settings.id },
+      data: updateData,
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "تنظیمات نوتیفیکیشن با موفقیت به‌روزرسانی شد",
+    data: {
+      notificationSettings: {
+        method: settings.secretaryNotificationMethod,
+        hasEitaaToken: !!settings.eitaaApiToken,
+      },
+    },
+  });
+};
+
+/**
+ * تست اتصال به API ایتا (Admin only)
+ */
+const testEitaaConnection = async (req, res) => {
+  const { token, chatId } = req.body;
+
+  if (!token || !chatId) {
+    throw new AppError("توکن API و شناسه کانال/گروه الزامی است", 400);
+  }
+
+  const eitaaService = require("../services/eitaaService");
+
+  // تست با getMe
+  const meResult = await eitaaService.getMe(token);
+  if (!meResult.success) {
+    return res.status(400).json({
+      success: false,
+      error: meResult.error || "خطا در اتصال به API ایتا",
+    });
+  }
+
+  // تست با ارسال پیام تستی
+  const testMessage = `✅ تست اتصال به API ایتا\n\nاین یک پیام تست است. اگر این پیام را دریافت کردید، اتصال برقرار است.`;
+  const sendResult = await eitaaService.sendMessage(token, chatId, testMessage);
+
+  if (!sendResult.success) {
+    return res.status(400).json({
+      success: false,
+      error: sendResult.error || "خطا در ارسال پیام تست",
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "اتصال به API ایتا برقرار است و پیام تست ارسال شد",
+    data: {
+      botInfo: meResult.data,
+      testMessageId: sendResult.messageId,
+    },
+  });
+};
+
 module.exports = {
   getSettings,
   updateSettings,
   updateSocialMedia,
   getSocialMedia,
+  getAppointmentSettings,
+  updateAppointmentSettings,
+  createSyncApiKey,
+  deleteSyncApiKey,
+  toggleSyncApiKey,
+  getNotificationSettings,
+  updateNotificationSettings,
+  testEitaaConnection,
 };

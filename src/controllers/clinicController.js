@@ -85,16 +85,7 @@ const getClinic = async (req, res) => {
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const {
-    name,
-    address,
-    phoneNumber,
-    description,
-    latitude,
-    longitude,
-    workingHours,
-  } = req.body;
-
+  const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } = req.body;
   // Normalize phone number if provided
   const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
 
@@ -130,6 +121,12 @@ const createClinic = async (req, res) => {
   // Handle image upload
   const image = req.file ? `/uploads/clinics/${req.file.filename}` : null;
 
+  // Process eitaaChatId - always handle it (mandatory field)
+  // Convert empty string to null for database
+  const processedEitaaChatId = eitaaChatId !== undefined 
+    ? (eitaaChatId === "" || eitaaChatId === null ? null : eitaaChatId)
+    : null;
+
   const clinic = await prisma.clinic.create({
     data: {
       name,
@@ -141,6 +138,7 @@ const createClinic = async (req, res) => {
       latitude: parsedLatitude,
       longitude: parsedLongitude,
       workingHours: parsedWorkingHours,
+      eitaaChatId: processedEitaaChatId,
     },
   });
 
@@ -156,15 +154,8 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const {
-    name,
-    address,
-    phoneNumber,
-    description,
-    latitude,
-    longitude,
-    workingHours,
-  } = req.body;
+  const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } =
+    req.body;
 
   // #region agent log
   try {
@@ -209,6 +200,16 @@ const updateClinic = async (req, res) => {
   if (!currentClinic) {
     throw new AppError("کلینیک یافت نشد", 404);
   }
+
+  // Debug log for eitaaChatId
+  console.log('=== UPDATE CLINIC DEBUG ===');
+  console.log('eitaaChatId from req.body:', eitaaChatId);
+  console.log('eitaaChatId type:', typeof eitaaChatId);
+  console.log('eitaaChatId === undefined:', eitaaChatId === undefined);
+  console.log('eitaaChatId === null:', eitaaChatId === null);
+  console.log('eitaaChatId === ""', eitaaChatId === "");
+  console.log('req.body keys:', Object.keys(req.body));
+  console.log('===========================');
 
   // If secretary, check if they belong to this clinic
   if (req.session.userRole === "SECRETARY") {
@@ -416,6 +417,17 @@ const updateClinic = async (req, res) => {
       }
     }
     updateData.image = `/uploads/clinics/${req.file.filename}`;
+  }
+
+  // Process eitaaChatId - always handle it (mandatory field)
+  // Convert empty string to null for database
+  const processedEitaaChatId = eitaaChatId !== undefined 
+    ? (eitaaChatId === "" || eitaaChatId === null ? null : eitaaChatId)
+    : undefined;
+
+  // Add eitaaChatId to updateData if provided
+  if (processedEitaaChatId !== undefined) {
+    updateData.eitaaChatId = processedEitaaChatId;
   }
 
   const clinic = await prisma.clinic.update({

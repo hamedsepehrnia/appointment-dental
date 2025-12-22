@@ -173,6 +173,43 @@ const createPaginationMeta = (total, page, limit) => {
   };
 };
 
+/**
+ * تبدیل تاریخ میلادی به شمسی
+ * @param {Date|string} date - تاریخ میلادی
+ * @returns {string} - تاریخ شمسی
+ */
+const toJalali = (date) => {
+  const d = new Date(date);
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    calendar: 'persian',
+    numberingSystem: 'latn'
+  };
+  return d.toLocaleDateString('fa-IR', options);
+};
+
+/**
+ * گرفتن نام روز هفته به فارسی
+ * @param {Date|string} date - تاریخ
+ * @returns {string} - نام روز هفته به فارسی
+ */
+const getPersianDayName = (date) => {
+  const days = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'];
+  return days[new Date(date).getDay()];
+};
+
+/**
+ * فرمت ساعت
+ * @param {Date|string} date - تاریخ
+ * @returns {string} - ساعت به فرمت HH:mm
+ */
+const formatTime = (date) => {
+  const d = new Date(date);
+  return d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
 module.exports = {
   generateOtp,
   generateRandomPassword,
@@ -182,5 +219,8 @@ module.exports = {
   validateNationalCode,
   paginate,
   createPaginationMeta,
+  toJalali,
+  getPersianDayName,
+  formatTime,
 };
 

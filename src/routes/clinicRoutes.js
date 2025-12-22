@@ -56,6 +56,7 @@ router.post(
         'number.max': 'طول جغرافیایی باید بین -180 تا 180 باشد',
       }),
       workingHours: workingHoursSchema,
+      eitaaChatId: Joi.string().allow('', null).optional(),
     })
   ),
   asyncHandler(clinicController.createClinic)
@@ -84,6 +85,7 @@ router.patch(
       }),
       workingHours: workingHoursSchema,
       removeImage: Joi.string().valid('true', 'false').optional(),
+      eitaaChatId: Joi.string().allow('', null).optional(),
     })
   ),
   asyncHandler(clinicController.updateClinic)

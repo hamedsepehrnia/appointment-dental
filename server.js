@@ -83,48 +83,52 @@ app.use("/api", (req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
-// Rate limiting with better key generation
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api/", limiter);
 
-// Stricter rate limit for OTP request
-const otpRequestLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Only 5 OTP requests per 15 minutes
-  message:
-    "تعداد درخواست‌های کد تأیید بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Rate limiting - disabled in development mode
+if (process.env.NODE_ENV !== "development") {
+  // Rate limiting with better key generation
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api/", limiter);
 
-// Stricter rate limit for OTP verification
-const otpVerifyLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
-  message: "تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+  // Stricter rate limit for OTP request
+  const otpRequestLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Only 5 OTP requests per 15 minutes
+    message:
+      "تعداد درخواست‌های کد تأیید بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
-// Apply to specific routes
-app.use("/api/auth/request-otp", otpRequestLimiter);
-app.use("/api/auth/verify-otp", otpVerifyLimiter);
+  // Stricter rate limit for OTP verification
+  const otpVerifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: "تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
-// Stricter rate limit for login endpoint
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 login attempts per 15 minutes
-  message: "تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api/auth/login", loginLimiter);
+  // Apply to specific routes
+  app.use("/api/auth/request-otp", otpRequestLimiter);
+  app.use("/api/auth/verify-otp", otpVerifyLimiter);
+
+  // Stricter rate limit for login endpoint
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 login attempts per 15 minutes
+    message: "تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً بعداً تلاش کنید.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api/auth/login", loginLimiter);
+}
 
 // Logging
 if (process.env.NODE_ENV === "development") {

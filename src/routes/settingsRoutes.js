@@ -76,4 +76,107 @@ router.patch(
   asyncHandler(settingsController.updateSocialMedia)
 );
 
+// ==================== تنظیمات نوبت‌دهی ====================
+
+// Get appointment settings (Admin only)
+router.get(
+  "/appointments",
+  isAdmin,
+  asyncHandler(settingsController.getAppointmentSettings)
+);
+
+// Update appointment settings (Admin only)
+router.patch(
+  "/appointments",
+  isAdmin,
+  csrfProtection,
+  validate(
+    Joi.object({
+      appointmentMode: Joi.string().valid("SIMPLE", "ADVANCED").optional(),
+      maxAppointmentsPerHour: Joi.number().integer().min(1).max(100).optional(),
+    })
+  ),
+  asyncHandler(settingsController.updateAppointmentSettings)
+);
+
+// ==================== مدیریت کلیدهای API سینک ====================
+
+// Create new Sync API Key (Admin only)
+router.post(
+  "/appointments/api-keys",
+  isAdmin,
+  csrfProtection,
+  validate(
+    Joi.object({
+      name: Joi.string().min(1).max(100).required().messages({
+        "any.required": "نام کلید API الزامی است",
+        "string.min": "نام کلید API نمی‌تواند خالی باشد",
+      }),
+      clinicId: Joi.string().uuid().allow(null, "").optional().messages({
+        "string.guid": "شناسه کلینیک نامعتبر است",
+      }),
+    })
+  ),
+  asyncHandler(settingsController.createSyncApiKey)
+);
+
+// Delete Sync API Key (Admin only)
+router.delete(
+  "/appointments/api-keys/:id",
+  isAdmin,
+  csrfProtection,
+  asyncHandler(settingsController.deleteSyncApiKey)
+);
+
+// Toggle Sync API Key active status (Admin only)
+router.patch(
+  "/appointments/api-keys/:id/toggle",
+  isAdmin,
+  csrfProtection,
+  asyncHandler(settingsController.toggleSyncApiKey)
+);
+
+// ==================== تنظیمات نوتیفیکیشن ====================
+
+// Get notification settings (Admin only)
+router.get(
+  "/notifications",
+  isAdmin,
+  asyncHandler(settingsController.getNotificationSettings)
+);
+
+// Update notification settings (Admin only)
+router.patch(
+  "/notifications",
+  isAdmin,
+  csrfProtection,
+  validate(
+    Joi.object({
+      method: Joi.string().valid("SMS", "EITAA", "BOTH").optional().messages({
+        "any.only": "روش ارسال باید یکی از SMS، EITAA یا BOTH باشد",
+      }),
+      eitaaApiToken: Joi.string().allow(null, "").optional(),
+    })
+  ),
+  asyncHandler(settingsController.updateNotificationSettings)
+);
+
+// Test Eitaa connection (Admin only)
+router.post(
+  "/notifications/test-eitaa",
+  isAdmin,
+  csrfProtection,
+  validate(
+    Joi.object({
+      token: Joi.string().required().messages({
+        "any.required": "توکن API ایتا الزامی است",
+      }),
+      chatId: Joi.string().required().messages({
+        "any.required": "شناسه کانال/گروه ایتا الزامی است",
+      }),
+    })
+  ),
+  asyncHandler(settingsController.testEitaaConnection)
+);
+
 module.exports = router;
