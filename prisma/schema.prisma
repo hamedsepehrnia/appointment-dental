@@ -87,6 +87,7 @@ model Doctor {
   skills            Json     @default("[]") // Array of skills stored as JSON
   medicalLicenseNo  String   @unique @map("medical_license_no")
   workingDays       Json?    @map("working_days") // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "14:00-18:00", "sunday": "09:00-13:00"}, "clinicId2": {...}}
+  isAppointmentEnabled Boolean @default(false) @map("is_appointment_enabled") // آیا امکان نوبت‌گیری برای این پزشک فعال است
   
   // Relations
   clinics           DoctorClinic[]

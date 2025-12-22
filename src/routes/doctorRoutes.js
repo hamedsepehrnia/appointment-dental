@@ -63,6 +63,7 @@ router.post(
           friday: Joi.string().allow("", null).optional(), // جمعه
         })
       ).optional(),
+      isAppointmentEnabled: Joi.boolean().optional(),
     })
   ),
   asyncHandler(doctorController.createDoctor)
@@ -99,6 +100,7 @@ router.patch(
         })
       ).optional(),
       removeProfileImage: Joi.string().valid("true", "false").optional(),
+      isAppointmentEnabled: Joi.boolean().optional(),
     })
   ),
   asyncHandler(doctorController.updateDoctor)

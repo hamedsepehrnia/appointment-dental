@@ -181,6 +181,7 @@ const createDoctor = async (req, res) => {
     medicalLicenseNo,
     clinicIds,
     workingDays,
+    isAppointmentEnabled,
   } = req.body;
 
   const profileImage = req.file
@@ -225,6 +226,7 @@ const createDoctor = async (req, res) => {
       skills: skills || [],
       medicalLicenseNo,
       workingDays: parsedWorkingDays,
+      isAppointmentEnabled: isAppointmentEnabled === true || isAppointmentEnabled === "true",
     },
   });
 
@@ -276,6 +278,7 @@ const updateDoctor = async (req, res) => {
     medicalLicenseNo,
     clinicIds,
     workingDays,
+    isAppointmentEnabled,
   } = req.body;
 
   // Get current doctor
@@ -352,6 +355,9 @@ const updateDoctor = async (req, res) => {
   }
   if (workingDays !== undefined) {
     updateData.workingDays = parsedWorkingDays;
+  }
+  if (isAppointmentEnabled !== undefined) {
+    updateData.isAppointmentEnabled = isAppointmentEnabled === true || isAppointmentEnabled === "true";
   }
 
   // Handle profile image removal
