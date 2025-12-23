@@ -1,6 +1,6 @@
 const prisma = require("../config/database");
 const { AppError } = require("../middlewares/errorHandler");
-const { paginate, createPaginationMeta, toJalali, getPersianDayName, formatTime } = require("../utils/helpers");
+const { paginate, createPaginationMeta, toJalali, getPersianDayName, formatTime, fixNameForSms } = require("../utils/helpers");
 const smsService = require("../services/smsService");
 const eitaaService = require("../services/eitaaService");
 const {
@@ -229,13 +229,16 @@ const createAppointment = async (req, res) => {
   const time = formatTime(appointmentDate);
 
   // پیامک به مراجع
-  const patientSmsMessage = finalStatus === "FINAL_APPROVED"
-    ? `${genderTitle} ${actualPatientName} عزیز،
+  const patientSmsMessageTemplate = finalStatus === "FINAL_APPROVED"
+    ? `${genderTitle} {name} عزیز،
 نوبت شما در کلینیک ${clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} با موفقیت ثبت و تأیید شد.
 لطفاً در زمان مقرر در کلینیک حضور داشته باشید.`
-    : `${genderTitle} ${actualPatientName} عزیز،
+    : `${genderTitle} {name} عزیز،
 نوبت شما در کلینیک ${clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} ثبت شد و در دست بررسی می‌باشد.
 لطفاً تا تأیید نهایی صبر کنید.`;
+  
+  const fixedName = fixNameForSms(actualPatientName, patientSmsMessageTemplate);
+  const patientSmsMessage = patientSmsMessageTemplate.replace('{name}', fixedName);
 
   await smsService.sendSimpleSms(user.phoneNumber, patientSmsMessage, 'بیمار', '🗓️ ثبت نوبت');
 
@@ -513,6 +516,35 @@ const getMyAppointments = async (req, res) => {
 };
 
 /**
+ * آمار نوبت‌های کاربر جاری
+ * GET /api/appointments/my/stats
+ */
+const getMyAppointmentsStats = async (req, res) => {
+  const userId = req.session.userId;
+
+  const [
+    approvedCount,
+    pendingCount,
+    canceledCount,
+  ] = await Promise.all([
+    prisma.appointment.count({ where: { userId, status: 'FINAL_APPROVED' } }),
+    prisma.appointment.count({ where: { userId, status: 'APPROVED_BY_USER' } }),
+    prisma.appointment.count({ where: { userId, status: 'CANCELED' } }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      stats: {
+        approved: approvedCount,
+        pending: pendingCount,
+        canceled: canceledCount,
+      }
+    }
+  });
+};
+
+/**
  * گرفتن یک نوبت
  * GET /api/appointments/:id
  */
@@ -675,9 +707,11 @@ const approveAppointment = async (req, res) => {
   const time = formatTime(appointment.appointmentDate);
 
   // پیامک تأیید به مراجع
-  const confirmSmsMessage = `${actualPatientName} عزیز،
+  const confirmSmsMessageTemplate = `{name} عزیز،
 نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} تأیید شد.
 لطفاً در تاریخ و زمان مقرر به کلینیک مراجعه نمایید.`;
+  const fixedName = fixNameForSms(actualPatientName, confirmSmsMessageTemplate);
+  const confirmSmsMessage = confirmSmsMessageTemplate.replace('{name}', fixedName);
 
   await smsService.sendSimpleSms(appointment.user.phoneNumber, confirmSmsMessage, 'بیمار', '✅ تأیید نوبت');
 
@@ -766,10 +800,12 @@ const cancelAppointment = async (req, res) => {
     const dayName = getPersianDayName(appointment.appointmentDate);
     const time = formatTime(appointment.appointmentDate);
 
-    const cancelSmsMessage = `${actualPatientName} عزیز،
+    const cancelSmsMessageTemplate = `{name} عزیز،
 متأسفانه نوبت شما در کلینیک ${appointment.clinic.name} برای ساعت ${time} روز ${dayName} ${persianDate} لغو شد.
 ${reason ? `دلیل: ${reason}` : ''}
 برای رزرو مجدد با کلینیک تماس بگیرید.`;
+    const fixedName = fixNameForSms(actualPatientName, cancelSmsMessageTemplate);
+    const cancelSmsMessage = cancelSmsMessageTemplate.replace('{name}', fixedName);
 
     await smsService.sendSimpleSms(appointment.user.phoneNumber, cancelSmsMessage, 'بیمار', '❌ لغو نوبت');
   }
@@ -1039,6 +1075,7 @@ module.exports = {
   createAppointment,
   getAppointments,
   getMyAppointments,
+  getMyAppointmentsStats,
   getAppointment,
   approveAppointment,
   getOccupiedSlotsHandler,

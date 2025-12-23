@@ -5,6 +5,7 @@ const {
   generateOtp,
   formatPhoneNumber,
   generateRandomPassword,
+  fixNameForSms,
 } = require("../utils/helpers");
 const { AppError } = require("../middlewares/errorHandler");
 const { generateCsrfToken } = require("../middlewares/csrf");
@@ -117,7 +118,9 @@ const requestOtp = async (req, res) => {
   let smsMessage;
   let recipientType = 'کاربر';
   if (user) {
-    smsMessage = `سلام ${user.firstName} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
+    const smsMessageTemplate = `سلام {name} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
+    const fixedName = fixNameForSms(user.firstName, smsMessageTemplate);
+    smsMessage = smsMessageTemplate.replace('{name}', fixedName);
     recipientType = 'بیمار';
   } else {
     smsMessage = `به سامانه نوبت دهی کلینیک طاها خوش آمدید. کد ورود شما: ${code}`;

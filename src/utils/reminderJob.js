@@ -1,5 +1,6 @@
 const prisma = require("../config/database");
 const smsService = require("../services/smsService");
+const { fixNameForSms } = require("./helpers");
 
 /**
  * تبدیل تاریخ میلادی به شمسی
@@ -85,10 +86,12 @@ const send24HourReminders = async () => {
       const dayName = getPersianDayName(appointment.appointmentDate);
       const time = formatTime(appointment.appointmentDate);
 
-      const message = `${patientName} عزیز،
+      const messageTemplate = `{name} عزیز،
 یادآوری: نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} فردا ساعت ${time} (${dayName} ${persianDate}) می‌باشد.
 آدرس: ${appointment.clinic.address}
 لطفاً به موقع حضور داشته باشید.`;
+      const fixedName = fixNameForSms(patientName, messageTemplate);
+      const message = messageTemplate.replace('{name}', fixedName);
 
       await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '⏰ یادآوری ۲۴ ساعته');
 
@@ -158,9 +161,11 @@ const send30MinuteReminders = async () => {
         : 'پزشک کلینیک';
       const time = formatTime(appointment.appointmentDate);
 
-      const message = `${patientName} عزیز،
+      const messageTemplate = `{name} عزیز،
 یادآوری فوری: نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} تا ۳۰ دقیقه دیگر (ساعت ${time}) است.
 آدرس: ${appointment.clinic.address}`;
+      const fixedName = fixNameForSms(patientName, messageTemplate);
+      const message = messageTemplate.replace('{name}', fixedName);
 
       await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '🚨 یادآوری فوری ۳۰ دقیقه');
 

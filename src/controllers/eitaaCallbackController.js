@@ -7,7 +7,7 @@ const prisma = require("../config/database");
 const { AppError } = require("../middlewares/errorHandler");
 const smsService = require("../services/smsService");
 const eitaaService = require("../services/eitaaService");
-const { toJalali, getPersianDayName, formatTime } = require("../utils/helpers");
+const { toJalali, getPersianDayName, formatTime, fixNameForSms } = require("../utils/helpers");
 
 /**
  * گرفتن عنوان جنسیت
@@ -187,9 +187,11 @@ const approveAppointment = async (req, res) => {
   const dayName = getPersianDayName(updatedAppointment.appointmentDate);
   const time = formatTime(updatedAppointment.appointmentDate);
 
-  const patientSmsMessage = `${genderTitle} ${actualPatientName} عزیز،
+  const patientSmsMessageTemplate = `${genderTitle} {name} عزیز،
 نوبت شما در کلینیک ${updatedAppointment.clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} تأیید شد.
 لطفاً در زمان مقرر در کلینیک حضور داشته باشید.`;
+  const fixedName = fixNameForSms(actualPatientName, patientSmsMessageTemplate);
+  const patientSmsMessage = patientSmsMessageTemplate.replace('{name}', fixedName);
 
   if (updatedAppointment.user?.phoneNumber) {
     await smsService.sendSimpleSms(
@@ -305,9 +307,11 @@ const cancelAppointment = async (req, res) => {
   const dayName = getPersianDayName(updatedAppointment.appointmentDate);
   const time = formatTime(updatedAppointment.appointmentDate);
 
-  const patientSmsMessage = `${genderTitle} ${actualPatientName} عزیز،
+  const patientSmsMessageTemplate = `${genderTitle} {name} عزیز،
 متأسفانه نوبت شما در کلینیک ${updatedAppointment.clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} لغو شد.
 لطفاً برای رزرو مجدد با کلینیک تماس بگیرید.`;
+  const fixedName = fixNameForSms(actualPatientName, patientSmsMessageTemplate);
+  const patientSmsMessage = patientSmsMessageTemplate.replace('{name}', fixedName);
 
   if (updatedAppointment.user?.phoneNumber) {
     await smsService.sendSimpleSms(

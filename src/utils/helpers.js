@@ -210,6 +210,37 @@ const formatTime = (date) => {
   return d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
+/**
+ * اصلاح نام برای استفاده در پیامک (اضافه کردن "ی" به آخر اسم اگر با الف تمام شده و صدا زده شده)
+ * @param {string} name - نام کاربر
+ * @param {string} message - متن پیام که شامل نام و "عزیز" است
+ * @returns {string} - نام اصلاح شده
+ */
+const fixNameForSms = (name, message) => {
+  if (!name || !message) return name;
+  
+  // بررسی می‌کنیم که آیا در پیام بعد از نام "عزیز" آمده است
+  if (!message.includes('عزیز')) return name;
+  
+  // گرفتن آخرین کلمه از نام (مثلاً از "طاها احمد" فقط "احمد" را می‌گیریم)
+  const nameParts = name.trim().split(/\s+/);
+  if (nameParts.length === 0) return name;
+  
+  const lastName = nameParts[nameParts.length - 1];
+  
+  // بررسی می‌کنیم که آیا آخرین کلمه با "الف" تمام می‌شود
+  // الف در فارسی: ا، آ
+  const lastChar = lastName[lastName.length - 1];
+  if (lastChar === 'ا' || lastChar === 'آ') {
+    // اضافه کردن "ی" به آخر کلمه
+    const fixedLastName = lastName + 'ی';
+    nameParts[nameParts.length - 1] = fixedLastName;
+    return nameParts.join(' ');
+  }
+  
+  return name;
+};
+
 module.exports = {
   generateOtp,
   generateRandomPassword,
@@ -222,5 +253,6 @@ module.exports = {
   toJalali,
   getPersianDayName,
   formatTime,
+  fixNameForSms,
 };
 

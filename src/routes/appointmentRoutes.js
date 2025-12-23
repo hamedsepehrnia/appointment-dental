@@ -120,6 +120,17 @@ router.get(
 );
 
 /**
+ * @route   GET /api/appointments/my/stats
+ * @desc    آمار نوبت‌های کاربر جاری
+ * @access  Authenticated
+ */
+router.get(
+  "/my/stats",
+  isAuthenticated,
+  asyncHandler(appointmentController.getMyAppointmentsStats)
+);
+
+/**
  * @route   GET /api/appointments
  * @desc    لیست همه نوبت‌ها
  * @access  Admin/Secretary
