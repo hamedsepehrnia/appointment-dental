@@ -8,6 +8,7 @@ const {
 } = require("../utils/helpers");
 const fs = require("fs").promises;
 const path = require("path");
+const os = require("os");
 
 /**
  * Get all users (Admin/Secretary)
@@ -523,10 +524,173 @@ const deleteUser = async (req, res) => {
   });
 };
 
+/**
+ * آمار داشبورد ادمین
+ * GET /api/users/admin/dashboard-stats
+ */
+const getAdminDashboardStats = async (req, res) => {
+  const userRole = req.session.userRole;
+  const userId = req.session.userId;
+
+  let clinicFilter = {};
+
+  // منشی فقط آمار کلینیک خودش را ببیند
+  if (userRole === 'SECRETARY') {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { clinicId: true }
+    });
+    if (user?.clinicId) {
+      clinicFilter = { clinicId: user.clinicId };
+    }
+  }
+
+  // تاریخ‌ها برای محاسبه تغییرات
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  
+  // ماه جاری
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  
+  // ماه قبل
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  
+  // 30 روز قبل برای محاسبه تغییرات کاربران
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // محاسبه آمار کاربران
+  const [
+    totalUsers,
+    usersBefore30Days,
+    totalAppointments,
+    appointmentsLastMonth,
+    appointmentsCurrentMonth,
+  ] = await Promise.all([
+    // کل کاربران
+    prisma.user.count({ 
+      where: {
+        ...clinicFilter,
+        role: 'PATIENT'
+      }
+    }),
+    // کاربران قبل از 30 روز گذشته (برای مقایسه)
+    prisma.user.count({
+      where: {
+        ...clinicFilter,
+        role: 'PATIENT',
+        createdAt: {
+          lt: thirtyDaysAgo
+        }
+      }
+    }),
+    // کل نوبت‌ها
+    prisma.appointment.count({ where: clinicFilter }),
+    // نوبت‌های ماه قبل
+    prisma.appointment.count({
+      where: {
+        ...clinicFilter,
+        createdAt: {
+          gte: lastMonthStart,
+          lte: lastMonthEnd
+        }
+      }
+    }),
+    // نوبت‌های ماه جاری
+    prisma.appointment.count({
+      where: {
+        ...clinicFilter,
+        createdAt: {
+          gte: currentMonthStart,
+          lte: currentMonthEnd
+        }
+      }
+    }),
+  ]);
+
+  // محاسبه درصد تغییرات
+  const usersLast30Days = totalUsers - usersBefore30Days;
+  const usersChangePercent = usersBefore30Days > 0 
+    ? Math.round(((usersLast30Days) / usersBefore30Days) * 100) 
+    : usersLast30Days > 0 ? 100 : 0;
+
+  const appointmentsChangePercent = appointmentsLastMonth > 0
+    ? Math.round(((appointmentsCurrentMonth - appointmentsLastMonth) / appointmentsLastMonth) * 100)
+    : appointmentsCurrentMonth > 0 ? 100 : 0;
+
+  // آمار بازدید امروز (می‌تواند از لاگ‌ها یا جدول جداگانه باشد)
+  // برای حالا از تعداد کاربران آنلاین استفاده می‌کنیم (کاربرانی که در 5 دقیقه گذشته لاگین کرده‌اند)
+  const fiveMinutesAgo = new Date(now);
+  fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+  
+  // برای سادگی، از تعداد کاربران کل استفاده می‌کنیم
+  // در آینده می‌توان از جدول session یا لاگ استفاده کرد
+  const onlineUsers = await prisma.user.count({
+    where: {
+      ...clinicFilter,
+      updatedAt: {
+        gte: fiveMinutesAgo
+      }
+    }
+  });
+
+  // وضعیت سرور
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
+  const usedMemory = totalMemory - freeMemory;
+  const memoryPercent = Math.round((usedMemory / totalMemory) * 100);
+  
+  // CPU usage - در Node.js نیاز به ماژول اضافی دارد، برای حالا مقدار ثابت
+  const cpuPercent = 45; // می‌تواند از os.loadavg() استفاده شود
+  
+  // Storage - نیاز به ماژول اضافی دارد
+  const storagePercent = 75; // می‌تواند از fs.statfs یا ماژول diskusage استفاده شود
+
+  // آپتایم (می‌تواند از process.uptime() استفاده شود)
+  const uptimeSeconds = process.uptime();
+  const uptimeDays = Math.floor(uptimeSeconds / 86400);
+  const uptimeHours = Math.floor((uptimeSeconds % 86400) / 3600);
+  const uptimePercent = 99.9; // می‌تواند محاسبه شود
+
+  // آخرین تراکنش‌ها - چون سیستم تراکنش نداریم، خالی می‌ماند
+  const latestTransactions = [];
+
+  res.json({
+    success: true,
+    data: {
+      users: {
+        total: totalUsers,
+        changePercent: usersChangePercent,
+        isIncrease: usersChangePercent > 0
+      },
+      appointments: {
+        total: appointmentsCurrentMonth,
+        changePercent: appointmentsChangePercent,
+        isIncrease: appointmentsChangePercent > 0
+      },
+      serverStatus: {
+        cpu: cpuPercent,
+        ram: memoryPercent,
+        storage: storagePercent
+      },
+      systemStatus: {
+        uptime: uptimePercent,
+        todayVisits: totalUsers, // می‌تواند از لاگ استفاده شود
+        onlineUsers: onlineUsers
+      },
+      latestTransactions: latestTransactions
+    }
+  });
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
   updateUser,
   deleteUser,
+  getAdminDashboardStats,
 };

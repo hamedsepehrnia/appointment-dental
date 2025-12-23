@@ -114,4 +114,11 @@ router.delete(
   asyncHandler(userController.deleteUser)
 );
 
+// Get admin dashboard statistics (Admin/Secretary)
+router.get(
+  "/admin/dashboard-stats",
+  isAdminOrSecretary,
+  asyncHandler(userController.getAdminDashboardStats)
+);
+
 module.exports = router;
