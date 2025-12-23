@@ -90,8 +90,16 @@ const getDoctors = async (req, res) => {
             },
           },
         },
+        comments: {
+          select: {
+            rating: true,
+            published: true,
+          },
+        },
         _count: {
-          select: { comments: true },
+          select: { 
+            comments: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -99,9 +107,57 @@ const getDoctors = async (req, res) => {
     prisma.doctor.count({ where }),
   ]);
 
+  // Get doctor IDs to count successful appointments
+  const doctorIds = doctors.map((d) => d.id);
+  
+  // Count successful appointments for each doctor
+  const appointmentCounts = await Promise.all(
+    doctorIds.map((doctorId) =>
+      prisma.appointment.count({
+        where: {
+          doctorId,
+          status: "FINAL_APPROVED",
+        },
+      })
+    )
+  );
+
+  // Create a map of doctorId -> appointment count
+  const appointmentCountMap = new Map(
+    doctorIds.map((id, index) => [id, appointmentCounts[index]])
+  );
+
+  // Calculate average rating and add stats to each doctor
+  const doctorsWithStats = doctors.map((doctor) => {
+    const publishedCommentsWithRating = doctor.comments.filter(
+      (c) => c.published && c.rating !== null
+    );
+    
+    const avgRating =
+      publishedCommentsWithRating.length > 0
+        ? publishedCommentsWithRating.reduce((sum, c) => sum + c.rating, 0) /
+          publishedCommentsWithRating.length
+        : null;
+
+    const totalReviews = doctor.comments.filter((c) => c.published).length;
+    const successfulAppointments = appointmentCountMap.get(doctor.id) || 0;
+
+    // Remove comments from response and add stats
+    const { comments, ...doctorWithoutComments } = doctor;
+    
+    return {
+      ...doctorWithoutComments,
+      stats: {
+        averageRating: avgRating ? parseFloat(avgRating.toFixed(2)) : null,
+        totalReviews,
+        successfulAppointments,
+      },
+    };
+  });
+
   res.json({
     success: true,
-    data: { doctors },
+    data: { doctors: doctorsWithStats },
     meta: createPaginationMeta(total, page, limit),
   });
 };
