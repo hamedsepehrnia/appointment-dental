@@ -89,9 +89,9 @@ router.post(
   csrfProtection,
   validate(
     Joi.object({
-      content: Joi.string().required().min(10).max(1000).messages({
+      content: Joi.string().required().min(3).max(1000).messages({
         'any.required': 'متن نظر الزامی است',
-        'string.min': 'نظر باید حداقل ۱۰ کاراکتر باشد',
+        'string.min': 'نظر باید حداقل ۳ کاراکتر باشد',
         'string.max': 'نظر نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
       }),
       rating: Joi.number().integer().min(1).max(5),
@@ -115,9 +115,9 @@ router.post(
   csrfProtection,
   validate(
     Joi.object({
-      content: Joi.string().required().min(10).max(1000).messages({
+      content: Joi.string().required().min(3).max(1000).messages({
         'any.required': 'متن نظر الزامی است',
-        'string.min': 'نظر باید حداقل ۱۰ کاراکتر باشد',
+        'string.min': 'نظر باید حداقل ۳ کاراکتر باشد',
         'string.max': 'نظر نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
       }),
       rating: Joi.number().integer().min(1).max(5),
@@ -141,9 +141,9 @@ router.post(
   csrfProtection,
   validate(
     Joi.object({
-      content: Joi.string().required().min(10).max(1000).messages({
+      content: Joi.string().required().min(3).max(1000).messages({
         'any.required': 'متن نظر الزامی است',
-        'string.min': 'نظر باید حداقل ۱۰ کاراکتر باشد',
+        'string.min': 'نظر باید حداقل ۳ کاراکتر باشد',
         'string.max': 'نظر نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
       }),
       rating: Joi.number().integer().min(1).max(5),
@@ -159,9 +159,9 @@ router.post(
   csrfProtection,
   validate(
     Joi.object({
-      content: Joi.string().required().min(10).max(1000).messages({
+      content: Joi.string().required().min(3).max(1000).messages({
         'any.required': 'متن پاسخ الزامی است',
-        'string.min': 'پاسخ باید حداقل ۱۰ کاراکتر باشد',
+        'string.min': 'پاسخ باید حداقل ۳ کاراکتر باشد',
         'string.max': 'پاسخ نباید بیشتر از ۱۰۰۰ کاراکتر باشد',
       }),
     })
@@ -176,7 +176,7 @@ router.patch(
   csrfProtection,
   validate(
     Joi.object({
-      content: Joi.string().min(10).max(1000),
+      content: Joi.string().min(3).max(1000),
       rating: Joi.number().integer().min(1).max(5),
       published: Joi.boolean(),
     })

@@ -41,6 +41,7 @@ const updateSettings = async (req, res) => {
     address,
     instagram,
     telegram,
+    eitaa,
     whatsapp,
     twitter,
     linkedin,
@@ -53,6 +54,7 @@ const updateSettings = async (req, res) => {
     contactUsImage,
     contactUsVideo,
     becomeDoctorContent,
+    becomeNurseContent,
   } = req.body;
 
   // Get existing settings or create new one
@@ -235,6 +237,7 @@ const updateSettings = async (req, res) => {
         contactUsVideo:
           contactUsVideoPath !== undefined ? contactUsVideoPath : null,
         becomeDoctorContent,
+        becomeNurseContent,
       },
     });
   } else {
@@ -253,6 +256,7 @@ const updateSettings = async (req, res) => {
         ...(address !== undefined && { address }),
         ...(instagram !== undefined && { instagram }),
         ...(telegram !== undefined && { telegram }),
+        ...(eitaa !== undefined && { eitaa }),
         ...(whatsapp !== undefined && { whatsapp }),
         ...(twitter !== undefined && { twitter }),
         ...(linkedin !== undefined && { linkedin }),
@@ -273,6 +277,7 @@ const updateSettings = async (req, res) => {
           contactUsVideo: contactUsVideoPath,
         }),
         ...(becomeDoctorContent !== undefined && { becomeDoctorContent }),
+        ...(becomeNurseContent !== undefined && { becomeNurseContent }),
       },
     });
   }
@@ -291,6 +296,7 @@ const updateSocialMedia = async (req, res) => {
   const {
     instagram,
     telegram,
+    eitaa,
     whatsapp,
     twitter,
     linkedin,
@@ -306,6 +312,7 @@ const updateSocialMedia = async (req, res) => {
       data: {
         instagram,
         telegram,
+        eitaa,
         whatsapp,
         twitter,
         linkedin,
@@ -319,6 +326,7 @@ const updateSocialMedia = async (req, res) => {
       data: {
         ...(instagram !== undefined && { instagram }),
         ...(telegram !== undefined && { telegram }),
+        ...(eitaa !== undefined && { eitaa }),
         ...(whatsapp !== undefined && { whatsapp }),
         ...(twitter !== undefined && { twitter }),
         ...(linkedin !== undefined && { linkedin }),
@@ -335,6 +343,7 @@ const updateSocialMedia = async (req, res) => {
       socialMedia: {
         instagram: settings.instagram,
         telegram: settings.telegram,
+        eitaa: settings.eitaa,
         whatsapp: settings.whatsapp,
         twitter: settings.twitter,
         linkedin: settings.linkedin,
@@ -353,6 +362,7 @@ const getSocialMedia = async (req, res) => {
     select: {
       instagram: true,
       telegram: true,
+      eitaa: true,
       whatsapp: true,
       twitter: true,
       linkedin: true,
@@ -367,6 +377,7 @@ const getSocialMedia = async (req, res) => {
       socialMedia: settings || {
         instagram: null,
         telegram: null,
+        eitaa: null,
         whatsapp: null,
         twitter: null,
         linkedin: null,

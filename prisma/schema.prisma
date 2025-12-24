@@ -20,95 +20,100 @@ enum Gender {
   OTHER
 }
 
+enum ApplicationType {
+  DENTIST
+  NURSE
+}
+
 model User {
-  id           String    @id @default(uuid())
-  phoneNumber  String    @unique @map("phone_number")
-  firstName    String    @map("first_name")
-  lastName     String    @map("last_name")
+  id           String  @id @default(uuid())
+  phoneNumber  String  @unique @map("phone_number")
+  firstName    String  @map("first_name")
+  lastName     String  @map("last_name")
   password     String
-  role         Role      @default(PATIENT)
-  profileImage String?   @map("profile_image") // عکس پروفایل کاربر
-  
+  role         Role    @default(PATIENT)
+  profileImage String? @map("profile_image") // عکس پروفایل کاربر
+
   // Patient-specific fields (nullable for non-patients)
-  nationalCode String?   @map("national_code")
+  nationalCode String? @map("national_code")
   address      String?
   gender       Gender?
-  
+
   // Relations
-  clinicId     String?   @map("clinic_id")
-  clinic       Clinic?   @relation(fields: [clinicId], references: [id])
-  
+  clinicId String? @map("clinic_id")
+  clinic   Clinic? @relation(fields: [clinicId], references: [id])
+
   comments     Comment[]
   appointments Appointment[] // نوبت‌های کاربر
-  
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
 model Clinic {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  address     String
-  phoneNumber String   @map("phone_number")
-  description String?  @db.Text
-  image       String?  // تصویر کلینیک
-  latitude    Float?   // مختصات X (طول جغرافیایی) برای نقشه
-  longitude   Float?   // مختصات Y (عرض جغرافیایی) برای نقشه
+  id           String  @id @default(uuid())
+  name         String
+  slug         String  @unique
+  address      String
+  phoneNumber  String  @map("phone_number")
+  description  String? @db.Text
+  image        String? // تصویر کلینیک
+  latitude     Float? // مختصات X (طول جغرافیایی) برای نقشه
+  longitude    Float? // مختصات Y (عرض جغرافیایی) برای نقشه
   workingHours Json?   @map("working_hours") // ساعات کاری کلینیک: {"saturday": "09:00-18:00", "sunday": "09:00-18:00", ...}
-  eitaaChatId String?  @map("eitaa_chat_id") // شناسه کانال/گروه ایتا برای این کلینیک
-  
+  eitaaChatId  String? @map("eitaa_chat_id") // شناسه کانال/گروه ایتا برای این کلینیک
+
   // Relations
   secretaries        User[]
   doctors            DoctorClinic[]
   contactMessages    ContactMessage[]
   doctorApplications DoctorApplication[]
-  appointments       Appointment[]      // نوبت‌های کلینیک
-  notifications      Notification[]     // نوتیفیکیشن‌های کلینیک
-  syncApiKeys        SyncApiKey[]       // کلیدهای API سینک این کلینیک
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  appointments       Appointment[] // نوبت‌های کلینیک
+  notifications      Notification[] // نوتیفیکیشن‌های کلینیک
+  syncApiKeys        SyncApiKey[] // کلیدهای API سینک این کلینیک
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("clinics")
 }
 
 model Doctor {
-  id                String   @id @default(uuid())
-  firstName         String   @map("first_name")
-  lastName          String   @map("last_name")
-  slug              String   @unique
-  profileImage      String?  @map("profile_image")
-  shortDescription  String?  @db.Text @map("short_description") // توضیحات کوتاه پزشک
-  university        String
-  biography         String?  @db.Text
-  skills            Json     @default("[]") // Array of skills stored as JSON
-  medicalLicenseNo  String   @unique @map("medical_license_no")
-  workingDays       Json?    @map("working_days") // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "14:00-18:00", "sunday": "09:00-13:00"}, "clinicId2": {...}}
+  id                   String  @id @default(uuid())
+  firstName            String  @map("first_name")
+  lastName             String  @map("last_name")
+  slug                 String  @unique
+  profileImage         String? @map("profile_image")
+  shortDescription     String? @map("short_description") @db.Text // توضیحات کوتاه پزشک
+  university           String
+  biography            String? @db.Text
+  skills               Json    @default("[]") // Array of skills stored as JSON
+  medicalLicenseNo     String  @unique @map("medical_license_no")
+  workingDays          Json?   @map("working_days") // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "14:00-18:00", "sunday": "09:00-13:00"}, "clinicId2": {...}}
   isAppointmentEnabled Boolean @default(false) @map("is_appointment_enabled") // آیا امکان نوبت‌گیری برای این پزشک فعال است
-  
+
   // Relations
-  clinics           DoctorClinic[]
-  comments          Comment[]
-  appointments      Appointment[]  // نوبت‌های پزشک
-  
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  clinics      DoctorClinic[]
+  comments     Comment[]
+  appointments Appointment[] // نوبت‌های پزشک
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("doctors")
 }
 
 // Many-to-many relation between Doctor and Clinic
 model DoctorClinic {
-  id        String   @id @default(uuid())
-  doctorId  String   @map("doctor_id")
-  clinicId  String   @map("clinic_id")
-  
-  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(uuid())
+  doctorId String @map("doctor_id")
+  clinicId String @map("clinic_id")
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([doctorId, clinicId])
@@ -116,136 +121,136 @@ model DoctorClinic {
 }
 
 model ArticleCategory {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?  @db.Text
-  order       Int      @default(0) // Display order (lower number = higher priority)
-  published   Boolean  @default(true)
-  
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String? @db.Text
+  order       Int     @default(0) // Display order (lower number = higher priority)
+  published   Boolean @default(true)
+
   // Relations - Many-to-Many
-  articles    ArticleCategoryRelation[]
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  articles ArticleCategoryRelation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("article_categories")
 }
 
 // Many-to-Many relation between Article and ArticleCategory
 model ArticleCategoryRelation {
-  id          String   @id @default(uuid())
-  articleId   String   @map("article_id")
-  categoryId  String   @map("category_id")
-  
-  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  category    ArticleCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String @id @default(uuid())
+  articleId  String @map("article_id")
+  categoryId String @map("category_id")
+
+  article  Article         @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category ArticleCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([articleId, categoryId])
   @@map("article_category_relations")
 }
 
 model Article {
-  id          String   @id @default(uuid())
-  title       String
-  slug        String   @unique
-  content     String   @db.Text
-  excerpt     String?  @db.Text
-  coverImage  String?  @map("cover_image")
-  author      String?  // نویسنده مقاله
-  published   Boolean  @default(false)
-  
+  id         String  @id @default(uuid())
+  title      String
+  slug       String  @unique
+  content    String  @db.Text
+  excerpt    String? @db.Text
+  coverImage String? @map("cover_image")
+  author     String? // نویسنده مقاله
+  published  Boolean @default(false)
+
   // Relations - Many-to-Many
-  categories  ArticleCategoryRelation[]
-  comments    Comment[]
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  categories ArticleCategoryRelation[]
+  comments   Comment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("articles")
 }
 
 model ServiceCategory {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?  @db.Text
-  order       Int      @default(0) // Display order (lower number = higher priority)
-  published   Boolean  @default(true)
-  
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String? @db.Text
+  order       Int     @default(0) // Display order (lower number = higher priority)
+  published   Boolean @default(true)
+
   // Relations - Many-to-Many
-  services    ServiceCategoryRelation[]
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  services ServiceCategoryRelation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("service_categories")
 }
 
 // Many-to-Many relation between Service and ServiceCategory
 model ServiceCategoryRelation {
-  id          String   @id @default(uuid())
-  serviceId   String   @map("service_id")
-  categoryId  String   @map("category_id")
-  
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String @id @default(uuid())
+  serviceId  String @map("service_id")
+  categoryId String @map("category_id")
+
+  service  Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  category ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([serviceId, categoryId])
   @@map("service_category_relations")
 }
 
 model Service {
-  id                    String   @id @default(uuid())
-  title                 String
-  slug                  String   @unique
-  description           String   @db.Text
-  beforeTreatmentTips   String?  @db.Text @map("before_treatment_tips")
-  afterTreatmentTips    String?  @db.Text @map("after_treatment_tips")
-  price                 Int?     // قیمت به تومان
-  durationMinutes       Int?     @map("duration_minutes")
-  coverImage            String?  @map("cover_image")
-  
+  id                  String  @id @default(uuid())
+  title               String
+  slug                String  @unique
+  description         String  @db.Text
+  beforeTreatmentTips String? @map("before_treatment_tips") @db.Text
+  afterTreatmentTips  String? @map("after_treatment_tips") @db.Text
+  price               Int? // قیمت به تومان
+  durationMinutes     Int?    @map("duration_minutes")
+  coverImage          String? @map("cover_image")
+
   // Relations - Many-to-Many
-  categories  ServiceCategoryRelation[]
-  comments    Comment[]
-  
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  categories ServiceCategoryRelation[]
+  comments   Comment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("services")
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  content   String   @db.Text
-  rating    Int?     // امتیاز از ۱ تا ۵ (اختیاری)
-  published Boolean  @default(false) // وضعیت انتشار کامنت
-  read      Boolean  @default(false) // آیا کامنت خوانده شده است
-  
+  id        String  @id @default(uuid())
+  content   String  @db.Text
+  rating    Int? // امتیاز از ۱ تا ۵ (اختیاری)
+  published Boolean @default(false) // وضعیت انتشار کامنت
+  read      Boolean @default(false) // آیا کامنت خوانده شده است
+
   // Relations
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Polymorphic relations - only one should be set
-  doctorId  String?  @map("doctor_id")
-  doctor    Doctor?  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  
+  doctorId String? @map("doctor_id")
+  doctor   Doctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
   articleId String?  @map("article_id")
   article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  
+
   serviceId String?  @map("service_id")
   service   Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+
   // Reply relation - only replies to main comments (no nested replies)
-  parentId  String?  @map("parent_id")
-  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
-  
+  parentId String?   @map("parent_id")
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -258,103 +263,105 @@ model OtpCode {
   code        String
   expiresAt   DateTime @map("expires_at")
   verified    Boolean  @default(false)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([phoneNumber, code])
   @@map("otp_codes")
 }
 
 model SiteSettings {
-  id          String   @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // Site Info
-  siteName    String?  @map("site_name")
-  siteTitle   String?  @map("site_title")
-  description String?  @db.Text
+  siteName    String? @map("site_name")
+  siteTitle   String? @map("site_title")
+  description String? @db.Text
   logo        String?
-  
+
   // Contact Info
   email       String?
-  phoneNumber String?  @map("phone_number")
-  address     String?  @db.Text
-  
+  phoneNumber String? @map("phone_number")
+  address     String? @db.Text
+
   // Social Media Links
-  instagram   String?
-  telegram    String?
-  whatsapp    String?
-  twitter     String?
-  linkedin    String?
-  facebook    String?
-  youtube     String?
-  
+  instagram String?
+  telegram  String?
+  eitaa     String?
+  whatsapp  String?
+  twitter   String?
+  linkedin  String?
+  facebook  String?
+  youtube   String?
+
   // Working Hours
-  workingHours String? @db.Text @map("working_hours")
-  
+  workingHours String? @map("working_hours") @db.Text
+
   // About Us Page
-  aboutUsImage String? @map("about_us_image") // عکس صفحه درباره ما
-  aboutUsVideo String? @map("about_us_video") // فیلم صفحه درباره ما
-  aboutUsContent String? @db.Text @map("about_us_content") // محتوای صفحه درباره ما
-  
+  aboutUsImage   String? @map("about_us_image") // عکس صفحه درباره ما
+  aboutUsVideo   String? @map("about_us_video") // فیلم صفحه درباره ما
+  aboutUsContent String? @map("about_us_content") @db.Text // محتوای صفحه درباره ما
+
   // Contact Us Page
   contactUsImage String? @map("contact_us_image") // عکس صفحه تماس با ما
   contactUsVideo String? @map("contact_us_video") // فیلم صفحه تماس با ما
-  
+
   // Become Doctor Page
-  becomeDoctorContent String? @db.Text @map("become_doctor_content") // محتوای صفحه دکتر شوید
-  
+  becomeDoctorContent String? @map("become_doctor_content") @db.Text // محتوای صفحه دکتر شوید
+  becomeNurseContent  String? @map("become_nurse_content") @db.Text // محتوای صفحه نرس شوید
+
   // ==================== تنظیمات نوبت‌دهی ====================
   // حالت نوبت‌دهی: SIMPLE (ساده بدون بررسی تداخل) یا ADVANCED (پیشرفته با بررسی تداخل)
-  appointmentMode     String   @default("SIMPLE") @map("appointment_mode") // SIMPLE | ADVANCED
-  
+  appointmentMode String @default("SIMPLE") @map("appointment_mode") // SIMPLE | ADVANCED
+
   // ظرفیت نوبت‌های بدون دکتر در هر ساعت (برای حالت پیشرفته)
   maxAppointmentsPerHour Int @default(10) @map("max_appointments_per_hour")
-  
+
   // کلیدهای API برای سینک نرم‌افزار پایتون
-  syncApiKeys         SyncApiKey[]
-  
+  syncApiKeys SyncApiKey[]
+
   // ==================== تنظیمات نوتیفیکیشن ====================
   // روش ارسال نوتیفیکیشن به منشی‌ها: SMS | EITAA | BOTH
   secretaryNotificationMethod String @default("SMS") @map("secretary_notification_method")
-  
+
   // توکن API ایتا برای ارسال پیام به منشی‌ها
-  eitaaApiToken       String?  @map("eitaa_api_token")
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  eitaaApiToken String? @map("eitaa_api_token")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }
 
 // کلیدهای API برای سینک نوبت‌ها از نرم‌افزارهای آفلاین
 model SyncApiKey {
-  id          String   @id @default(uuid())
-  name        String   // نام دستگاه یا کلینیک (برای شناسایی)
-  apiKey      String   @unique @map("api_key") // کلید API یکتا
-  
+  id     String @id @default(uuid())
+  name   String // نام دستگاه یا کلینیک (برای شناسایی)
+  apiKey String @unique @map("api_key") // کلید API یکتا
+
   // محدودیت به کلینیک خاص (اختیاری)
-  clinicId    String?  @map("clinic_id")
-  clinic      Clinic?  @relation(fields: [clinicId], references: [id])
-  
-  isActive    Boolean  @default(true) @map("is_active") // فعال/غیرفعال
-  lastUsedAt  DateTime? @map("last_used_at") // آخرین استفاده
-  
+  clinicId String? @map("clinic_id")
+  clinic   Clinic? @relation(fields: [clinicId], references: [id])
+
+  isActive   Boolean   @default(true) @map("is_active") // فعال/غیرفعال
+  lastUsedAt DateTime? @map("last_used_at") // آخرین استفاده
+
   // ارتباط با تنظیمات سایت
-  siteSettingsId String @map("site_settings_id")
+  siteSettingsId String       @map("site_settings_id")
   siteSettings   SiteSettings @relation(fields: [siteSettingsId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("sync_api_keys")
 }
 
 model Faq {
-  id        String   @id @default(uuid())
-  question  String   @db.Text
-  answer    String   @db.Text
-  order     Int      @default(0) // Display order (lower number = higher priority)
-  
+  id       String @id @default(uuid())
+  question String @db.Text
+  answer   String @db.Text
+  order    Int    @default(0) // Display order (lower number = higher priority)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -362,96 +369,97 @@ model Faq {
 }
 
 model Gallery {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   title       String?
-  description String?  @db.Text
-  image       String   // Image path
-  order       Int      @default(0)
-  published   Boolean  @default(true)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  description String? @db.Text
+  image       String // Image path
+  order       Int     @default(0)
+  published   Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("gallery")
 }
 
 model InsuranceOrganization {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?  @db.Text
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String? @db.Text
   website     String?
-  phoneNumber String?  @map("phone_number")
+  phoneNumber String? @map("phone_number")
   email       String?
   logo        String?
-  published   Boolean  @default(true)
-  order       Int      @default(0) // Display order
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  published   Boolean @default(true)
+  order       Int     @default(0) // Display order
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("insurance_organizations")
 }
 
 model ContactMessage {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   email       String?
-  phoneNumber String?  @map("phone_number")
+  phoneNumber String? @map("phone_number")
   subject     String?
-  message     String   @db.Text
-  read        Boolean  @default(false) // آیا پیام خوانده شده است
-  clinicId    String?  @map("clinic_id")
-  clinic      Clinic?  @relation(fields: [clinicId], references: [id])
-  
-  createdAt   DateTime @default(now()) @map("created_at")
+  message     String  @db.Text
+  read        Boolean @default(false) // آیا پیام خوانده شده است
+  clinicId    String? @map("clinic_id")
+  clinic      Clinic? @relation(fields: [clinicId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("contact_messages")
 }
 
 model DoctorApplication {
-  id          String   @id @default(uuid())
-  firstName   String   @map("first_name")
-  lastName    String   @map("last_name")
-  email       String?
-  phoneNumber String   @map("phone_number")
-  doctorInfo  String   @db.Text @map("doctor_info") // اطلاعات پزشک
-  documents   String?  // مسیر فایل مدارک (ممکن است چند فایل باشد، به صورت JSON array ذخیره می‌شود)
-  read        Boolean  @default(false) // آیا درخواست خوانده شده است
-  clinicId    String?  @map("clinic_id")
-  clinic      Clinic?  @relation(fields: [clinicId], references: [id])
-  
-  createdAt   DateTime @default(now()) @map("created_at")
+  id              String          @id @default(uuid())
+  firstName       String          @map("first_name")
+  lastName        String          @map("last_name")
+  email           String?
+  phoneNumber     String          @map("phone_number")
+  doctorInfo      String          @map("doctor_info") @db.Text // اطلاعات پزشک
+  documents       String? // مسیر فایل مدارک (ممکن است چند فایل باشد، به صورت JSON array ذخیره می‌شود)
+  applicationType ApplicationType @default(DENTIST) @map("application_type") // نوع درخواست: DENTIST یا NURSE
+  read            Boolean         @default(false) // آیا درخواست خوانده شده است
+  clinicId        String?         @map("clinic_id")
+  clinic          Clinic?         @relation(fields: [clinicId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("doctor_applications")
 }
 
 model Review {
-  id          String   @id @default(uuid())
-  name        String   // نام کاربر
-  content     String   @db.Text // متن نظر
-  rating      Int      // امتیاز از ۱ تا ۵
+  id           String  @id @default(uuid())
+  name         String // نام کاربر
+  content      String  @db.Text // متن نظر
+  rating       Int // امتیاز از ۱ تا ۵
   profileImage String? @map("profile_image") // تصویر کاربر (اختیاری)
-  published   Boolean  @default(false) // وضعیت انتشار
-  order       Int      @default(0) // ترتیب نمایش
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  published    Boolean @default(false) // وضعیت انتشار
+  order        Int     @default(0) // ترتیب نمایش
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("reviews")
 }
 
 model HeroSlider {
-  id          String   @id @default(uuid())
-  title       String?  // عنوان باکس (اختیاری)
-  description String?  @db.Text // توضیحات باکس (اختیاری)
-  buttonText  String?  @map("button_text") // متن دکمه (اختیاری)
-  buttonLink  String?  @map("button_link") // لینک دکمه (اختیاری)
-  image       String   // مسیر تصویر اسلایدر
-  order       Int      @default(0) // ترتیب نمایش
-  published   Boolean  @default(true) // وضعیت انتشار
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String  @id @default(uuid())
+  title       String? // عنوان باکس (اختیاری)
+  description String? @db.Text // توضیحات باکس (اختیاری)
+  buttonText  String? @map("button_text") // متن دکمه (اختیاری)
+  buttonLink  String? @map("button_link") // لینک دکمه (اختیاری)
+  image       String // مسیر تصویر اسلایدر
+  order       Int     @default(0) // ترتیب نمایش
+  published   Boolean @default(true) // وضعیت انتشار
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("hero_sliders")
 }
@@ -459,73 +467,73 @@ model HeroSlider {
 // ==================== سیستم نوبت‌دهی ====================
 
 enum AppointmentStatus {
-  APPROVED_BY_USER  // ثبت شده توسط کاربر (در انتظار تأیید منشی)
-  CANCELED          // لغو شده
-  FINAL_APPROVED    // تأیید نهایی توسط منشی
+  APPROVED_BY_USER // ثبت شده توسط کاربر (در انتظار تأیید منشی)
+  CANCELED // لغو شده
+  FINAL_APPROVED // تأیید نهایی توسط منشی
 }
 
 enum AppointmentType {
-  CONSULTATION      // نوبت مشاوره (از سایت)
-  OPERATION         // نوبت عمل (از نرم‌افزار آفلاین)
+  CONSULTATION // نوبت مشاوره (از سایت)
+  OPERATION // نوبت عمل (از نرم‌افزار آفلاین)
 }
 
 model Appointment {
-  id              String            @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // اطلاعات کاربر رزرو کننده (اختیاری برای نوبت‌های عمل که از نرم‌افزار آفلاین می‌آیند)
-  userId          String?           @map("user_id")
-  user            User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // نام مراجع (اگر برای شخص دیگری نوبت گرفته شده یا نوبت عمل است)
-  patientName     String?           @map("patient_name")
-  
+  patientName String? @map("patient_name")
+
   // کد ملی مراجع (اختیاری)
-  nationalCode    String?           @map("national_code")
-  
+  nationalCode String? @map("national_code")
+
   // شماره تلفن مراجع (برای نوبت‌های عمل که userId ندارند)
-  patientPhone    String?           @map("patient_phone")
-  
+  patientPhone String? @map("patient_phone")
+
   // کلینیک (اجباری)
-  clinicId        String            @map("clinic_id")
-  clinic          Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  
+  clinicId String @map("clinic_id")
+  clinic   Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
   // پزشک (اختیاری)
-  doctorId        String?           @map("doctor_id")
-  doctor          Doctor?           @relation(fields: [doctorId], references: [id], onDelete: SetNull)
-  
+  doctorId String? @map("doctor_id")
+  doctor   Doctor? @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
   // تاریخ و ساعت نوبت
-  appointmentDate DateTime          @map("appointment_date")
-  
+  appointmentDate DateTime @map("appointment_date")
+
   // مدت زمان نوبت به دقیقه (پیش‌فرض ۱۰ دقیقه برای مشاوره)
-  durationMinutes Int               @default(10) @map("duration_minutes")
-  
+  durationMinutes Int @default(10) @map("duration_minutes")
+
   // نوع نوبت: مشاوره (از سایت) یا عمل (از نرم‌افزار آفلاین)
-  type            AppointmentType   @default(CONSULTATION)
-  
+  type AppointmentType @default(CONSULTATION)
+
   // وضعیت نوبت
-  status          AppointmentStatus @default(APPROVED_BY_USER)
-  
+  status AppointmentStatus @default(APPROVED_BY_USER)
+
   // یادآوری‌ها ارسال شده
-  reminder24hSent Boolean           @default(false) @map("reminder_24h_sent")
-  reminder30mSent Boolean           @default(false) @map("reminder_30m_sent")
-  
+  reminder24hSent Boolean @default(false) @map("reminder_24h_sent")
+  reminder30mSent Boolean @default(false) @map("reminder_30m_sent")
+
   // شناسه خارجی (برای نوبت‌های سینک شده از نرم‌افزار آفلاین)
-  externalId      String?           @unique @map("external_id")
-  
+  externalId String? @unique @map("external_id")
+
   // منبع نوبت
-  source          String            @default("WEBSITE") // WEBSITE | OFFLINE_SOFTWARE
-  
+  source String @default("WEBSITE") // WEBSITE | OFFLINE_SOFTWARE
+
   // شناسه پیام ایتا (برای آپدیت پیام در صورت تغییر وضعیت)
-  eitaaMessageId  String?           @map("eitaa_message_id")
-  
+  eitaaMessageId String? @map("eitaa_message_id")
+
   // توضیحات اضافی
-  notes           String?           @db.Text
-  
+  notes String? @db.Text
+
   // نوتیفیکیشن‌های مرتبط
-  notifications   Notification[]
-  
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  notifications Notification[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([clinicId])
@@ -538,32 +546,31 @@ model Appointment {
 
 // نوتیفیکیشن برای پنل ادمین/منشی
 model Notification {
-  id            String       @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // نوع نوتیفیکیشن
-  type          String       // appointment_new, appointment_reminder, etc.
-  title         String       // عنوان نوتیفیکیشن
-  message       String       @db.Text // متن نوتیفیکیشن
-  
+  type    String // appointment_new, appointment_reminder, etc.
+  title   String // عنوان نوتیفیکیشن
+  message String @db.Text // متن نوتیفیکیشن
+
   // لینک مرتبط (برای رفتن به صفحه مربوطه)
-  link          String?
-  
+  link String?
+
   // خوانده شده یا نه
-  read          Boolean      @default(false)
-  
+  read Boolean @default(false)
+
   // ارتباط با نوبت (اختیاری)
   appointmentId String?      @map("appointment_id")
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  
+
   // ارتباط با کلینیک (برای نمایش به منشی کلینیک مربوطه)
-  clinicId      String?      @map("clinic_id")
-  clinic        Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime     @default(now()) @map("created_at")
+  clinicId String? @map("clinic_id")
+  clinic   Clinic? @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([clinicId])
   @@index([read])
   @@index([type])
   @@map("notifications")
 }
-

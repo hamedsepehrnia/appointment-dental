@@ -86,7 +86,7 @@ const getDoctorApplication = async (req, res) => {
  * Create doctor application (Public)
  */
 const createDoctorApplication = async (req, res) => {
-  const { firstName, lastName, email, phoneNumber, doctorInfo, clinicId } = req.body;
+  const { firstName, lastName, email, phoneNumber, doctorInfo, clinicId, applicationType } = req.body;
 
   // Normalize phone number
   const normalizedPhoneNumber = formatPhoneNumber(phoneNumber);
@@ -128,6 +128,7 @@ const createDoctorApplication = async (req, res) => {
       doctorInfo,
       documents,
       clinicId: validatedClinicId,
+      applicationType: applicationType || 'DENTIST', // Default to DENTIST if not provided
     },
   });
 

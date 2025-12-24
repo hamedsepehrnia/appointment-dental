@@ -37,6 +37,7 @@ router.patch(
       address: Joi.string().allow(""),
       instagram: Joi.string().uri().allow(""),
       telegram: Joi.string().uri().allow(""),
+      eitaa: Joi.string().uri().allow(""),
       whatsapp: Joi.string().allow(""),
       twitter: Joi.string().uri().allow(""),
       linkedin: Joi.string().uri().allow(""),
@@ -49,6 +50,7 @@ router.patch(
       contactUsImage: Joi.string().allow("", null),
       contactUsVideo: Joi.string().allow("", null),
       becomeDoctorContent: Joi.string().allow(""),
+      becomeNurseContent: Joi.string().allow(""),
       removeLogo: Joi.string().valid("true", "false").optional(),
       removeAboutUsImage: Joi.string().valid("true", "false").optional(),
       removeContactUsImage: Joi.string().valid("true", "false").optional(),
@@ -66,6 +68,7 @@ router.patch(
     Joi.object({
       instagram: Joi.string().uri().allow(""),
       telegram: Joi.string().uri().allow(""),
+      eitaa: Joi.string().uri().allow(""),
       whatsapp: Joi.string().allow(""),
       twitter: Joi.string().uri().allow(""),
       linkedin: Joi.string().uri().allow(""),

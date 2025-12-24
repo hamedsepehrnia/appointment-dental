@@ -75,6 +75,9 @@ router.post(
         'any.required': 'اطلاعات پزشک الزامی است',
         'string.min': 'اطلاعات پزشک باید حداقل ۲۰ کاراکتر باشد',
       }),
+      applicationType: Joi.string().valid('DENTIST', 'NURSE').default('DENTIST').messages({
+        'any.only': 'نوع درخواست باید DENTIST یا NURSE باشد',
+      }),
     })
   ),
   asyncHandler(doctorApplicationController.createDoctorApplication)
