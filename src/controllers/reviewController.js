@@ -24,8 +24,8 @@ const getReviews = async (req, res) => {
   // Search functionality
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { content: { contains: search, mode: 'insensitive' } },
+      { name: { contains: search } },
+      { content: { contains: search } },
     ];
   }
 

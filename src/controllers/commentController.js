@@ -18,20 +18,20 @@ const getAllDoctorComments = async (req, res) => {
   // Search functionality
   if (search) {
     where.OR = [
-      { content: { contains: search, mode: "insensitive" } },
+      { content: { contains: search } },
       {
         user: {
           OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
           ],
         },
       },
       {
         doctor: {
           OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
           ],
         },
       },
@@ -96,16 +96,16 @@ const getAllArticleComments = async (req, res) => {
   // Search functionality
   if (search) {
     where.OR = [
-      { content: { contains: search, mode: "insensitive" } },
+      { content: { contains: search } },
       {
         user: {
           OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
           ],
         },
       },
-      { article: { title: { contains: search, mode: "insensitive" } } },
+      { article: { title: { contains: search } } },
     ];
   }
 
@@ -166,16 +166,16 @@ const getAllServiceComments = async (req, res) => {
   // Search functionality
   if (search) {
     where.OR = [
-      { content: { contains: search, mode: "insensitive" } },
+      { content: { contains: search } },
       {
         user: {
           OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
           ],
         },
       },
-      { service: { title: { contains: search, mode: "insensitive" } } },
+      { service: { title: { contains: search } } },
     ];
   }
 

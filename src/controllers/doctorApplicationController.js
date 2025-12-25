@@ -21,11 +21,11 @@ const getDoctorApplications = async (req, res) => {
   // Search functionality
   if (search) {
     where.OR = [
-      { firstName: { contains: search, mode: 'insensitive' } },
-      { lastName: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-      { phoneNumber: { contains: search, mode: 'insensitive' } },
-      { doctorInfo: { contains: search, mode: 'insensitive' } },
+      { firstName: { contains: search } },
+      { lastName: { contains: search } },
+      { email: { contains: search } },
+      { phoneNumber: { contains: search } },
+      { doctorInfo: { contains: search } },
     ];
   }
 

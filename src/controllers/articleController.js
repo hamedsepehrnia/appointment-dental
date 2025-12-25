@@ -36,7 +36,10 @@ const getArticles = async (req, res) => {
   }
 
   // Category filter (Many-to-Many)
-  if (categoryId || categorySlug) {
+  const hasCategoryFilter = categoryId || categorySlug;
+  const hasSearchFilter = search && typeof search === "string" && search.trim().length > 0;
+
+  if (hasCategoryFilter) {
     const categoryWhere = {};
     if (categoryId) {
       categoryWhere.id = categoryId;
@@ -59,12 +62,25 @@ const getArticles = async (req, res) => {
   }
 
   // Search functionality
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { excerpt: { contains: search, mode: "insensitive" } },
-      { content: { contains: search, mode: "insensitive" } },
+  if (hasSearchFilter) {
+    const searchTerm = search.trim();
+    const searchConditions = [
+      { title: { contains: searchTerm } },
+      { excerpt: { contains: searchTerm } },
+      { content: { contains: searchTerm } },
     ];
+
+    // If both category and search filters exist, combine them with AND
+    if (hasCategoryFilter) {
+      const categoryFilter = { ...where.categories };
+      where.AND = [
+        { categories: categoryFilter },
+        { OR: searchConditions },
+      ];
+      delete where.categories;
+    } else {
+      where.OR = searchConditions;
+    }
   }
 
   const [articles, total] = await Promise.all([
