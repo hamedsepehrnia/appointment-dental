@@ -172,6 +172,11 @@ app.use(
   express.static(path.join(__dirname, "uploads"))
 );
 
+// Sitemap route (should be at root level for SEO)
+const sitemapController = require("./src/controllers/sitemapController");
+const asyncHandler = require("./src/middlewares/asyncHandler");
+app.get("/sitemap.xml", asyncHandler(sitemapController.generateSitemap));
+
 // API routes
 app.use("/api", routes);
 
