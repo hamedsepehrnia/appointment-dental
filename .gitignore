@@ -24,8 +24,7 @@ Thumbs.db
 .idea/
 
 # Prisma
-# Note: We keep migration SQL files in git for manual execution on hosting
-# prisma/migrations/  # Commented out to allow migration SQL files in git
+prisma/migrations/
 
 # Build
 # dist/
