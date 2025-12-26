@@ -21,6 +21,7 @@ const heroSliderRoutes = require('./heroSliderRoutes');
 const appointmentRoutes = require('./appointmentRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const syncRoutes = require('./syncRoutes');
+const logRoutes = require('./logRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -43,6 +44,7 @@ router.use('/hero-sliders', heroSliderRoutes);
 router.use('/appointments', appointmentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/sync', syncRoutes);
+router.use('/logs', logRoutes);
 
 // Health check
 router.get("/health", (req, res) => {

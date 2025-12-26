@@ -32,26 +32,47 @@ const consoleFormat = winston.format.combine(
   })
 );
 
+// Define readable file format (for easier debugging)
+const readableFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true }),
+  winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
+    let msg = `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    if (stack) {
+      msg += `\n${stack}`;
+    }
+    if (Object.keys(meta).length > 0 && Object.keys(meta).some(key => key !== 'service')) {
+      const metaFiltered = { ...meta };
+      delete metaFiltered.service;
+      if (Object.keys(metaFiltered).length > 0) {
+        msg += `\n${JSON.stringify(metaFiltered, null, 2)}`;
+      }
+    }
+    return msg;
+  })
+);
+
 // Create logger instance
+const isProduction = process.env.NODE_ENV === 'production';
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+  level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
   format: logFormat,
   defaultMeta: { service: 'dental-appointment-api' },
   transports: [
-    // Write all logs to combined.log
+    // Write all logs to combined.log (readable format)
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-      format: logFormat
+      format: readableFormat
     }),
-    // Write errors to error.log
+    // Write errors to error.log (readable format)
     new winston.transports.File({
       filename: path.join(logsDir, 'error.log'),
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-      format: logFormat
+      format: readableFormat
     })
   ],
   // Handle exceptions
@@ -59,7 +80,8 @@ const logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(logsDir, 'exceptions.log'),
       maxsize: 5242880, // 5MB
-      maxFiles: 5
+      maxFiles: 5,
+      format: readableFormat
     })
   ],
   // Handle rejections
@@ -67,18 +89,20 @@ const logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(logsDir, 'rejections.log'),
       maxsize: 5242880, // 5MB
-      maxFiles: 5
+      maxFiles: 5,
+      format: readableFormat
     })
   ]
 });
 
-// Add console transport in development
-if (process.env.NODE_ENV !== 'production') {
+// Add console transport
+if (!isProduction) {
+  // Development: colored, readable format
   logger.add(new winston.transports.Console({
     format: consoleFormat
   }));
 } else {
-  // In production, also log to console but in JSON format
+  // Production: JSON format for log aggregation tools
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.timestamp(),
