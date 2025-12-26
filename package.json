@@ -11,6 +11,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate:hosting": "NODE_OPTIONS='--max-old-space-size=2048' prisma migrate deploy",
     "migrate:hosting": "node src/cli/migrateHosting.js",
+    "migrate:only": "node src/cli/migrateOnly.js",
     "prisma:studio": "prisma studio",
     "create:admin": "node src/cli/createUser.js admin",
     "create:secretary": "node src/cli/createUser.js secretary",

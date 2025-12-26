@@ -61,18 +61,63 @@ async function main() {
 
   logInfo('در حال بررسی وضعیت مایگریشن‌ها...\n');
 
+  // بررسی وجود Prisma Client (اگر قبلاً generate شده باشد)
+  const prismaClientPath = path.join(__dirname, '../../node_modules/.prisma/client');
+  const prismaClientExists = fs.existsSync(prismaClientPath);
+
   try {
-    // ابتدا Prisma Client را generate می‌کنیم
-    logInfo('در حال تولید Prisma Client...');
-    execSync('npx prisma generate', {
-      stdio: 'inherit',
-      cwd: path.join(__dirname, '../../'),
-      env: {
-        ...process.env,
-        NODE_OPTIONS: '--max-old-space-size=2048',
-      },
-    });
-    logSuccess('Prisma Client با موفقیت تولید شد\n');
+    // اگر Prisma Client وجود ندارد، سعی می‌کنیم آن را generate کنیم
+    if (!prismaClientExists) {
+      logInfo('Prisma Client یافت نشد. در حال تولید...');
+      logWarning('این فرآیند ممکن است حافظه زیادی نیاز داشته باشد...\n');
+      
+      try {
+        // تلاش اول با حافظه 2048MB
+        execSync('npx prisma generate', {
+          stdio: 'inherit',
+          cwd: path.join(__dirname, '../../'),
+          env: {
+            ...process.env,
+            NODE_OPTIONS: '--max-old-space-size=2048',
+          },
+        });
+        logSuccess('Prisma Client با موفقیت تولید شد\n');
+      } catch (generateError) {
+        // اگر خطای حافظه بود، با حافظه بیشتر تلاش می‌کنیم
+        if (generateError.message.includes('memory') || generateError.message.includes('Memory')) {
+          logWarning('خطای حافظه در تولید Prisma Client. تلاش با حافظه بیشتر...\n');
+          try {
+            execSync('npx prisma generate', {
+              stdio: 'inherit',
+              cwd: path.join(__dirname, '../../'),
+              env: {
+                ...process.env,
+                NODE_OPTIONS: '--max-old-space-size=4096',
+              },
+            });
+            logSuccess('Prisma Client با موفقیت تولید شد\n');
+          } catch (secondError) {
+            logError('خطا در تولید Prisma Client به دلیل کمبود حافظه!');
+            log('\n' + '='.repeat(50), 'yellow');
+            log('راه‌حل جایگزین:', 'yellow');
+            log('='.repeat(50), 'yellow');
+            log('1. Prisma Client را در محیط محلی تولید کنید:', 'cyan');
+            log('   npm run prisma:generate', 'cyan');
+            log('2. فایل‌های زیر را به هاست آپلود کنید:', 'cyan');
+            log('   - node_modules/.prisma/', 'cyan');
+            log('   - node_modules/@prisma/client/', 'cyan');
+            log('3. سپس فقط migrate را اجرا کنید:', 'cyan');
+            log('   npm run prisma:migrate:deploy', 'cyan');
+            log('='.repeat(50) + '\n', 'yellow');
+            throw secondError;
+          }
+        } else {
+          throw generateError;
+        }
+      }
+    } else {
+      logSuccess('Prisma Client قبلاً تولید شده است. از نسخه موجود استفاده می‌شود.\n');
+    }
 
     // اجرای مایگریشن با استفاده از migrate deploy (بهینه‌تر برای production)
     logInfo('در حال اجرای مایگریشن‌ها...');
@@ -102,8 +147,12 @@ async function main() {
     log('1. بررسی اتصال به دیتابیس', 'cyan');
     log('2. بررسی صحت DATABASE_URL در فایل .env', 'cyan');
     log('3. افزایش حافظه Node.js با دستور زیر:', 'cyan');
-    log('   NODE_OPTIONS="--max-old-space-size=4096" npm run prisma:migrate:hosting', 'cyan');
-    log('4. اجرای دستی مایگریشن‌ها یکی یکی از طریق phpMyAdmin یا MySQL CLI', 'cyan');
+    log('   NODE_OPTIONS="--max-old-space-size=4096" npm run migrate:hosting', 'cyan');
+    log('4. اگر خطای حافظه دارید، Prisma Client را در محیط محلی تولید کنید:', 'cyan');
+    log('   - در محیط محلی: npm run prisma:generate', 'cyan');
+    log('   - آپلود node_modules/.prisma/ به هاست', 'cyan');
+    log('   - سپس: npm run prisma:migrate:deploy', 'cyan');
+    log('5. اجرای دستی مایگریشن‌ها یکی یکی از طریق phpMyAdmin یا MySQL CLI', 'cyan');
     log('='.repeat(50) + '\n', 'yellow');
     
     process.exit(1);
