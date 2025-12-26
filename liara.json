@@ -1,8 +1,0 @@
-{
-  "app": "tahaclinic-test2",
-  "port": 4000,
-  "build": {
-    "location": "iran"
-  },
-  "disks": []
-}
