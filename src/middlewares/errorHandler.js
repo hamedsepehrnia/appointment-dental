@@ -1,3 +1,5 @@
+const logger = require('../utils/logger');
+
 /**
  * Custom error class
  */
@@ -49,17 +51,8 @@ const errorHandler = (err, req, res, next) => {
     // Keep the original rate limit message
   }
 
-  // Log error (but hide sensitive information)
-  if (process.env.NODE_ENV === "development") {
-    console.error("Error:", {
-      message: err.message,
-      statusCode,
-      stack: err.stack,
-    });
-  } else {
-    // In production, only log error type
-    console.error(`Error ${statusCode}: ${err.message}`);
-  }
+  // Log error using logger (logs to file)
+  logger.logError(err, req);
 
   // Prepare response
   const response = {
