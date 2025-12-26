@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * اسکریپت مایگریشن بهینه‌شده برای هاست‌های با حافظه محدود
- * این اسکریپت مایگریشن‌ها را یکی یکی اجرا می‌کند تا مصرف حافظه کاهش یابد
+ * Optimized migration script for hosting with limited memory
+ * This script runs migrations one by one to reduce memory consumption
  */
 
 const { execSync } = require('child_process');
@@ -41,38 +41,38 @@ function logWarning(message) {
 
 async function main() {
   log('\n' + '='.repeat(50), 'bright');
-  log('اسکریپت مایگریشن بهینه‌شده برای هاست', 'bright');
+  log('Optimized Migration Script for Hosting', 'bright');
   log('='.repeat(50) + '\n', 'bright');
 
-  // بررسی وجود فایل .env
+  // Check if .env file exists
   const envPath = path.join(__dirname, '../../.env');
   if (!fs.existsSync(envPath)) {
-    logError('فایل .env یافت نشد!');
-    logInfo('لطفاً ابتدا فایل .env را ایجاد کنید: npm run create:env');
+    logError('.env file not found!');
+    logInfo('Please create .env file first: npm run create:env');
     process.exit(1);
   }
 
-  // بررسی وجود DATABASE_URL
+  // Check if DATABASE_URL exists
   require('dotenv').config({ path: envPath });
   if (!process.env.DATABASE_URL) {
-    logError('DATABASE_URL در فایل .env تنظیم نشده است!');
+    logError('DATABASE_URL is not set in .env file!');
     process.exit(1);
   }
 
-  logInfo('در حال بررسی وضعیت مایگریشن‌ها...\n');
+  logInfo('Checking migration status...\n');
 
-  // بررسی وجود Prisma Client (اگر قبلاً generate شده باشد)
+  // Check if Prisma Client exists (if previously generated)
   const prismaClientPath = path.join(__dirname, '../../node_modules/.prisma/client');
   const prismaClientExists = fs.existsSync(prismaClientPath);
 
   try {
-    // اگر Prisma Client وجود ندارد، سعی می‌کنیم آن را generate کنیم
+    // If Prisma Client doesn't exist, try to generate it
     if (!prismaClientExists) {
-      logInfo('Prisma Client یافت نشد. در حال تولید...');
-      logWarning('این فرآیند ممکن است حافظه زیادی نیاز داشته باشد...\n');
+      logInfo('Prisma Client not found. Generating...');
+      logWarning('This process may require significant memory...\n');
       
       try {
-        // تلاش اول با حافظه 2048MB
+        // First attempt with 2048MB memory
         execSync('npx prisma generate', {
           stdio: 'inherit',
           cwd: path.join(__dirname, '../../'),
@@ -81,11 +81,11 @@ async function main() {
             NODE_OPTIONS: '--max-old-space-size=2048',
           },
         });
-        logSuccess('Prisma Client با موفقیت تولید شد\n');
+        logSuccess('Prisma Client generated successfully\n');
       } catch (generateError) {
-        // اگر خطای حافظه بود، با حافظه بیشتر تلاش می‌کنیم
+        // If memory error, try with more memory
         if (generateError.message.includes('memory') || generateError.message.includes('Memory')) {
-          logWarning('خطای حافظه در تولید Prisma Client. تلاش با حافظه بیشتر...\n');
+          logWarning('Memory error while generating Prisma Client. Trying with more memory...\n');
           try {
             execSync('npx prisma generate', {
               stdio: 'inherit',
@@ -95,18 +95,18 @@ async function main() {
                 NODE_OPTIONS: '--max-old-space-size=4096',
               },
             });
-            logSuccess('Prisma Client با موفقیت تولید شد\n');
+            logSuccess('Prisma Client generated successfully\n');
           } catch (secondError) {
-            logError('خطا در تولید Prisma Client به دلیل کمبود حافظه!');
+            logError('Error generating Prisma Client due to insufficient memory!');
             log('\n' + '='.repeat(50), 'yellow');
-            log('راه‌حل جایگزین:', 'yellow');
+            log('Alternative Solution:', 'yellow');
             log('='.repeat(50), 'yellow');
-            log('1. Prisma Client را در محیط محلی تولید کنید:', 'cyan');
+            log('1. Generate Prisma Client locally:', 'cyan');
             log('   npm run prisma:generate', 'cyan');
-            log('2. فایل‌های زیر را به هاست آپلود کنید:', 'cyan');
+            log('2. Upload the following files to hosting:', 'cyan');
             log('   - node_modules/.prisma/', 'cyan');
             log('   - node_modules/@prisma/client/', 'cyan');
-            log('3. سپس فقط migrate را اجرا کنید:', 'cyan');
+            log('3. Then run only migrate:', 'cyan');
             log('   npm run prisma:migrate:deploy', 'cyan');
             log('='.repeat(50) + '\n', 'yellow');
             throw secondError;
@@ -116,12 +116,12 @@ async function main() {
         }
       }
     } else {
-      logSuccess('Prisma Client قبلاً تولید شده است. از نسخه موجود استفاده می‌شود.\n');
+      logSuccess('Prisma Client already exists. Using existing version.\n');
     }
 
-    // اجرای مایگریشن با استفاده از migrate deploy (بهینه‌تر برای production)
-    logInfo('در حال اجرای مایگریشن‌ها...');
-    logWarning('این فرآیند ممکن است چند دقیقه طول بکشد...\n');
+    // Run migrations using migrate deploy (optimized for production)
+    logInfo('Running migrations...');
+    logWarning('This process may take a few minutes...\n');
 
     execSync('npx prisma migrate deploy', {
       stdio: 'inherit',
@@ -132,27 +132,27 @@ async function main() {
       },
     });
 
-    logSuccess('\n✓ تمام مایگریشن‌ها با موفقیت اجرا شدند!');
+    logSuccess('\n✓ All migrations executed successfully!');
     log('\n' + '='.repeat(50), 'green');
-    log('مایگریشن با موفقیت انجام شد', 'green');
+    log('Migration completed successfully', 'green');
     log('='.repeat(50) + '\n', 'green');
 
   } catch (error) {
-    logError('\n✗ خطا در اجرای مایگریشن!');
-    logError(`پیام خطا: ${error.message}`);
+    logError('\n✗ Error running migrations!');
+    logError(`Error message: ${error.message}`);
     
     log('\n' + '='.repeat(50), 'yellow');
-    log('راه‌حل‌های پیشنهادی:', 'yellow');
+    log('Suggested Solutions:', 'yellow');
     log('='.repeat(50), 'yellow');
-    log('1. بررسی اتصال به دیتابیس', 'cyan');
-    log('2. بررسی صحت DATABASE_URL در فایل .env', 'cyan');
-    log('3. افزایش حافظه Node.js با دستور زیر:', 'cyan');
+    log('1. Check database connection', 'cyan');
+    log('2. Verify DATABASE_URL in .env file', 'cyan');
+    log('3. Increase Node.js memory with the following command:', 'cyan');
     log('   NODE_OPTIONS="--max-old-space-size=4096" npm run migrate:hosting', 'cyan');
-    log('4. اگر خطای حافظه دارید، Prisma Client را در محیط محلی تولید کنید:', 'cyan');
-    log('   - در محیط محلی: npm run prisma:generate', 'cyan');
-    log('   - آپلود node_modules/.prisma/ به هاست', 'cyan');
-    log('   - سپس: npm run prisma:migrate:deploy', 'cyan');
-    log('5. اجرای دستی مایگریشن‌ها یکی یکی از طریق phpMyAdmin یا MySQL CLI', 'cyan');
+    log('4. If you have memory errors, generate Prisma Client locally:', 'cyan');
+    log('   - Locally: npm run prisma:generate', 'cyan');
+    log('   - Upload node_modules/.prisma/ to hosting', 'cyan');
+    log('   - Then: npm run prisma:migrate:deploy', 'cyan');
+    log('5. Run migrations manually one by one via phpMyAdmin or MySQL CLI', 'cyan');
     log('='.repeat(50) + '\n', 'yellow');
     
     process.exit(1);
@@ -160,7 +160,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  logError(`خطای غیرمنتظره: ${error.message}`);
+  logError(`Unexpected error: ${error.message}`);
   console.error(error);
   process.exit(1);
 });

@@ -4,7 +4,7 @@ require('dotenv').config();
 const prisma = require('../config/database');
 const { createSlug } = require('../utils/helpers');
 
-// داده‌های رندوم برای پزشکان
+// Random data for doctors
 const firstNames = [
   'علی', 'محمد', 'حسن', 'حسین', 'رضا', 'امیر', 'سعید', 'مهدی', 'احمد', 'حامد',
   'مریم', 'فاطمه', 'زهرا', 'سارا', 'نرگس', 'لیلا', 'سمیرا', 'نیلوفر', 'مهسا', 'پریسا'
@@ -54,21 +54,21 @@ const biographies = [
   'دندانپزشک با تخصص در ایمپلنت و جراحی دندان'
 ];
 
-// تابع برای ایجاد روزهای کاری رندوم برای یک کلینیک
+// Function to generate random working days for a clinic
 const generateWorkingDaysForClinic = () => {
   const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
   const clinicWorkingDays = {};
   const selectedDays = [];
   
-  // انتخاب 3 تا 5 روز رندوم
-  const numDays = Math.floor(Math.random() * 3) + 3; // 3 تا 5 روز
+  // Select 3 to 5 random days
+  const numDays = Math.floor(Math.random() * 3) + 3; // 3 to 5 days
   const shuffled = [...days].sort(() => 0.5 - Math.random());
   
   for (let i = 0; i < numDays; i++) {
     selectedDays.push(shuffled[i]);
   }
   
-  // ایجاد ساعات کاری رندوم
+  // Generate random working hours
   const timeSlots = [
     '09:00-13:00',
     '14:00-18:00',
@@ -85,8 +85,8 @@ const generateWorkingDaysForClinic = () => {
   return clinicWorkingDays;
 };
 
-// تابع برای ایجاد ساعات کاری به تفکیک کلینیک
-// ساختار جدید: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
+// Function to generate working days by clinic
+// New structure: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
 const generateWorkingDays = (clinicIds) => {
   const workingDays = {};
   
@@ -97,24 +97,24 @@ const generateWorkingDays = (clinicIds) => {
   return workingDays;
 };
 
-// تابع برای ایجاد شماره نظام پزشکی رندوم
+// Function to generate random medical license number
 const generateMedicalLicenseNo = () => {
   return Math.floor(10000 + Math.random() * 90000).toString();
 };
 
 const seedDoctors = async (count = 20) => {
   try {
-    console.log(`\n🌱 شروع ایجاد ${count} پزشک رندوم...\n`);
+    console.log(`\n🌱 Starting creation of ${count} random doctors...\n`);
 
-    // بررسی وجود کلینیک‌ها
+    // Check if clinics exist
     const clinics = await prisma.clinic.findMany({
       select: { id: true, name: true },
     });
 
     if (clinics.length === 0) {
-      console.log('⚠️  هیچ کلینیکی در دیتابیس وجود ندارد. پزشکان بدون کلینیک ایجاد می‌شوند.');
+      console.log('⚠️  No clinics found in database. Doctors will be created without clinics.');
     } else {
-      console.log(`✓ ${clinics.length} کلینیک پیدا شد\n`);
+      console.log(`✓ Found ${clinics.length} clinics\n`);
     }
 
     const createdDoctors = [];
@@ -122,11 +122,11 @@ const seedDoctors = async (count = 20) => {
     const usedLicenseNos = new Set();
 
     for (let i = 0; i < count; i++) {
-      // انتخاب نام و نام خانوادگی رندوم
+      // Select random first and last name
       const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
       const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
       
-      // ایجاد slug یکتا
+      // Create unique slug
       let baseSlug = createSlug(`${firstName}-${lastName}`);
       let slug = baseSlug;
       let counter = 1;
@@ -137,34 +137,34 @@ const seedDoctors = async (count = 20) => {
       }
       usedSlugs.add(slug);
 
-      // ایجاد شماره نظام پزشکی یکتا
+      // Generate unique medical license number
       let medicalLicenseNo = generateMedicalLicenseNo();
       while (usedLicenseNos.has(medicalLicenseNo)) {
         medicalLicenseNo = generateMedicalLicenseNo();
       }
       usedLicenseNos.add(medicalLicenseNo);
 
-      // انتخاب داده‌های رندوم
+      // Select random data
       const university = universities[Math.floor(Math.random() * universities.length)];
       const doctorSkills = skills[Math.floor(Math.random() * skills.length)];
       const biography = biographies[Math.floor(Math.random() * biographies.length)];
 
-      // انتخاب کلینیک‌ها اول تا ساعات کاری به تفکیک کلینیک ایجاد شود
+      // Select clinics first so working days can be created by clinic
       let selectedClinics = [];
       let workingDays = null;
 
       if (clinics.length > 0) {
-        // انتخاب 1 تا 2 کلینیک رندوم برای هر پزشک
-        const numClinics = Math.floor(Math.random() * 2) + 1; // 1 یا 2 کلینیک
+        // Select 1 to 2 random clinics for each doctor
+        const numClinics = Math.floor(Math.random() * 2) + 1; // 1 or 2 clinics
         selectedClinics = [...clinics]
           .sort(() => 0.5 - Math.random())
           .slice(0, Math.min(numClinics, clinics.length));
         
-        // ایجاد ساعات کاری به تفکیک کلینیک
+        // Generate working days by clinic
         workingDays = generateWorkingDays(selectedClinics.map(c => c.id));
       }
 
-      // ایجاد پزشک
+      // Create doctor
       const doctor = await prisma.doctor.create({
         data: {
           firstName,
@@ -178,7 +178,7 @@ const seedDoctors = async (count = 20) => {
         },
       });
 
-      // لینک کردن به کلینیک‌ها
+      // Link to clinics
       if (selectedClinics.length > 0) {
         for (const clinic of selectedClinics) {
           await prisma.doctorClinic.create({
@@ -190,28 +190,28 @@ const seedDoctors = async (count = 20) => {
         }
 
         console.log(
-          `✓ پزشک ${i + 1}/${count}: ${firstName} ${lastName} (${selectedClinics.map(c => c.name).join(', ')})`
+          `✓ Doctor ${i + 1}/${count}: ${firstName} ${lastName} (${selectedClinics.map(c => c.name).join(', ')})`
         );
       } else {
-        console.log(`✓ پزشک ${i + 1}/${count}: ${firstName} ${lastName}`);
+        console.log(`✓ Doctor ${i + 1}/${count}: ${firstName} ${lastName}`);
       }
 
       createdDoctors.push(doctor);
     }
 
-    console.log(`\n✅ ${createdDoctors.length} پزشک با موفقیت ایجاد شد!\n`);
+    console.log(`\n✅ ${createdDoctors.length} doctors created successfully!\n`);
 
-    // نمایش خلاصه
-    console.log('📊 خلاصه:');
-    console.log(`   - تعداد پزشکان ایجاد شده: ${createdDoctors.length}`);
+    // Display summary
+    console.log('📊 Summary:');
+    console.log(`   - Number of doctors created: ${createdDoctors.length}`);
     if (clinics.length > 0) {
       const doctorsWithClinics = await prisma.doctorClinic.count();
-      console.log(`   - تعداد لینک‌های پزشک-کلینیک: ${doctorsWithClinics}`);
+      console.log(`   - Number of doctor-clinic links: ${doctorsWithClinics}`);
     }
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ خطا در ایجاد پزشکان:', error.message);
+    console.error('\n❌ Error creating doctors:', error.message);
     console.error(error);
     process.exit(1);
   } finally {
@@ -219,9 +219,9 @@ const seedDoctors = async (count = 20) => {
   }
 };
 
-// دریافت تعداد از آرگومان‌های خط فرمان
+// Get count from command line arguments
 const count = parseInt(process.argv[2]) || 20;
 
-// اجرای seed
+// Run seed
 seedDoctors(count);
 
