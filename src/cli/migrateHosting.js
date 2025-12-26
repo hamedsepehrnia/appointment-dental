@@ -73,14 +73,14 @@ async function main() {
       
       try {
         // First attempt with 2048MB memory
-        execSync('npx prisma generate', {
-          stdio: 'inherit',
-          cwd: path.join(__dirname, '../../'),
-          env: {
-            ...process.env,
-            NODE_OPTIONS: '--max-old-space-size=2048',
-          },
-        });
+    execSync('npx prisma generate', {
+      stdio: 'inherit',
+      cwd: path.join(__dirname, '../../'),
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--max-old-space-size=2048',
+      },
+    });
         logSuccess('Prisma Client generated successfully\n');
       } catch (generateError) {
         // If memory error, try with more memory
