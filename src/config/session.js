@@ -1,35 +1,11 @@
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
+const pgSession = require('connect-pg-simple')(session);
 
-// Parse DATABASE_URL for MySQL connection
-const parseDbUrl = (url) => {
-  const parsedUrl = new URL(url);
-  return {
-    user: parsedUrl.username,
-    password: parsedUrl.password,
-    host: parsedUrl.hostname,
-    port: parseInt(parsedUrl.port) || 3306,
-    database: parsedUrl.pathname.slice(1), // Remove leading '/'
-  };
-};
-
-const dbConfig = parseDbUrl(process.env.DATABASE_URL);
-
-const sessionStore = new MySQLStore({
-  host: dbConfig.host,
-  port: dbConfig.port,
-  user: dbConfig.user,
-  password: dbConfig.password,
-  database: dbConfig.database,
-  createDatabaseTable: true,
-  schema: {
-    tableName: 'sessions',
-    columnNames: {
-      session_id: 'session_id',
-      expires: 'expires',
-      data: 'data'
-    }
-  }
+// Use DATABASE_URL directly for PostgreSQL connection
+const sessionStore = new pgSession({
+  conString: process.env.DATABASE_URL,
+  tableName: 'sessions',
+  createTableIfMissing: true,
 });
 
 const sessionConfig = {

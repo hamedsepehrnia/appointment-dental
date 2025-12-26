@@ -102,7 +102,21 @@ ${colors.bright}${colors.blue}========================================${colors.r
     console.log(`${colors.red}Database name cannot be empty.${colors.reset}`);
   }
   
-  const DATABASE_URL = `mysql://${dbUsername}:${dbPassword}@localhost:3306/${dbName}`;
+  let dbHost;
+  while (true) {
+    dbHost = await question('Database host (default: localhost): ');
+    if (!dbHost.trim()) dbHost = 'localhost';
+    break;
+  }
+  
+  let dbPort;
+  while (true) {
+    dbPort = await question('Database port (default: 5432): ');
+    if (!dbPort.trim()) dbPort = '5432';
+    break;
+  }
+  
+  const DATABASE_URL = `postgresql://${dbUsername}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
   printSuccess('Database configuration set');
 
   // 3. Generate random session secret
@@ -172,7 +186,7 @@ ${colors.bright}${colors.blue}========================================${colors.r
 # ===========================================
 
 # ===========================================
-# Database Configuration (MySQL)
+# Database Configuration (PostgreSQL)
 # ===========================================
 DATABASE_URL="${DATABASE_URL}"
 
