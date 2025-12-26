@@ -8,30 +8,11 @@ const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
 
-const logger = require("./src/utils/logger");
 const sessionConfig = require("./src/config/session");
 const routes = require("./src/routes");
 const { errorHandler, notFound } = require("./src/middlewares/errorHandler");
 const { setupCleanupJob } = require("./src/utils/cleanupJob");
 const { setupReminderJob } = require("./src/utils/reminderJob");
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  logger.error('Uncaught Exception:', err);
-  // Give time for logger to write
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', { promise, reason });
-  // Give time for logger to write
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -149,46 +130,12 @@ if (process.env.NODE_ENV !== "development") {
   app.use("/api/auth/login", loginLimiter);
 }
 
-// Logging with morgan and custom logger
+// Logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 } else {
-  // Use morgan with winston stream
-  app.use(morgan("combined", {
-    stream: {
-      write: (message) => logger.info(message.trim())
-    }
-  }));
+  app.use(morgan("combined"));
 }
-
-// Custom request logging middleware (logs to file)
-app.use((req, res, next) => {
-  const start = Date.now();
-  
-  // Log errors in response
-  const originalSend = res.send;
-  res.send = function(data) {
-    // Log 4xx and 5xx errors
-    if (res.statusCode >= 400) {
-      logger.warn('HTTP Error Response', {
-        method: req.method,
-        url: req.originalUrl || req.url,
-        statusCode: res.statusCode,
-        ip: req.ip || req.connection.remoteAddress,
-        userAgent: req.get('user-agent'),
-        body: typeof data === 'string' ? data.substring(0, 500) : data
-      });
-    }
-    return originalSend.call(this, data);
-  };
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.logRequest(req, res, duration);
-  });
-  
-  next();
-});
 
 // Body parsing
 app.use(express.json());
@@ -290,32 +237,15 @@ if (SERVE_MODE === "combined") {
   app.use(notFound);
 }
 
-// Middleware to catch all unhandled errors
-app.use((err, req, res, next) => {
-  // Log any error that reaches here
-  logger.error('Unhandled error caught by middleware', {
-    url: req.originalUrl || req.url,
-    method: req.method,
-    error: {
-      name: err.name,
-      message: err.message,
-      stack: err.stack,
-      code: err.code
-    }
-  });
-  next(err);
-});
-
 // Error handler (must be last)
 app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  logger.info(`🚀 Server is running on port ${PORT}`);
-  logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
-  logger.info(`🎯 Serve Mode: ${SERVE_MODE === "combined" ? "Combined (Frontend + Backend)" : "Backend Only"}`);
-  logger.info(`🔗 http://localhost:${PORT}`);
-  logger.info(`📁 Logs directory: ${path.join(__dirname, 'logs')}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🎯 Serve Mode: ${SERVE_MODE === "combined" ? "Combined (Frontend + Backend)" : "Backend Only"}`);
+  console.log(`🔗 http://localhost:${PORT}`);
 
   // Setup cleanup job for expired OTPs
   setupCleanupJob();
@@ -326,17 +256,8 @@ const server = app.listen(PORT, () => {
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  logger.info("SIGTERM signal received: closing HTTP server");
+  console.log("SIGTERM signal received: closing HTTP server");
   server.close(() => {
-    logger.info("HTTP server closed");
-    process.exit(0);
-  });
-});
-
-process.on("SIGINT", () => {
-  logger.info("SIGINT signal received: closing HTTP server");
-  server.close(() => {
-    logger.info("HTTP server closed");
-    process.exit(0);
+    console.log("HTTP server closed");
   });
 });

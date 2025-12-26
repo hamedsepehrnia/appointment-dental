@@ -1,5 +1,3 @@
-const logger = require('../utils/logger');
-
 /**
  * Custom error class
  */
@@ -16,28 +14,8 @@ class AppError extends Error {
  * Global error handler middleware
  */
 const errorHandler = (err, req, res, next) => {
-  // Always log the error first (even if response was already sent)
-  // This ensures we capture ALL errors, even if they're not properly handled
-  try {
-    logger.logError(err, req);
-  } catch (logError) {
-    // If logging itself fails, at least log to console
-    console.error('Failed to log error:', logError);
-    console.error('Original error:', err);
-  }
-
-  // If response was already sent, don't try to send again
-  if (res.headersSent) {
-    logger.warn('Error occurred but response was already sent', {
-      url: req.originalUrl || req.url,
-      method: req.method,
-      error: err.message
-    });
-    return next(err);
-  }
-
   let statusCode = err.statusCode || 500;
-  let message = err.message || "خطای ناشناخته پیش آمد";
+  let message = err.message || "خطای سرور";
 
   // Prisma errors
   if (err.code === "P2002") {
@@ -49,22 +27,6 @@ const errorHandler = (err, req, res, next) => {
   } else if (err.code?.startsWith("P")) {
     statusCode = 400;
     message = "خطا در عملیات دیتابیس";
-    // Log Prisma error details
-    logger.error('Prisma Error Details', {
-      code: err.code,
-      meta: err.meta,
-      message: err.message
-    });
-  }
-
-  // Database connection errors
-  if (err.code === "ECONNREFUSED" || err.code === "ETIMEDOUT") {
-    statusCode = 503;
-    message = "خطا در اتصال به دیتابیس";
-    logger.error('Database Connection Error', {
-      code: err.code,
-      message: err.message
-    });
   }
 
   // Multer errors
@@ -80,14 +42,23 @@ const errorHandler = (err, req, res, next) => {
   // Joi validation errors
   if (err.isJoi || err.name === "ValidationError") {
     statusCode = 400;
-    if (err.details && Array.isArray(err.details)) {
-      message = err.details.map(d => d.message).join(', ');
-    }
   }
 
   // Rate limit errors (429)
   if (statusCode === 429) {
     // Keep the original rate limit message
+  }
+
+  // Log error (but hide sensitive information)
+  if (process.env.NODE_ENV === "development") {
+    console.error("Error:", {
+      message: err.message,
+      statusCode,
+      stack: err.stack,
+    });
+  } else {
+    // In production, only log error type
+    console.error(`Error ${statusCode}: ${err.message}`);
   }
 
   // Prepare response
@@ -99,11 +70,6 @@ const errorHandler = (err, req, res, next) => {
   // Only show stack trace in development
   if (process.env.NODE_ENV === "development") {
     response.stack = err.stack;
-    response.error = {
-      name: err.name,
-      code: err.code,
-      message: err.message
-    };
   }
 
   res.status(statusCode).json(response);
