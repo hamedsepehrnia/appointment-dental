@@ -165,6 +165,23 @@ if (process.env.NODE_ENV === "development") {
 app.use((req, res, next) => {
   const start = Date.now();
   
+  // Log errors in response
+  const originalSend = res.send;
+  res.send = function(data) {
+    // Log 4xx and 5xx errors
+    if (res.statusCode >= 400) {
+      logger.warn('HTTP Error Response', {
+        method: req.method,
+        url: req.originalUrl || req.url,
+        statusCode: res.statusCode,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('user-agent'),
+        body: typeof data === 'string' ? data.substring(0, 500) : data
+      });
+    }
+    return originalSend.call(this, data);
+  };
+  
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.logRequest(req, res, duration);
@@ -272,6 +289,22 @@ if (SERVE_MODE === "combined") {
 if (SERVE_MODE === "combined") {
   app.use(notFound);
 }
+
+// Middleware to catch all unhandled errors
+app.use((err, req, res, next) => {
+  // Log any error that reaches here
+  logger.error('Unhandled error caught by middleware', {
+    url: req.originalUrl || req.url,
+    method: req.method,
+    error: {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+      code: err.code
+    }
+  });
+  next(err);
+});
 
 // Error handler (must be last)
 app.use(errorHandler);

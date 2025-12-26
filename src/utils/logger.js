@@ -125,29 +125,40 @@ logger.logRequest = (req, res, responseTime) => {
 
 logger.logError = (err, req = null) => {
   const errorInfo = {
-    message: err.message,
+    message: err.message || 'Unknown error',
     stack: err.stack,
-    name: err.name,
+    name: err.name || 'Error',
     code: err.code,
-    statusCode: err.statusCode
+    statusCode: err.statusCode,
+    // Include all error properties
+    ...(err.meta && { meta: err.meta }),
+    ...(err.cause && { cause: err.cause })
   };
 
   if (req) {
     errorInfo.request = {
       method: req.method,
       url: req.originalUrl || req.url,
-      ip: req.ip || req.connection.remoteAddress,
+      ip: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
       headers: {
         'user-agent': req.get('user-agent'),
-        'content-type': req.get('content-type')
+        'content-type': req.get('content-type'),
+        'authorization': req.get('authorization') ? '[REDACTED]' : undefined
       },
-      body: req.body,
-      query: req.query,
-      params: req.params
+      // Only log body/query/params if they exist and are not too large
+      ...(req.body && Object.keys(req.body).length > 0 && Object.keys(req.body).length < 50 && { body: req.body }),
+      ...(req.query && Object.keys(req.query).length > 0 && { query: req.query }),
+      ...(req.params && Object.keys(req.params).length > 0 && { params: req.params })
     };
   }
 
+  // Always log errors, even if they seem minor
   logger.error('Application Error', errorInfo);
+  
+  // Also log to console in development for immediate visibility
+  if (process.env.NODE_ENV === 'development') {
+    console.error('❌ Error:', errorInfo);
+  }
 };
 
 module.exports = logger;
