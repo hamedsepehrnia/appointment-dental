@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-login
+Disallow: /dashboard
+Disallow: /api
+
+# Sitemap - Dynamic sitemap generated from backend
+# The sitemap is generated dynamically and includes all doctors, services, and articles
+Sitemap: https://tahadentalclinic.ir/sitemap.xml
+

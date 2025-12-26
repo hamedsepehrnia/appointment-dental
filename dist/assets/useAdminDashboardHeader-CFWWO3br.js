@@ -1,1 +1,0 @@
-import{a as r}from"./react-vendor-dTsWsAAn.js";const a=r.createContext(void 0);a.displayName="AdminDashboardHeaderContext";function t(){const e=r.useContext(a);if(e===void 0)throw new Error("useAdminDashboardHeader must be used within AdminDashboardHeaderProvider");return e}export{a as A,t as u};
