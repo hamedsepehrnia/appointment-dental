@@ -37,7 +37,7 @@ app.use(
                 "http://localhost:4000",
                 "http://localhost:5173",
               ],
-              connectSrc: ["'self'"],
+              connectSrc: ["'self'", "https:", "http:"],
               fontSrc: ["'self'"],
               objectSrc: ["'none'"],
               mediaSrc: ["'self'"],
