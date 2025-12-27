@@ -157,41 +157,6 @@ const updateClinic = async (req, res) => {
   const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } =
     req.body;
 
-  // #region agent log
-  try {
-    const logPath = require("path").join(
-      process.cwd(),
-      "..",
-      ".cursor",
-      "debug.log"
-    );
-    require("fs").mkdirSync(
-      require("path").join(process.cwd(), "..", ".cursor"),
-      { recursive: true }
-    );
-    require("fs").writeFileSync(
-      logPath,
-      JSON.stringify({
-        location: "clinicController.js:157",
-        message: "updateClinic function called",
-        data: {
-          clinicId: id,
-          bodyKeys: Object.keys(req.body),
-          removeImage: req.body.removeImage,
-          removeImageType: typeof req.body.removeImage,
-        },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "C",
-      }) + "\n",
-      { flag: "a" }
-    );
-  } catch (err) {
-    // Ignore logging errors
-  }
-  // #endregion
-
   // Get current clinic
   const currentClinic = await prisma.clinic.findUnique({
     where: { id },
@@ -200,16 +165,6 @@ const updateClinic = async (req, res) => {
   if (!currentClinic) {
     throw new AppError("کلینیک یافت نشد", 404);
   }
-
-  // Debug log for eitaaChatId
-  console.log('=== UPDATE CLINIC DEBUG ===');
-  console.log('eitaaChatId from req.body:', eitaaChatId);
-  console.log('eitaaChatId type:', typeof eitaaChatId);
-  console.log('eitaaChatId === undefined:', eitaaChatId === undefined);
-  console.log('eitaaChatId === null:', eitaaChatId === null);
-  console.log('eitaaChatId === ""', eitaaChatId === "");
-  console.log('req.body keys:', Object.keys(req.body));
-  console.log('===========================');
 
   // If secretary, check if they belong to this clinic
   if (req.session.userRole === "SECRETARY") {
@@ -304,64 +259,7 @@ const updateClinic = async (req, res) => {
   }
 
   // Handle image removal
-  // #region agent log
-  try {
-    const logData = {
-      removeImage: req.body.removeImage,
-      removeImageType: typeof req.body.removeImage,
-      bodyKeys: Object.keys(req.body),
-      clinicId: id,
-      currentImage: currentClinic.image,
-    };
-    const logPath = require("path").join(
-      process.cwd(),
-      "..",
-      ".cursor",
-      "debug.log"
-    );
-    require("fs").writeFileSync(
-      logPath,
-      JSON.stringify({
-        location: "clinicController.js:251",
-        message: "Checking removeImage",
-        data: logData,
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "C",
-      }) + "\n",
-      { flag: "a" }
-    );
-  } catch (err) {
-    // Ignore logging errors
-  }
-  // #endregion
   if (req.body.removeImage === "true") {
-    // #region agent log
-    try {
-      const logPath = require("path").join(
-        process.cwd(),
-        "..",
-        ".cursor",
-        "debug.log"
-      );
-      require("fs").writeFileSync(
-        logPath,
-        JSON.stringify({
-          location: "clinicController.js:293",
-          message: "removeImage is true, deleting image",
-          data: { clinicId: id, currentImage: currentClinic.image },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "C",
-        }) + "\n",
-        { flag: "a" }
-      );
-    } catch (err) {
-      // Ignore logging errors
-    }
-    // #endregion
     // Delete old image if exists
     if (currentClinic.image) {
       const imagePath = currentClinic.image.startsWith("/")
@@ -371,35 +269,12 @@ const updateClinic = async (req, res) => {
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error("Error deleting image:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error deleting image:", err);
+        }
       }
     }
     updateData.image = null;
-    // #region agent log
-    try {
-      const logPath = require("path").join(
-        process.cwd(),
-        "..",
-        ".cursor",
-        "debug.log"
-      );
-      require("fs").writeFileSync(
-        logPath,
-        JSON.stringify({
-          location: "clinicController.js:324",
-          message: "updateData.image set to null",
-          data: { clinicId: id, updateDataImage: updateData.image },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "C",
-        }) + "\n",
-        { flag: "a" }
-      );
-    } catch (err) {
-      // Ignore logging errors
-    }
-    // #endregion
   }
   // Handle image upload
   else if (req.file) {
@@ -413,7 +288,9 @@ const updateClinic = async (req, res) => {
       try {
         await fs.unlink(oldImagePath);
       } catch (err) {
-        console.error("Error deleting old image:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error deleting old image:", err);
+        }
       }
     }
     updateData.image = `/uploads/clinics/${req.file.filename}`;
@@ -434,37 +311,6 @@ const updateClinic = async (req, res) => {
     where: { id },
     data: updateData,
   });
-
-  // #region agent log
-  try {
-    const logPath = require("path").join(
-      process.cwd(),
-      "..",
-      ".cursor",
-      "debug.log"
-    );
-    require("fs").writeFileSync(
-      logPath,
-      JSON.stringify({
-        location: "clinicController.js:360",
-        message: "Clinic updated, sending response",
-        data: {
-          clinicId: id,
-          clinicImage: clinic.image,
-          clinicImageNull: clinic.image === null,
-          clinicImageUndefined: clinic.image === undefined,
-        },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "D",
-      }) + "\n",
-      { flag: "a" }
-    );
-  } catch (err) {
-    // Ignore logging errors
-  }
-  // #endregion
 
   res.json({
     success: true,
