@@ -196,26 +196,32 @@ const createService = async (req, res) => {
     }
   }
 
+  const serviceData = {
+    title,
+    slug: finalSlug,
+    description: sanitizeContent(description),
+    beforeTreatmentTips: beforeTreatmentTips
+      ? sanitizeContent(beforeTreatmentTips)
+      : null,
+    afterTreatmentTips: afterTreatmentTips
+      ? sanitizeContent(afterTreatmentTips)
+      : null,
+    price: price ? parseInt(price) : null,
+    durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
+    coverImage,
+  };
+
+  // Only include categories if there are any
+  if (categoryIdsArray.length > 0) {
+    serviceData.categories = {
+      create: categoryIdsArray.map((categoryId) => ({
+        categoryId,
+      })),
+    };
+  }
+
   const service = await prisma.service.create({
-    data: {
-      title,
-      slug: finalSlug,
-      description: sanitizeContent(description),
-      beforeTreatmentTips: beforeTreatmentTips
-        ? sanitizeContent(beforeTreatmentTips)
-        : null,
-      afterTreatmentTips: afterTreatmentTips
-        ? sanitizeContent(afterTreatmentTips)
-        : null,
-      price: price ? parseInt(price) : null,
-      durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
-      coverImage,
-      categories: {
-        create: categoryIdsArray.map((categoryId) => ({
-          categoryId,
-        })),
-      },
-    },
+    data: serviceData,
     include: {
       categories: {
         include: {
