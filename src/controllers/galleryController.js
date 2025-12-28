@@ -95,6 +95,65 @@ const uploadImage = async (req, res) => {
 };
 
 /**
+ * Bulk upload images to gallery (Admin/Secretary)
+ */
+const bulkUploadImages = async (req, res) => {
+  const files = req.files;
+  const { published } = req.body;
+
+  console.log('Bulk upload request:', {
+    filesCount: files ? files.length : 0,
+    files: files ? files.map(f => ({ fieldname: f.fieldname, filename: f.filename, originalname: f.originalname })) : [],
+    published
+  });
+
+  if (!files || files.length === 0) {
+    throw new AppError('لطفاً حداقل یک تصویر انتخاب کنید', 400);
+  }
+
+  const publishedValue = published !== undefined ? published === 'true' : true;
+
+  // Get the maximum order value to append new images
+  const maxOrderImage = await prisma.gallery.findFirst({
+    orderBy: { order: 'desc' },
+    select: { order: true },
+  });
+  let currentOrder = maxOrderImage ? maxOrderImage.order + 1 : 0;
+
+  // Get total count of gallery images to generate sequential numbers
+  const totalCount = await prisma.gallery.count();
+  let imageNumber = totalCount + 1;
+
+  const images = await Promise.all(
+    files.map((file) => {
+      const imagePath = `/uploads/gallery/${file.filename}`;
+      const defaultTitle = `تصویر شماره ${imageNumber++}`;
+      console.log('Uploading image:', {
+        filename: file.filename,
+        originalname: file.originalname,
+        path: imagePath,
+        fieldname: file.fieldname
+      });
+      return prisma.gallery.create({
+        data: {
+          title: defaultTitle,
+          description: null,
+          image: imagePath,
+          order: currentOrder++,
+          published: publishedValue,
+        },
+      });
+    })
+  );
+
+  res.status(201).json({
+    success: true,
+    message: `${images.length} تصویر با موفقیت آپلود شد`,
+    data: { images },
+  });
+};
+
+/**
  * Update gallery image (Admin/Secretary)
  */
 const updateImage = async (req, res) => {
@@ -203,6 +262,7 @@ module.exports = {
   getGalleryImages,
   getGalleryImage,
   uploadImage,
+  bulkUploadImages,
   updateImage,
   deleteImage,
 };

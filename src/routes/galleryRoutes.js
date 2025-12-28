@@ -40,6 +40,20 @@ router.post(
   asyncHandler(galleryController.uploadImage)
 );
 
+// Bulk upload images to gallery (Admin/Secretary)
+router.post(
+  '/bulk',
+  isAdminOrSecretary,
+  csrfProtection,
+  upload.array('galleryImages', 50), // Allow up to 50 images
+  validate(
+    Joi.object({
+      published: Joi.string().valid('true', 'false'),
+    })
+  ),
+  asyncHandler(galleryController.bulkUploadImages)
+);
+
 // Update gallery image (Admin/Secretary)
 router.patch(
   '/:id',

@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
       uploadPath += isClinicRoute ? "clinics/" : "images/";
     } else if (file.fieldname === "coverImage") {
       uploadPath += "images/";
-    } else if (file.fieldname === "galleryImage") {
+    } else if (file.fieldname === "galleryImage" || file.fieldname === "galleryImages") {
       uploadPath += "gallery/";
     } else if (file.fieldname === "heroSliderImage") {
       uploadPath += "images/";
