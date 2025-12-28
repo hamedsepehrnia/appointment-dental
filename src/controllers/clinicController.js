@@ -86,8 +86,43 @@ const getClinic = async (req, res) => {
  */
 const createClinic = async (req, res) => {
   const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } = req.body;
-  // Normalize phone number if provided
-  const normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber);
+  // Normalize phone number(s) if provided - handle JSON string or array
+  let normalizedPhoneNumber = "";
+  if (phoneNumber) {
+    let phoneNumbersArray = [];
+    
+    // Try to parse as JSON first (in case it's sent as JSON string)
+    if (typeof phoneNumber === 'string') {
+      const trimmed = phoneNumber.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            phoneNumbersArray = parsed;
+          } else {
+            phoneNumbersArray = [parsed];
+          }
+        } catch {
+          // If JSON parse fails, treat as single phone number
+          phoneNumbersArray = [trimmed];
+        }
+      } else {
+        phoneNumbersArray = [trimmed];
+      }
+    } else if (Array.isArray(phoneNumber)) {
+      phoneNumbersArray = phoneNumber;
+    } else {
+      phoneNumbersArray = [phoneNumber];
+    }
+    
+    // Format and filter phone numbers
+    const validPhones = phoneNumbersArray
+      .map(phone => formatPhoneNumberOptional(phone))
+      .filter(phone => phone !== null && phone !== undefined && phone !== '');
+    
+    // Join with comma separator for storage
+    normalizedPhoneNumber = validPhones.join(', ');
+  }
 
   // Generate unique slug
   let baseSlug = createSlug(name);
@@ -209,10 +244,42 @@ const updateClinic = async (req, res) => {
       longitude === null || longitude === "" ? null : parseFloat(longitude);
   }
 
-  // Normalize phone number if provided
+  // Normalize phone number(s) if provided - handle JSON string or array
   let normalizedPhoneNumber = undefined;
   if (phoneNumber !== undefined) {
-    normalizedPhoneNumber = formatPhoneNumberOptional(phoneNumber) || "";
+    let phoneNumbersArray = [];
+    
+    // Try to parse as JSON first (in case it's sent as JSON string)
+    if (typeof phoneNumber === 'string') {
+      const trimmed = phoneNumber.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            phoneNumbersArray = parsed;
+          } else {
+            phoneNumbersArray = [parsed];
+          }
+        } catch {
+          // If JSON parse fails, treat as single phone number
+          phoneNumbersArray = [trimmed];
+        }
+      } else {
+        phoneNumbersArray = [trimmed];
+      }
+    } else if (Array.isArray(phoneNumber)) {
+      phoneNumbersArray = phoneNumber;
+    } else {
+      phoneNumbersArray = [phoneNumber];
+    }
+    
+    // Format and filter phone numbers
+    const validPhones = phoneNumbersArray
+      .map(phone => formatPhoneNumberOptional(phone))
+      .filter(phone => phone !== null && phone !== undefined && phone !== '');
+    
+    // Join with comma separator for storage
+    normalizedPhoneNumber = validPhones.join(', ');
   }
 
   // Parse workingHours if it's a string (from form-data)
