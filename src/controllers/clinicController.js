@@ -120,8 +120,8 @@ const createClinic = async (req, res) => {
       .map(phone => formatPhoneNumberOptional(phone))
       .filter(phone => phone !== null && phone !== undefined && phone !== '');
     
-    // Join with comma separator for storage
-    normalizedPhoneNumber = validPhones.join(', ');
+    // Join with comma separator for storage, or set to empty string if no valid phones
+    normalizedPhoneNumber = validPhones.length > 0 ? validPhones.join(', ') : "";
   }
 
   // Generate unique slug
@@ -136,8 +136,16 @@ const createClinic = async (req, res) => {
   }
 
   // Parse latitude and longitude if they are strings
-  const parsedLatitude = latitude ? parseFloat(latitude) : null;
-  const parsedLongitude = longitude ? parseFloat(longitude) : null;
+  let parsedLatitude = null;
+  let parsedLongitude = null;
+  if (latitude) {
+    const parsed = parseFloat(latitude);
+    parsedLatitude = isNaN(parsed) ? null : parsed;
+  }
+  if (longitude) {
+    const parsed = parseFloat(longitude);
+    parsedLongitude = isNaN(parsed) ? null : parsed;
+  }
 
   // Parse workingHours if it's a string (from form-data)
   let parsedWorkingHours = null;
@@ -236,12 +244,24 @@ const updateClinic = async (req, res) => {
   let parsedLatitude = undefined;
   let parsedLongitude = undefined;
   if (latitude !== undefined) {
-    parsedLatitude =
-      latitude === null || latitude === "" ? null : parseFloat(latitude);
+    if (latitude === null || latitude === "") {
+      parsedLatitude = null;
+    } else {
+      // Convert to string first, then parse to handle any type
+      const latStr = String(latitude).trim();
+      const parsed = parseFloat(latStr);
+      parsedLatitude = isNaN(parsed) ? null : parsed;
+    }
   }
   if (longitude !== undefined) {
-    parsedLongitude =
-      longitude === null || longitude === "" ? null : parseFloat(longitude);
+    if (longitude === null || longitude === "") {
+      parsedLongitude = null;
+    } else {
+      // Convert to string first, then parse to handle any type
+      const lngStr = String(longitude).trim();
+      const parsed = parseFloat(lngStr);
+      parsedLongitude = isNaN(parsed) ? null : parsed;
+    }
   }
 
   // Normalize phone number(s) if provided - handle JSON string or array
@@ -252,34 +272,43 @@ const updateClinic = async (req, res) => {
     // Try to parse as JSON first (in case it's sent as JSON string)
     if (typeof phoneNumber === 'string') {
       const trimmed = phoneNumber.trim();
+      // Check if it's a valid JSON array
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
         try {
           const parsed = JSON.parse(trimmed);
           if (Array.isArray(parsed)) {
-            phoneNumbersArray = parsed;
+            phoneNumbersArray = parsed.map(p => String(p).trim()).filter(p => p);
           } else {
-            phoneNumbersArray = [parsed];
+            phoneNumbersArray = [String(parsed).trim()].filter(p => p);
           }
-        } catch {
+        } catch (error) {
           // If JSON parse fails, treat as single phone number
-          phoneNumbersArray = [trimmed];
+          phoneNumbersArray = trimmed ? [trimmed] : [];
         }
       } else {
-        phoneNumbersArray = [trimmed];
+        // Not a JSON array, treat as single phone number or comma-separated
+        if (trimmed.includes(',')) {
+          phoneNumbersArray = trimmed.split(',').map(p => p.trim()).filter(p => p);
+        } else {
+          phoneNumbersArray = trimmed ? [trimmed] : [];
+        }
       }
     } else if (Array.isArray(phoneNumber)) {
-      phoneNumbersArray = phoneNumber;
-    } else {
-      phoneNumbersArray = [phoneNumber];
+      phoneNumbersArray = phoneNumber.map(p => String(p).trim()).filter(p => p);
+    } else if (phoneNumber !== null && phoneNumber !== '') {
+      phoneNumbersArray = [String(phoneNumber).trim()].filter(p => p);
     }
     
     // Format and filter phone numbers
     const validPhones = phoneNumbersArray
-      .map(phone => formatPhoneNumberOptional(phone))
+      .map(phone => {
+        const formatted = formatPhoneNumberOptional(String(phone).trim());
+        return formatted;
+      })
       .filter(phone => phone !== null && phone !== undefined && phone !== '');
     
-    // Join with comma separator for storage
-    normalizedPhoneNumber = validPhones.join(', ');
+    // Join with comma separator for storage, or set to empty string if no valid phones
+    normalizedPhoneNumber = validPhones.length > 0 ? validPhones.join(', ') : "";
   }
 
   // Parse workingHours if it's a string (from form-data)
@@ -310,15 +339,17 @@ const updateClinic = async (req, res) => {
     updateData.address = address;
   }
   if (normalizedPhoneNumber !== undefined) {
-    updateData.phoneNumber = normalizedPhoneNumber;
+    updateData.phoneNumber = normalizedPhoneNumber || "";
   }
   if (description !== undefined) {
     updateData.description = description;
   }
   if (latitude !== undefined) {
+    // Only set latitude if it's a valid number or null
     updateData.latitude = parsedLatitude;
   }
   if (longitude !== undefined) {
+    // Only set longitude if it's a valid number or null
     updateData.longitude = parsedLongitude;
   }
   if (parsedWorkingHours !== undefined) {
@@ -372,6 +403,11 @@ const updateClinic = async (req, res) => {
   // Add eitaaChatId to updateData if provided
   if (processedEitaaChatId !== undefined) {
     updateData.eitaaChatId = processedEitaaChatId;
+  }
+
+  // Debug: Log updateData in development
+  if (process.env.NODE_ENV === "development") {
+    console.log("Update data:", JSON.stringify(updateData, null, 2));
   }
 
   const clinic = await prisma.clinic.update({
