@@ -131,7 +131,33 @@ const requestOtp = async (req, res) => {
   const smsResult = await smsService.sendSimpleSms(formattedPhone, smsMessage, recipientType, '🔐 کد تأیید ورود');
 
   if (!smsResult.success) {
-    throw new AppError("خطا در ارسال پیامک", 500);
+    console.error('SMS sending failed for OTP:', smsResult.error);
+
+    // SMS failure handling mode: 'allow' (default) keeps OTP and returns a warning response,
+    // 'strict' will throw an error as before.
+    const smsFailMode = process.env.SMS_FAIL_MODE || 'allow';
+
+    if (smsFailMode === 'strict') {
+      throw new AppError("خطا در ارسال پیامک", 500);
+    }
+
+    // Default: allow - return success with smsSent=false so clients can handle retry UI.
+    const responseData = {
+      isNewUser: !user,
+      expiresIn: expirySeconds, // seconds
+      smsSent: false,
+    };
+
+    // Include provider error in response only in non-production or when explicitly enabled
+    if (process.env.NODE_ENV !== 'production' || process.env.SHOW_SMS_ERROR_IN_RESPONSE === 'true') {
+      responseData.smsError = smsResult.error;
+    }
+
+    return res.json({
+      success: true,
+      message: "کد تأیید ساخته شد اما ارسال پیامک با خطا مواجه شد. لطفاً چند دقیقه بعد دوباره تلاش کنید.",
+      data: responseData,
+    });
   }
 
   res.json({
@@ -140,6 +166,7 @@ const requestOtp = async (req, res) => {
     data: {
       isNewUser: !user,
       expiresIn: expirySeconds, // seconds
+      smsSent: true,
     },
   });
 };

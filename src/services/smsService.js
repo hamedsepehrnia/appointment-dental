@@ -7,6 +7,10 @@ class SmsService {
     this.baseUrl = `https://api.kavenegar.com/v1/${this.apiKey}`;
     // Check if SMS should be logged instead of sent
     this.logOnly = process.env.SMS_LOG_ONLY === 'true' || process.env.SMS_LOG_ONLY === '1';
+
+    // Retry configuration for transient SMS errors
+    this.retryCount = parseInt(process.env.SMS_RETRY_COUNT || '3', 10);
+    this.retryBaseDelay = parseInt(process.env.SMS_RETRY_BASE_DELAY_MS || '1000', 10);
   }
 
   /**
@@ -86,28 +90,39 @@ class SmsService {
       };
     }
 
-    try {
-      const template = process.env.OTP_TEMPLATE || 'verify';
-      const url = `${this.baseUrl}/verify/lookup.json`;
-      
-      const response = await axios.post(url, null, {
-        params: {
-          receptor: phoneNumber,
-          token: code,
-          template,
-        },
-      });
+    // Retry logic for transient errors (5xx or network failures)
+    const template = process.env.OTP_TEMPLATE || 'verify';
+    const url = `${this.baseUrl}/verify/lookup.json`;
+    for (let attempt = 1; attempt <= this.retryCount; attempt++) {
+      try {
+        const response = await axios.post(url, null, {
+          params: {
+            receptor: phoneNumber,
+            token: code,
+            template,
+          },
+        });
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error('SMS sending error:', error.response?.data || error.message);
-      return {
-        success: false,
-        error: error.response?.data?.return?.message || error.message,
-      };
+        return {
+          success: true,
+          data: response.data,
+        };
+      } catch (error) {
+        const status = error.response?.status;
+        const transient = !status || (status >= 500 && status < 600);
+        console.error(`SMS sending error (OTP) attempt ${attempt}:`, error.response?.data || error.message);
+
+        if (!transient || attempt === this.retryCount) {
+          return {
+            success: false,
+            error: error.response?.data?.return?.message || error.message,
+          };
+        }
+
+        // exponential backoff
+        const delay = this.retryBaseDelay * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 
@@ -130,27 +145,39 @@ class SmsService {
       };
     }
 
-    try {
-      const url = `${this.baseUrl}/sms/send.json`;
-      
-      const response = await axios.post(url, null, {
-        params: {
-          sender: this.sender,
-          receptor: phoneNumber,
-          message,
-        },
-      });
+    // Retry logic for transient errors (5xx or network failures)
+    const url = `${this.baseUrl}/sms/send.json`;
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error('SMS sending error:', error.response?.data || error.message);
-      return {
-        success: false,
-        error: error.response?.data?.return?.message || error.message,
-      };
+    for (let attempt = 1; attempt <= this.retryCount; attempt++) {
+      try {
+        const response = await axios.post(url, null, {
+          params: {
+            sender: this.sender,
+            receptor: phoneNumber,
+            message,
+          },
+        });
+
+        return {
+          success: true,
+          data: response.data,
+        };
+      } catch (error) {
+        const status = error.response?.status;
+        const transient = !status || (status >= 500 && status < 600);
+        console.error(`SMS sending error (simple) attempt ${attempt}:`, error.response?.data || error.message);
+
+        if (!transient || attempt === this.retryCount) {
+          return {
+            success: false,
+            error: error.response?.data?.return?.message || error.message,
+          };
+        }
+
+        // exponential backoff
+        const delay = this.retryBaseDelay * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
   }
 }
