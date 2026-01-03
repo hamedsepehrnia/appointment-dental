@@ -22,10 +22,30 @@
     
     <title>کلینیک دندان پزشکی طاها - بهترین خدمات دندانپزشکی</title>
     
+    <!-- Google Analytics 4 -->
+    <!-- Replace G-XXXXXXXXXX with your actual Measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        page_path: window.location.pathname,
+        send_page_view: false // We'll handle this manually in React Router
+      });
+    </script>
+    
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.goftino.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    
+    <!-- Goftino Chat Widget (loaded async) -->
     <script type="text/javascript">
       !function(){var i="azYBvB",a=window,d=document;function g(){var g=d.createElement("script"),s="https://www.goftino.com/widget/"+i,l=localStorage.getItem("goftino_"+i);g.async=!0,g.src=l?s+"?o="+l:s;d.getElementsByTagName("head")[0].appendChild(g);}"complete"===d.readyState?g():a.attachEvent?a.attachEvent("onload",g):a.addEventListener("load",g,!1);}();
     </script>
-    <script type="module" crossorigin src="/assets/index-DYLPbldd.js"></script>
+    <script type="module" crossorigin src="/assets/index-BzAm6mJs.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-vqeg7uDR.js">
     <link rel="modulepreload" crossorigin href="/assets/query-vendor-KlcNboas.js">
     <link rel="modulepreload" crossorigin href="/assets/redux-vendor-CGnCw5VP.js">

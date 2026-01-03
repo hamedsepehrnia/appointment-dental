@@ -48,15 +48,28 @@ app.use(
     hsts:
       process.env.NODE_ENV === "production"
         ? {
-            maxAge: 31536000,
+            maxAge: 31536000, // 1 year
             includeSubDomains: true,
             preload: true,
           }
-        : false, // Disable HSTS in development
+        : {
+            maxAge: 31536000,
+            includeSubDomains: true,
+          }, // Enable HSTS even in production mode on server
     crossOriginEmbedderPolicy: false, // For compatibility with some APIs
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources
   })
 );
+
+// WWW to non-WWW redirect (URL Canonicalization)
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  if (host && host.startsWith('www.')) {
+    const newHost = host.replace(/^www\./, '');
+    return res.redirect(301, `${req.protocol}://${newHost}${req.originalUrl}`);
+  }
+  next();
+});
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
