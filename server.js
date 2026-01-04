@@ -13,6 +13,7 @@ const routes = require("./src/routes");
 const { errorHandler, notFound } = require("./src/middlewares/errorHandler");
 const { setupCleanupJob } = require("./src/utils/cleanupJob");
 const { setupReminderJob } = require("./src/utils/reminderJob");
+const performanceHeaders = require("./src/middlewares/performanceHeaders");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,28 +39,7 @@ app.use(compression({
 // Security middleware with enhanced configuration
 app.use(
   helmet({
-    contentSecurityPolicy:
-      process.env.NODE_ENV === "production"
-        ? {
-            directives: {
-              defaultSrc: ["'self'"],
-              styleSrc: ["'self'", "'unsafe-inline'"],
-              scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for critical CSS
-              imgSrc: [
-                "'self'",
-                "data:",
-                "https:",
-                "http://localhost:4000",
-                "http://localhost:5173",
-              ],
-              connectSrc: ["'self'", "https:", "http:", "wss:"],
-              fontSrc: ["'self'", "data:"],
-              objectSrc: ["'none'"],
-              mediaSrc: ["'self'"],
-              frameSrc: ["'none'"],
-            },
-          }
-        : false, // Disable CSP in development for easier debugging
+    contentSecurityPolicy: false, // Disable CSP - React app handles its own security
     hsts:
       process.env.NODE_ENV === "production"
         ? {
@@ -214,6 +194,9 @@ if (SERVE_MODE === "combined") {
   // ============================================
   // PERFORMANCE: Optimized static file serving
   // ============================================
+  
+  // Apply performance headers middleware for HTML responses
+  app.use(performanceHeaders);
   
   // Serve static files from React app (dist folder) with aggressive caching
   app.use(express.static(path.join(__dirname, "dist"), {
