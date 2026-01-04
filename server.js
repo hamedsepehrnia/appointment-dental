@@ -20,6 +20,21 @@ const PORT = process.env.PORT || 3000;
 // Serve mode: 'combined' = serve frontend + backend, 'backend' = backend API only
 const SERVE_MODE = process.env.SERVE_MODE || "combined";
 
+// ============================================
+// PERFORMANCE: Compression with optimal settings
+// ============================================
+app.use(compression({
+  level: 6, // Balanced compression level
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    // Compress text-based responses
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
 // Security middleware with enhanced configuration
 app.use(
   helmet({
@@ -29,7 +44,7 @@ app.use(
             directives: {
               defaultSrc: ["'self'"],
               styleSrc: ["'self'", "'unsafe-inline'"],
-              scriptSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for critical CSS
               imgSrc: [
                 "'self'",
                 "data:",
@@ -37,8 +52,8 @@ app.use(
                 "http://localhost:4000",
                 "http://localhost:5173",
               ],
-              connectSrc: ["'self'", "https:", "http:"],
-              fontSrc: ["'self'"],
+              connectSrc: ["'self'", "https:", "http:", "wss:"],
+              fontSrc: ["'self'", "data:"],
               objectSrc: ["'none'"],
               mediaSrc: ["'self'"],
               frameSrc: ["'none'"],
@@ -154,9 +169,6 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Compression
-app.use(compression());
-
 // Session
 app.use(session(sessionConfig));
 
@@ -199,15 +211,41 @@ swaggerSetup(app);
 
 // Combined mode: Serve frontend from dist folder
 if (SERVE_MODE === "combined") {
-  // Serve static files from React app (dist folder) with caching
+  // ============================================
+  // PERFORMANCE: Optimized static file serving
+  // ============================================
+  
+  // Serve static files from React app (dist folder) with aggressive caching
   app.use(express.static(path.join(__dirname, "dist"), {
     maxAge: "1y", // Cache assets for 1 year (they have hash in filename)
     etag: true,
     lastModified: true,
+    immutable: true, // Assets with hash are immutable
     setHeaders: (res, filePath) => {
-      // Don't cache index.html (so updates are reflected immediately)
+      // index.html - must always be fresh
       if (filePath.endsWith("index.html")) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+        return;
+      }
+      
+      // JS and CSS files with hash - cache forever
+      if (filePath.match(/\.(js|css)$/) && filePath.includes('.')) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return;
+      }
+      
+      // Fonts - cache for long time
+      if (filePath.match(/\.(woff|woff2|ttf|eot|otf)$/)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return;
+      }
+      
+      // Images - cache with revalidation
+      if (filePath.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/)) {
+        res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+        return;
       }
     }
   }));
@@ -218,6 +256,8 @@ if (SERVE_MODE === "combined") {
     if (req.path.startsWith("/api")) {
       return res.status(404).json({ success: false, message: "Route not found" });
     }
+    // Send index.html with no-cache headers
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(path.join(__dirname, "dist", "index.html"));
   });
 } else {

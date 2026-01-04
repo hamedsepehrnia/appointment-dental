@@ -2,9 +2,19 @@
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Critical: Preload primary font for FCP -->
+    <link rel="preload" href="/fonts/Estedad-Medium.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Estedad-SemiBold.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Preconnect to API for faster data fetching -->
+    <link rel="preconnect" href="https://tahadental.com" crossorigin />
+    <link rel="dns-prefetch" href="https://tahadental.com" />
+    
+    <!-- Favicons -->
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Default SEO Meta Tags -->
     <meta name="description" content="کلینیک دندان پزشکی طاها ارائه دهنده بهترین خدمات دندانپزشکی با کادری مجرب و تجهیزات مدرن" />
@@ -22,39 +32,109 @@
     
     <title>کلینیک دندان پزشکی طاها - بهترین خدمات دندانپزشکی</title>
     
-    <!-- Google Analytics 4 -->
-    <!-- Replace G-XXXXXXXXXX with your actual Measurement ID -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <!-- Critical CSS for above-the-fold content (inline for FCP) -->
+    <style>
+      /* Critical font-face for immediate text rendering */
+      @font-face {
+        font-family: "estedad-medium";
+        src: url(/fonts/Estedad-Medium.woff2) format('woff2');
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "estedad-semibold";
+        src: url(/fonts/Estedad-SemiBold.woff2) format('woff2');
+        font-display: swap;
+      }
+      /* Prevent layout shift during load */
+      :root { direction: rtl; }
+      body { 
+        margin: 0; 
+        font-family: "estedad-medium", system-ui, sans-serif;
+        background: #fff;
+      }
+      #root { min-height: 100vh; }
+      /* Above-the-fold skeleton */
+      .initial-loader {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .nav-skeleton {
+        height: 76px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      .hero-skeleton {
+        flex: 1;
+        background: linear-gradient(135deg, rgba(45,212,191,0.1) 0%, rgba(45,212,191,0.05) 50%, rgba(99,102,241,0.15) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+    
+    <!-- Defer Google Analytics (non-blocking) -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX', {
-        page_path: window.location.pathname,
-        send_page_view: false // We'll handle this manually in React Router
+      // Load GA after page is interactive
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX';
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX', { send_page_view: true });
+        }, 2000);
       });
     </script>
-    
-    <!-- Preconnect to external domains for faster loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.goftino.com">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-    
-    <!-- Goftino Chat Widget (loaded async) -->
-    <script type="text/javascript">
-      !function(){var i="azYBvB",a=window,d=document;function g(){var g=d.createElement("script"),s="https://www.goftino.com/widget/"+i,l=localStorage.getItem("goftino_"+i);g.async=!0,g.src=l?s+"?o="+l:s;d.getElementsByTagName("head")[0].appendChild(g);}"complete"===d.readyState?g():a.attachEvent?a.attachEvent("onload",g):a.addEventListener("load",g,!1);}();
-    </script>
-    <script type="module" crossorigin src="/assets/index-BzAm6mJs.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-vqeg7uDR.js">
-    <link rel="modulepreload" crossorigin href="/assets/query-vendor-KlcNboas.js">
-    <link rel="modulepreload" crossorigin href="/assets/redux-vendor-CGnCw5VP.js">
-    <link rel="modulepreload" crossorigin href="/assets/form-vendor--t6BffNT.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-vendor-D4DdIvF_.js">
-    <link rel="modulepreload" crossorigin href="/assets/motion-vendor-CQyDv_CV.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-Dblmwydx.css">
+    <script type="module" crossorigin src="/assets/index-DUiqV2No.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/motion-DV3VySaH.js">
+    <link rel="modulepreload" crossorigin href="/assets/map-dgLBSVMX.js">
+    <link rel="modulepreload" crossorigin href="/assets/editor-DLslrAMc.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-core-DkX7OQ4Q.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BGjx4oOA.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-router-CdfMEooj.js">
+    <link rel="modulepreload" crossorigin href="/assets/redux-T8ZA8Ca5.js">
+    <link rel="modulepreload" crossorigin href="/assets/query-x6gLKhnn.js">
+    <link rel="modulepreload" crossorigin href="/assets/ui-CioiL3KZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/forms-CxDKTD82.js">
+    <link rel="modulepreload" crossorigin href="/assets/swiper-CgWgy0A2.js">
+    <link rel="modulepreload" crossorigin href="/assets/seo-D35OfG1v.js">
+    <link rel="stylesheet" crossorigin href="/assets/map-CIGW-MKW.css">
+    <link rel="stylesheet" crossorigin href="/assets/editor-Dnab21jT.css">
+    <link rel="stylesheet" crossorigin href="/assets/vendor-tyeQOPjW.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-DlXiwiZt.css">
   </head>
-  <body class="text-dark scroll-smooth" style="font-family: var(--font-vazir);">
-    <div id="root"></div>
+  <body class="text-dark scroll-smooth">
+    <div id="root">
+      <!-- Server-rendered skeleton for instant FCP -->
+      <div class="initial-loader" id="initial-skeleton">
+        <div class="nav-skeleton"></div>
+        <div class="hero-skeleton">
+          <noscript>برای استفاده از این سایت، جاوااسکریپت را فعال کنید.</noscript>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Defer Goftino Chat Widget (load after interaction) -->
+    <script>
+      // Load Goftino only after user interaction or 5 seconds
+      function loadGoftino() {
+        if (window.goftinoLoaded) return;
+        window.goftinoLoaded = true;
+        var i="azYBvB",d=document;
+        var g=d.createElement("script"),s="https://www.goftino.com/widget/"+i,l=localStorage.getItem("goftino_"+i);
+        g.async=true;g.src=l?s+"?o="+l:s;
+        d.body.appendChild(g);
+      }
+      // Load on scroll, click, or after 5 seconds
+      ['scroll','click','touchstart'].forEach(function(e){
+        document.addEventListener(e, loadGoftino, {once:true,passive:true});
+      });
+      setTimeout(loadGoftino, 5000);
+    </script>
   </body>
 </html>
