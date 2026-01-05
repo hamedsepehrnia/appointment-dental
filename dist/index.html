@@ -28,20 +28,15 @@
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     <link rel="dns-prefetch" href="https://cdn.goftino.com">
     
-    <!-- PERFORMANCE: Preload critical fonts (only the most used ones) -->
+    <!-- PERFORMANCE: Preload ONLY the critical font -->
     <link rel="preload" href="/fonts/Estedad-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/Estedad-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/Estedad-Light.woff2" as="font" type="font/woff2" crossorigin>
     
-    <!-- PERFORMANCE: Load Google Fonts async with font-display=swap -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
-    <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap">
-    </noscript>
+    <!-- PERFORMANCE: Defer Google Fonts completely - not critical -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- PERFORMANCE: Preload LCP image (hero section) -->
-    <link rel="preload" as="image" href="/images/doctor_banner.png" fetchpriority="high">
+    <!-- CRITICAL: Preload optimized LCP image with srcset -->
+    <link rel="preload" as="image" href="/images/doctor_banner.webp" fetchpriority="high" imagesrcset="/images/doctor_banner-640.webp 640w, /images/doctor_banner-1024.webp 1024w, /images/doctor_banner.webp 1920w" imagesizes="100vw">
     
     <!-- Google Analytics 4 - Deferred -->
     <!-- Replace G-XXXXXXXXXX with your actual Measurement ID -->
@@ -64,16 +59,8 @@
         }, 3000);
       });
     </script>
-    <script type="module" crossorigin src="/assets/index-CjdPVZci.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-core-DwtKV0qF.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-router-BDAfChV3.js">
-    <link rel="modulepreload" crossorigin href="/assets/query-DkYU0mMV.js">
-    <link rel="modulepreload" crossorigin href="/assets/redux-BgAWEerc.js">
-    <link rel="modulepreload" crossorigin href="/assets/forms-C2N9TMf6.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-base-vsthQ4vg.js">
-    <link rel="modulepreload" crossorigin href="/assets/motion-CQyDv_CV.js">
-    <link rel="modulepreload" crossorigin href="/assets/swiper-C43kgiy-.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-Csfwtavg.css">
+    <script type="module" crossorigin src="/assets/index-CjZRSo4d.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Dmp_skgR.css">
   </head>
   <body class="text-dark scroll-smooth" style="font-family: var(--font-vazir);">
     <div id="root"></div>

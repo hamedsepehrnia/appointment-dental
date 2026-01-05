@@ -13,15 +13,16 @@ const performanceHeaders = (req, res, next) => {
   if (isHtmlRequest) {
     // Preload critical resources
     const preloadHeaders = [
-      // Critical fonts
+      // Critical fonts - only the most essential
       '</fonts/Estedad-Regular.woff2>; rel=preload; as=font; type=font/woff2; crossorigin',
-      '</fonts/Estedad-SemiBold.woff2>; rel=preload; as=font; type=font/woff2; crossorigin',
-      '</fonts/Estedad-Light.woff2>; rel=preload; as=font; type=font/woff2; crossorigin',
-      // LCP image
-      '</images/doctor_banner.png>; rel=preload; as=image; fetchpriority=high',
+      // LCP image - CRITICAL for performance
+      '</images/doctor_banner.webp>; rel=preload; as=image; fetchpriority=high; imagesrcset="/images/doctor_banner-640.webp 640w, /images/doctor_banner-1024.webp 1024w, /images/doctor_banner.webp 1920w"; imagesizes="100vw"',
     ];
 
     res.setHeader('Link', preloadHeaders.join(', '));
+    
+    // Add resource hints for faster DNS/connection
+    res.setHeader('X-DNS-Prefetch-Control', 'on');
 
     // Early hints (103 status) - only if supported and not already sent
     // Note: writeEarlyHints needs specific format and is not widely supported yet

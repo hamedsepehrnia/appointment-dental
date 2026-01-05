@@ -152,7 +152,7 @@ app.use(express.urlencoded({ extended: true }));
 // Session
 app.use(session(sessionConfig));
 
-// Static files (uploads) - with CORS headers and caching
+// Static files (uploads) - with CORS headers and aggressive caching
 app.use(
   "/uploads",
   (req, res, next) => {
@@ -170,11 +170,16 @@ app.use(
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
     }
-    // Cache uploads for 1 day
-    res.setHeader("Cache-Control", "public, max-age=86400");
+    // Aggressive caching with stale-while-revalidate for better performance
+    res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400"); // 7 days, 1 day grace
+    res.setHeader("Vary", "Accept-Encoding");
     next();
   },
-  express.static(path.join(__dirname, "uploads"))
+  express.static(path.join(__dirname, "uploads"), {
+    maxAge: "7d",
+    etag: true,
+    lastModified: true
+  })
 );
 
 // Sitemap route (should be at root level for SEO)
@@ -225,9 +230,11 @@ if (SERVE_MODE === "combined") {
         return;
       }
       
-      // Images - cache with revalidation
-      if (filePath.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/)) {
-        res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+      // Images - aggressive caching with modern format hints
+      if (filePath.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|avif)$/)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        // Add Vary header for content negotiation
+        res.setHeader("Vary", "Accept");
         return;
       }
     }
