@@ -114,21 +114,11 @@ const requestOtp = async (req, res) => {
     },
   });
 
-  // Prepare SMS message based on user existence
-  let smsMessage;
-  let recipientType = 'کاربر';
-  if (user) {
-    const smsMessageTemplate = `سلام {name} عزیز، به سامانه کلینیک دندان پزشکی طاها خوش آمدید، کد تایید شما: ${code}`;
-    const fixedName = fixNameForSms(user.firstName, smsMessageTemplate);
-    smsMessage = smsMessageTemplate.replace('{name}', fixedName);
-    recipientType = 'بیمار';
-  } else {
-    smsMessage = `به سامانه نوبت دهی کلینیک طاها خوش آمدید. کد ورود شما: ${code}`;
-    recipientType = 'کاربر جدید';
-  }
-
   // Send SMS
-  const smsResult = await smsService.sendSimpleSms(formattedPhone, smsMessage, recipientType, '🔐 کد تأیید ورود');
+  const smsMessage = `کد تایید: ${code}
+معتبر تا 5 دقیقه
+کلینیک دندان پزشکی طاها`;
+  const smsResult = await smsService.sendSimpleSms(formattedPhone, smsMessage, 'کاربر', '🔐 کد تأیید ورود');
 
   if (!smsResult.success) {
     console.error('SMS sending failed for OTP:', smsResult.error);
