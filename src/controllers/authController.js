@@ -26,10 +26,8 @@ const loginWithPassword = async (req, res) => {
   });
 
   // Always perform bcrypt comparison to prevent timing attacks
-  // Even if user doesn't exist, we compare against a dummy hash
   const dummyHash = "$2a$10$dummy.hash.to.prevent.timing.attack.vulnerability";
   const compareHash = user ? user.password : dummyHash;
-
   const isPasswordValid = await bcrypt.compare(password, compareHash);
 
   // Validate user and password after bcrypt comparison
@@ -96,7 +94,7 @@ const requestOtp = async (req, res) => {
 
   // Generate OTP
   const code = generateOtp();
-  const expirySeconds = parseInt(process.env.OTP_EXPIRY_SECONDS || 300); // Default: 300 seconds (5 minutes)
+  const expirySeconds = parseInt(process.env.OTP_EXPIRY_SECONDS || 300);
   const expiresAt = new Date(Date.now() + expirySeconds * 1000);
 
   // Check if user exists before sending SMS
@@ -105,7 +103,7 @@ const requestOtp = async (req, res) => {
     select: { id: true, firstName: true, lastName: true },
   });
 
-  // Save OTP to database
+  // Save OTP to database (before sending SMS)
   await prisma.otpCode.create({
     data: {
       phoneNumber: formattedPhone,
@@ -114,31 +112,49 @@ const requestOtp = async (req, res) => {
     },
   });
 
-  // Send SMS
-  const smsMessage = `کد تایید: ${code}
-معتبر تا 5 دقیقه
-کلینیک دندان پزشکی طاها`;
-  const smsResult = await smsService.sendSimpleSms(formattedPhone, smsMessage, 'کاربر', '🔐 کد تأیید ورود');
+  // Send SMS using template-based approach
+  const otpTemplateID = parseInt(process.env.MSGWAY_OTP_TEMPLATE_ID || '21385');
+  
+  let smsResult;
+  
+  if (otpTemplateID > 0) {
+    // Use template-based OTP with only code as parameter
+    smsResult = await smsService.sendOtp(
+      formattedPhone, 
+      code, 
+      {
+        templateID: otpTemplateID,
+        expireTime: expirySeconds
+      }
+    );
+  } else {
+    // Fallback: Use simple template
+    smsResult = await smsService.sendTemplatedSms(
+      formattedPhone,
+      parseInt(process.env.MSGWAY_TEMPLATE_ID || '1'),
+      {
+        params: [code],
+        expireTime: expirySeconds
+      }
+    );
+  }
 
   if (!smsResult.success) {
     console.error('SMS sending failed for OTP:', smsResult.error);
 
-    // SMS failure handling mode: 'allow' (default) keeps OTP and returns a warning response,
-    // 'strict' will throw an error as before.
     const smsFailMode = process.env.SMS_FAIL_MODE || 'allow';
 
     if (smsFailMode === 'strict') {
       throw new AppError("خطا در ارسال پیامک", 500);
     }
 
-    // Default: allow - return success with smsSent=false so clients can handle retry UI.
+    // Return success but indicate SMS not sent
     const responseData = {
       isNewUser: !user,
-      expiresIn: expirySeconds, // seconds
+      expiresIn: expirySeconds,
       smsSent: false,
     };
 
-    // Include provider error in response only in non-production or when explicitly enabled
     if (process.env.NODE_ENV !== 'production' || process.env.SHOW_SMS_ERROR_IN_RESPONSE === 'true') {
       responseData.smsError = smsResult.error;
     }
@@ -155,8 +171,9 @@ const requestOtp = async (req, res) => {
     message: "کد تایید ارسال شد",
     data: {
       isNewUser: !user,
-      expiresIn: expirySeconds, // seconds
+      expiresIn: expirySeconds,
       smsSent: true,
+      referenceID: smsResult.data?.referenceID
     },
   });
 };
@@ -214,6 +231,19 @@ const verifyOtp = async (req, res) => {
         profileImage: null,
       },
     });
+
+    // Send welcome SMS with account info
+    try {
+      const welcomeTemplateID = parseInt(process.env.MSGWAY_WELCOME_TEMPLATE_ID || '0');
+      if (welcomeTemplateID > 0) {
+        await smsService.sendTemplatedSms(formattedPhone, welcomeTemplateID, {
+          params: [firstName, lastName, formattedPhone, randomPassword],
+        });
+      }
+    } catch (welcomeError) {
+      console.error('Welcome SMS failed:', welcomeError);
+      // Don't fail registration if welcome SMS fails
+    }
   }
 
   // Create session
@@ -293,7 +323,6 @@ const getCurrentUser = async (req, res) => {
 const updateProfile = async (req, res) => {
   const { firstName, lastName, nationalCode, address, gender } = req.body;
 
-  // Get current user to check for existing profile image
   const currentUser = await prisma.user.findUnique({
     where: { id: req.session.userId },
     select: { profileImage: true },
@@ -303,18 +332,15 @@ const updateProfile = async (req, res) => {
     throw new AppError("کاربر یافت نشد", 404);
   }
 
-  // Prepare update data
   const updateData = {};
   if (firstName) updateData.firstName = firstName;
   if (lastName) updateData.lastName = lastName;
-  if (nationalCode !== undefined)
-    updateData.nationalCode = nationalCode || null;
+  if (nationalCode !== undefined) updateData.nationalCode = nationalCode || null;
   if (address !== undefined) updateData.address = address || null;
   if (gender) updateData.gender = gender;
 
   // Handle profile image removal
   if (req.body.removeProfileImage === "true") {
-    // Delete old image if exists
     if (currentUser.profileImage) {
       const imagePath = currentUser.profileImage.startsWith("/")
         ? currentUser.profileImage.slice(1)
@@ -327,9 +353,7 @@ const updateProfile = async (req, res) => {
       }
     }
     updateData.profileImage = null;
-  }
-  // Handle profile image upload
-  else if (req.file) {
+  } else if (req.file) {
     // Delete old image if exists
     if (currentUser.profileImage) {
       const imagePath = currentUser.profileImage.startsWith("/")

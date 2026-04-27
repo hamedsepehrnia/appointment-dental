@@ -86,15 +86,24 @@ const send24HourReminders = async () => {
       const dayName = getPersianDayName(appointment.appointmentDate);
       const time = formatTime(appointment.appointmentDate);
 
-      const messageTemplate = `{name} عزیز،
-یادآوری: نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} فردا ساعت ${time} (${dayName} ${persianDate}) می‌باشد.
-آدرس: ${appointment.clinic.address}
-لطفاً به موقع حضور داشته باشید.`;
-      const fixedName = fixNameForSms(patientName, messageTemplate);
-      const message = messageTemplate.replace('{name}', fixedName);
+ const reminder24hTemplateId = parseInt(process.env.MSGWAY_REMINDER_24H_TEMPLATE_ID || '0');
 
-      await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '⏰ یادآوری ۲۴ ساعته');
-
+if (reminder24hTemplateId > 0) {
+  await smsService.sendTemplatedSms(
+    appointment.user.phoneNumber,
+    reminder24hTemplateId,
+    {
+      params: [
+        patientName,
+        appointment.clinic.name,
+        doctorName,
+        time,
+        `${dayName} ${persianDate}`,
+        appointment.clinic.address
+      ]
+    }
+  );
+}
       // علامت‌گذاری به عنوان ارسال شده
       await prisma.appointment.update({
         where: { id: appointment.id },
@@ -161,14 +170,23 @@ const send30MinuteReminders = async () => {
         : 'پزشک کلینیک';
       const time = formatTime(appointment.appointmentDate);
 
-      const messageTemplate = `{name} عزیز،
-یادآوری فوری: نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} تا ۳۰ دقیقه دیگر (ساعت ${time}) است.
-آدرس: ${appointment.clinic.address}`;
-      const fixedName = fixNameForSms(patientName, messageTemplate);
-      const message = messageTemplate.replace('{name}', fixedName);
+const reminder30mTemplateId = parseInt(process.env.MSGWAY_REMINDER_30M_TEMPLATE_ID || '0');
 
-      await smsService.sendSimpleSms(appointment.user.phoneNumber, message, 'بیمار', '🚨 یادآوری فوری ۳۰ دقیقه');
-
+if (reminder30mTemplateId > 0) {
+  await smsService.sendTemplatedSms(
+    appointment.user.phoneNumber,
+    reminder30mTemplateId,
+    {
+      params: [
+        patientName,
+        appointment.clinic.name,
+        doctorName,
+        time,
+        appointment.clinic.address
+      ]
+    }
+  );
+}
       // علامت‌گذاری به عنوان ارسال شده
       await prisma.appointment.update({
         where: { id: appointment.id },

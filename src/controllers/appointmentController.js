@@ -105,7 +105,7 @@ const createAppointment = async (req, res) => {
   // بررسی وجود کلینیک
   const clinic = await prisma.clinic.findUnique({
     where: { id: clinicId },
-    select: { id: true, name: true, phoneNumber: true }
+    select: { id: true, name: true, phoneNumber: true, eitaaChatId: true }
   });
 
   if (!clinic) {
@@ -187,8 +187,8 @@ const createAppointment = async (req, res) => {
       patientName: patientName || null,
       nationalCode: nationalCode || null,
       notes: notes || null,
-      status: finalStatus, // در حالت پیشرفته مستقیماً تأیید می‌شود
-      type: 'CONSULTATION', // نوبت مشاوره
+      status: finalStatus,
+      type: 'CONSULTATION',
       durationMinutes: 10,
       source: 'WEBSITE',
     },
@@ -228,20 +228,27 @@ const createAppointment = async (req, res) => {
   const dayName = getPersianDayName(appointmentDate);
   const time = formatTime(appointmentDate);
 
-  // پیامک به مراجع
-  const patientSmsMessageTemplate = finalStatus === "FINAL_APPROVED"
-    ? `${genderTitle} {name} عزیز،
-نوبت شما در کلینیک ${clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} با موفقیت ثبت و تأیید شد.
-لطفاً در زمان مقرر در کلینیک حضور داشته باشید.`
-    : `${genderTitle} {name} عزیز،
-نوبت شما در کلینیک ${clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} ثبت شد و در دست بررسی می‌باشد.
-لطفاً تا تأیید نهایی صبر کنید.`;
+  // ارسال پیامک بر اساس وضعیت نوبت
+  const smsTemplateId = finalStatus === "FINAL_APPROVED" 
+    ? parseInt(process.env.MSGWAY_APPOINTMENT_CONFIRMED_TEMPLATE_ID || '0')
+    : parseInt(process.env.MSGWAY_APPOINTMENT_PENDING_TEMPLATE_ID || '0');
+
+  if (smsTemplateId > 0) {
+    await smsService.sendTemplatedSms(
+      user.phoneNumber, 
+      smsTemplateId, 
+      {
+        params: [
+          actualPatientName,
+          clinic.name,
+          doctorName,
+          time,
+          `${dayName} ${persianDate}`
+        ]
+      }
+    );
+  }
   
-  const fixedName = fixNameForSms(actualPatientName, patientSmsMessageTemplate);
-  const patientSmsMessage = patientSmsMessageTemplate.replace('{name}', fixedName);
-
-  await smsService.sendSimpleSms(user.phoneNumber, patientSmsMessage, 'بیمار', '🗓️ ثبت نوبت');
-
   // در حالت پیشرفته، منشی نیازی به تأیید ندارد
   if (finalStatus === "APPROVED_BY_USER") {
     // دریافت تنظیمات نوتیفیکیشن
@@ -252,57 +259,52 @@ const createAppointment = async (req, res) => {
       },
     });
 
-    // دریافت اطلاعات کلینیک (شامل eitaaChatId)
-    const clinic = await prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: {
-        id: true,
-        name: true,
-        eitaaChatId: true,
-      },
-    });
-
     const notificationMethod = siteSettings?.secretaryNotificationMethod || "SMS";
     const shouldSendSms = notificationMethod === "SMS" || notificationMethod === "BOTH";
     const shouldSendEitaa = (notificationMethod === "EITAA" || notificationMethod === "BOTH") 
       && siteSettings?.eitaaApiToken 
       && clinic?.eitaaChatId;
 
-  // پیدا کردن منشی‌های کلینیک
-  const secretaries = await prisma.user.findMany({
-    where: {
-      clinicId: clinicId,
-      role: 'SECRETARY'
-    },
-    select: {
-      id: true,
-      phoneNumber: true,
-      firstName: true,
-      lastName: true,
-    }
-  });
+    // پیدا کردن منشی‌های کلینیک
+    const secretaries = await prisma.user.findMany({
+      where: {
+        clinicId: clinicId,
+        role: 'SECRETARY'
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        firstName: true,
+        lastName: true,
+      }
+    });
 
-  // لینک پنل ادمین (صفحه ویرایش نوبت)
-  const adminLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/appointments-management/edit/${appointment.id}`;
+    // لینک پنل ادمین (صفحه ویرایش نوبت)
+    const adminLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/appointments-management/edit/${appointment.id}`;
 
     // پیامک به منشی (اگر SMS فعال باشد)
     if (shouldSendSms && secretaries.length > 0) {
-  const secretarySmsMessage = `درخواست رزرو نوبت جدید
+      const secretaryTemplateId = parseInt(process.env.MSGWAY_SECRETARY_NEW_APPOINTMENT_TEMPLATE_ID || '0');
 
-نام مراجع: ${actualPatientName}
-تاریخ: ${dayName} ${persianDate} ساعت ${time}
-پزشک: ${doctorName}
-تلفن مراجع: ${user.phoneNumber}
-
-برای بررسی به پنل مراجعه کنید:
-${adminLink}`;
-
-  // ارسال پیامک به همه منشی‌ها
-  for (const secretary of secretaries) {
-    await smsService.sendSimpleSms(secretary.phoneNumber, secretarySmsMessage, 'منشی', '🔔 درخواست نوبت جدید');
+      if (secretaryTemplateId > 0) {
+        for (const secretary of secretaries) {
+          await smsService.sendTemplatedSms(
+            secretary.phoneNumber,
+            secretaryTemplateId,
+            {
+              params: [
+                actualPatientName,
+                `${dayName} ${persianDate}`,
+                time,
+                doctorName,
+                user.phoneNumber
+              ]
+            }
+          );
+        }
       }
     }
-
+    
     // ارسال پیام به ایتا (اگر ایتا فعال باشد)
     if (shouldSendEitaa) {
       const eitaaMessage = buildEitaaMessage(
@@ -332,19 +334,19 @@ ${adminLink}`;
       } else {
         console.error("خطا در ارسال پیام به ایتا:", eitaaResult.error);
       }
-  }
-
-  // ایجاد نوتیفیکیشن برای پنل ادمین
-  await prisma.notification.create({
-    data: {
-      type: 'appointment_new',
-      title: 'درخواست نوبت جدید',
-      message: `درخواست نوبت جدید از ${actualPatientName} برای ${dayName} ${persianDate} ساعت ${time}`,
-      link: `/admin/appointments/${appointment.id}`,
-      appointmentId: appointment.id,
-      clinicId: clinicId,
     }
-  });
+
+    // ایجاد نوتیفیکیشن برای پنل ادمین
+    await prisma.notification.create({
+      data: {
+        type: 'appointment_new',
+        title: 'درخواست نوبت جدید',
+        message: `درخواست نوبت جدید از ${actualPatientName} برای ${dayName} ${persianDate} ساعت ${time}`,
+        link: `/admin/appointments/${appointment.id}`,
+        appointmentId: appointment.id,
+        clinicId: clinicId,
+      }
+    });
   }
 
   res.status(201).json({
@@ -454,7 +456,7 @@ const getAppointments = async (req, res) => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' }  // تازه‌ترین ها اول
+      orderBy: { createdAt: 'desc' }
     }),
     prisma.appointment.count({ where })
   ]);
@@ -707,14 +709,24 @@ const approveAppointment = async (req, res) => {
   const time = formatTime(appointment.appointmentDate);
 
   // پیامک تأیید به مراجع
-  const confirmSmsMessageTemplate = `{name} عزیز،
-نوبت شما در کلینیک ${appointment.clinic.name} با ${doctorName} در ساعت ${time} روز ${dayName} ${persianDate} تأیید شد.
-لطفاً در تاریخ و زمان مقرر به کلینیک مراجعه نمایید.`;
-  const fixedName = fixNameForSms(actualPatientName, confirmSmsMessageTemplate);
-  const confirmSmsMessage = confirmSmsMessageTemplate.replace('{name}', fixedName);
+  const confirmTemplateId = parseInt(process.env.MSGWAY_APPOINTMENT_CONFIRMED_TEMPLATE_ID || '0');
 
-  await smsService.sendSimpleSms(appointment.user.phoneNumber, confirmSmsMessage, 'بیمار', '✅ تأیید نوبت');
-
+  if (confirmTemplateId > 0) {
+    await smsService.sendTemplatedSms(
+      appointment.user.phoneNumber,
+      confirmTemplateId,
+      {
+        params: [
+          actualPatientName,
+          appointment.clinic.name,
+          doctorName,
+          time,
+          `${dayName} ${persianDate}`
+        ]
+      }
+    );
+  }
+  
   // آپدیت پیام ایتا
   await updateEitaaMessage(updatedAppointment, "FINAL_APPROVED");
 
@@ -799,15 +811,23 @@ const cancelAppointment = async (req, res) => {
     const persianDate = toJalali(appointment.appointmentDate);
     const dayName = getPersianDayName(appointment.appointmentDate);
     const time = formatTime(appointment.appointmentDate);
+    const cancelTemplateId = parseInt(process.env.MSGWAY_APPOINTMENT_CANCELED_TEMPLATE_ID || '0');
 
-    const cancelSmsMessageTemplate = `{name} عزیز،
-متأسفانه نوبت شما در کلینیک ${appointment.clinic.name} برای ساعت ${time} روز ${dayName} ${persianDate} لغو شد.
-${reason ? `دلیل: ${reason}` : ''}
-برای رزرو مجدد با کلینیک تماس بگیرید.`;
-    const fixedName = fixNameForSms(actualPatientName, cancelSmsMessageTemplate);
-    const cancelSmsMessage = cancelSmsMessageTemplate.replace('{name}', fixedName);
-
-    await smsService.sendSimpleSms(appointment.user.phoneNumber, cancelSmsMessage, 'بیمار', '❌ لغو نوبت');
+    if (cancelTemplateId > 0) {
+      await smsService.sendTemplatedSms(
+        appointment.user.phoneNumber,
+        cancelTemplateId,
+        {
+          params: [
+            actualPatientName,
+            appointment.clinic.name,
+            time,
+            `${dayName} ${persianDate}`,
+            reason || 'ذکر نشده'
+          ]
+        }
+      );
+    }
   }
 
   // آپدیت پیام ایتا
@@ -1016,10 +1036,10 @@ const getAppointmentStats = async (req, res) => {
     data: {
       stats: {
         total: totalAppointments,
-        awaitingApproval: approvedByUserCount,  // در انتظار تأیید منشی
-        finalApproved: finalApprovedCount,       // تأیید شده
-        canceled: canceledCount,                  // لغو شده
-        todayAppointments: todayCount,           // نوبت‌های امروز
+        awaitingApproval: approvedByUserCount,
+        finalApproved: finalApprovedCount,
+        canceled: canceledCount,
+        todayAppointments: todayCount,
       }
     }
   });
@@ -1085,4 +1105,3 @@ module.exports = {
   deleteAppointment,
   getAppointmentStats,
 };
-
