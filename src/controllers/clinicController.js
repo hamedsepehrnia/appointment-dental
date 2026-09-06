@@ -9,6 +9,8 @@ const {
 const fs = require("fs").promises;
 const path = require("path");
 
+const uploadedFile = (req, field) => req.files?.[field]?.[0] || null;
+
 /**
  * Get all clinics
  */
@@ -176,7 +178,12 @@ const createClinic = async (req, res) => {
   }
 
   // Handle image upload
-  const image = req.file ? `/uploads/clinics/${req.file.filename}` : null;
+  const imageFile = uploadedFile(req, "image");
+  const heroBackgroundFile = uploadedFile(req, "heroBackground");
+  const image = imageFile ? `/uploads/clinics/${imageFile.filename}` : null;
+  const heroBackground = heroBackgroundFile
+    ? `/uploads/clinics/${heroBackgroundFile.filename}`
+    : null;
 
   // Process eitaaChatId - always handle it (mandatory field)
   // Convert empty string to null for database
@@ -193,6 +200,7 @@ const createClinic = async (req, res) => {
       phoneNumber: normalizedPhoneNumber || "",
       description,
       image,
+      heroBackground,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
       workingHours: parsedWorkingHours,
@@ -392,7 +400,7 @@ const updateClinic = async (req, res) => {
     updateData.image = null;
   }
   // Handle image upload
-  else if (req.file) {
+  else if (uploadedFile(req, "image")) {
     // Delete old image if exists
     if (currentClinic.image) {
       // Remove leading slash if present to make it relative
@@ -408,7 +416,22 @@ const updateClinic = async (req, res) => {
         }
       }
     }
-    updateData.image = `/uploads/clinics/${req.file.filename}`;
+    updateData.image = `/uploads/clinics/${uploadedFile(req, "image").filename}`;
+  }
+
+  const heroBackgroundFile = uploadedFile(req, "heroBackground");
+  if (heroBackgroundFile) {
+    if (currentClinic.heroBackground) {
+      const oldPath = currentClinic.heroBackground.startsWith("/")
+        ? currentClinic.heroBackground.slice(1)
+        : currentClinic.heroBackground;
+      try {
+        await fs.unlink(path.join(process.cwd(), oldPath));
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") console.error("Error deleting old hero background:", err);
+      }
+    }
+    updateData.heroBackground = `/uploads/clinics/${heroBackgroundFile.filename}`;
   }
 
   // Process eitaaChatId - always handle it (mandatory field)

@@ -37,7 +37,7 @@ router.post(
   '/',
   isAdmin,
   csrfProtection,
-  upload.single('image'),
+  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'heroBackground', maxCount: 1 }]),
   parseFormData('workingHours'),
   validate(
     Joi.object({
@@ -70,7 +70,7 @@ router.patch(
   '/:id',
   isAdminOrSecretary,
   csrfProtection,
-  upload.single('image'),
+  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'heroBackground', maxCount: 1 }]),
   parseFormData('workingHours'),
   validate(
     Joi.object({
