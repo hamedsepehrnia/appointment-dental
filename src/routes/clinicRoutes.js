@@ -9,6 +9,8 @@ const { csrfProtection } = require('../middlewares/csrf');
 const upload = require('../middlewares/upload');
 const parseFormData = require('../middlewares/parseFormData');
 
+router.get('/current', asyncHandler(clinicController.getCurrentClinic));
+
 // Get all clinics (public)
 router.get(
   '/',
@@ -42,6 +44,7 @@ router.post(
       name: Joi.string().required().messages({
         'any.required': 'نام کلینیک الزامی است',
       }),
+      domain: Joi.string().domain({ allowUnicode: false }).lowercase().allow('', null).optional(),
       address: Joi.string().required().messages({
         'any.required': 'آدرس الزامی است',
       }),
@@ -72,6 +75,7 @@ router.patch(
   validate(
     Joi.object({
       name: Joi.string(),
+      domain: Joi.string().domain({ allowUnicode: false }).lowercase().allow('', null).optional(),
       address: Joi.string(),
       phoneNumber: Joi.string(),
       description: Joi.string().allow(''),

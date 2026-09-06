@@ -16,8 +16,12 @@ const getClinics = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const { skip, take } = paginate(page, limit);
 
+  const where = req.tenantClinic && req.session?.userRole !== "ADMIN"
+    ? { id: req.tenantClinic.id }
+    : {};
   const [clinics, total] = await Promise.all([
     prisma.clinic.findMany({
+      where,
       skip,
       take,
       include: {
@@ -27,7 +31,7 @@ const getClinics = async (req, res) => {
       },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.clinic.count(),
+    prisma.clinic.count({ where }),
   ]);
 
   res.json({
@@ -74,6 +78,9 @@ const getClinic = async (req, res) => {
   if (!clinic) {
     throw new AppError("کلینیک یافت نشد", 404);
   }
+  if (req.tenantClinic && req.session?.userRole !== "ADMIN" && clinic.id !== req.tenantClinic.id) {
+    throw new AppError("کلینیک یافت نشد", 404);
+  }
 
   res.json({
     success: true,
@@ -81,11 +88,18 @@ const getClinic = async (req, res) => {
   });
 };
 
+const getCurrentClinic = async (req, res) => {
+  if (!req.tenantClinic) {
+    throw new AppError("دامنه به هیچ کلینیکی متصل نیست", 404);
+  }
+  res.json({ success: true, data: { clinic: req.tenantClinic } });
+};
+
 /**
  * Create clinic (Admin only)
  */
 const createClinic = async (req, res) => {
-  const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } = req.body;
+  const { name, domain, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } = req.body;
   // Normalize phone number(s) if provided - handle JSON string or array
   let normalizedPhoneNumber = "";
   if (phoneNumber) {
@@ -173,6 +187,7 @@ const createClinic = async (req, res) => {
   const clinic = await prisma.clinic.create({
     data: {
       name,
+      domain: domain || null,
       slug,
       address,
       phoneNumber: normalizedPhoneNumber || "",
@@ -197,7 +212,7 @@ const createClinic = async (req, res) => {
  */
 const updateClinic = async (req, res) => {
   const { id } = req.params;
-  const { name, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } =
+  const { name, domain, address, phoneNumber, description, latitude, longitude, workingHours, eitaaChatId } =
     req.body;
 
   // Get current clinic
@@ -239,7 +254,6 @@ const updateClinic = async (req, res) => {
       counter++;
     }
   }
-
   // Parse latitude and longitude if they are strings
   let parsedLatitude = undefined;
   let parsedLongitude = undefined;
@@ -329,6 +343,9 @@ const updateClinic = async (req, res) => {
 
   // Prepare update data
   const updateData = {};
+  if (domain !== undefined) {
+    updateData.domain = domain || null;
+  }
   if (name) {
     updateData.name = name;
   }
@@ -440,6 +457,7 @@ const deleteClinic = async (req, res) => {
 
 module.exports = {
   getClinics,
+  getCurrentClinic,
   getClinic,
   createClinic,
   updateClinic,

@@ -14,6 +14,7 @@ const { errorHandler, notFound } = require("./src/middlewares/errorHandler");
 const { setupCleanupJob } = require("./src/utils/cleanupJob");
 const { setupReminderJob } = require("./src/utils/reminderJob");
 const performanceHeaders = require("./src/middlewares/performanceHeaders");
+const { resolveClinicTenant } = require("./src/middlewares/clinicTenant");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -151,6 +152,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session
 app.use(session(sessionConfig));
+app.use(resolveClinicTenant);
 
 // Static files (uploads) - with CORS headers and aggressive caching
 app.use(
