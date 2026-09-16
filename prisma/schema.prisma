@@ -75,6 +75,7 @@ model Clinic {
   appointments       Appointment[] // نوبت‌های کلینیک
   notifications      Notification[] // نوتیفیکیشن‌های کلینیک
   syncApiKeys        SyncApiKey[] // کلیدهای API سینک این کلینیک
+  gallery            Gallery[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -98,6 +99,7 @@ model Doctor {
 
   // Relations
   clinics      DoctorClinic[]
+  services     DoctorService[]
   comments     Comment[]
   appointments Appointment[] // نوبت‌های پزشک
 
@@ -120,6 +122,21 @@ model DoctorClinic {
 
   @@unique([doctorId, clinicId])
   @@map("doctor_clinics")
+}
+
+model DoctorService {
+  id        String @id @default(uuid())
+  doctorId  String @map("doctor_id")
+  serviceId String @map("service_id")
+
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([doctorId, serviceId])
+  @@index([serviceId])
+  @@map("doctor_services")
 }
 
 model ArticleCategory {
@@ -219,6 +236,7 @@ model Service {
 
   // Relations - Many-to-Many
   categories ServiceCategoryRelation[]
+  doctors    DoctorService[]
   comments   Comment[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -377,9 +395,13 @@ model Gallery {
   image       String // Image path
   order       Int     @default(0)
   published   Boolean @default(true)
+  clinicId    String  @map("clinic_id")
+  clinic      Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([clinicId])
 
   @@map("gallery")
 }

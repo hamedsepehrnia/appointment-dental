@@ -14,6 +14,7 @@ router.get(
   validate(
     schemas.pagination.keys({
       published: Joi.string().valid('true', 'false'),
+      clinicId: Joi.string().uuid(),
     }),
     'query'
   ),
@@ -35,6 +36,7 @@ router.post(
       description: Joi.string().allow(''),
       order: Joi.number().integer().min(0),
       published: Joi.string().valid('true', 'false'),
+      clinicId: Joi.string().uuid(),
     })
   ),
   asyncHandler(galleryController.uploadImage)
@@ -49,6 +51,7 @@ router.post(
   validate(
     Joi.object({
       published: Joi.string().valid('true', 'false'),
+      clinicId: Joi.string().uuid(),
     })
   ),
   asyncHandler(galleryController.bulkUploadImages)
@@ -67,6 +70,7 @@ router.patch(
       order: Joi.number().integer().min(0),
       published: Joi.string().valid('true', 'false'),
       removeGalleryImage: Joi.string().valid("true", "false").optional(),
+      clinicId: Joi.string().uuid(),
     })
   ),
   asyncHandler(galleryController.updateImage)

@@ -3,15 +3,34 @@ const { AppError } = require('../middlewares/errorHandler');
 const { paginate, createPaginationMeta } = require('../utils/helpers');
 const fs = require('fs').promises;
 const path = require('path');
+const { publicClinicWhere, resolveWritableClinicId } = require('../domain/tenantContent');
+
+const getManagedClinicId = async (req) => {
+  if (req.session.userRole === 'ADMIN') {
+    return resolveWritableClinicId({
+      tenantClinic: req.tenantClinic,
+      requestedClinicId: req.body.clinicId || req.query.clinicId,
+      isAdmin: true,
+    });
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: req.session.userId },
+    select: { clinicId: true },
+  });
+  return user?.clinicId || req.tenantClinic?.id || null;
+};
 
 /**
  * Get all gallery images (published only for public)
  */
 const getGalleryImages = async (req, res) => {
-  const { page = 1, limit = 20, published } = req.query;
+  const { page = 1, limit = 20, published, clinicId } = req.query;
   const { skip, take } = paginate(page, limit);
 
-  const where = {};
+  const isManager = req.session.userRole === 'ADMIN' || req.session.userRole === 'SECRETARY';
+  const where = isManager
+    ? (clinicId ? { clinicId } : {})
+    : publicClinicWhere(req);
   
   // Only show published images to non-admin/secretary users
   if (req.session.userRole !== 'ADMIN' && req.session.userRole !== 'SECRETARY') {
@@ -29,6 +48,7 @@ const getGalleryImages = async (req, res) => {
         { order: 'asc' },
         { createdAt: 'desc' },
       ],
+      include: { clinic: { select: { id: true, name: true, domain: true } } },
     }),
     prisma.gallery.count({ where }),
   ]);
@@ -46,8 +66,10 @@ const getGalleryImages = async (req, res) => {
 const getGalleryImage = async (req, res) => {
   const { id } = req.params;
 
-  const image = await prisma.gallery.findUnique({
-    where: { id },
+  const manager = req.session.userRole === 'ADMIN' || req.session.userRole === 'SECRETARY';
+  const image = await prisma.gallery.findFirst({
+    where: { id, ...(manager ? {} : publicClinicWhere(req)) },
+    include: { clinic: { select: { id: true, name: true, domain: true } } },
   });
 
   if (!image) {
@@ -70,6 +92,9 @@ const getGalleryImage = async (req, res) => {
  */
 const uploadImage = async (req, res) => {
   const { title, description, order, published } = req.body;
+  const clinicId = await getManagedClinicId(req);
+
+  if (!clinicId) throw new AppError('انتخاب کلینیک الزامی است', 400);
 
   if (!req.file) {
     throw new AppError('لطفاً یک تصویر انتخاب کنید', 400);
@@ -84,6 +109,7 @@ const uploadImage = async (req, res) => {
       image: imagePath,
       order: order ? parseInt(order) : 0,
       published: published !== undefined ? published === 'true' : true,
+      clinicId,
     },
   });
 
@@ -111,17 +137,20 @@ const bulkUploadImages = async (req, res) => {
     throw new AppError('لطفاً حداقل یک تصویر انتخاب کنید', 400);
   }
 
+  const clinicId = await getManagedClinicId(req);
+  if (!clinicId) throw new AppError('انتخاب کلینیک الزامی است', 400);
   const publishedValue = published !== undefined ? published === 'true' : true;
 
   // Get the maximum order value to append new images
   const maxOrderImage = await prisma.gallery.findFirst({
+    where: { clinicId },
     orderBy: { order: 'desc' },
     select: { order: true },
   });
   let currentOrder = maxOrderImage ? maxOrderImage.order + 1 : 0;
 
   // Get total count of gallery images to generate sequential numbers
-  const totalCount = await prisma.gallery.count();
+  const totalCount = await prisma.gallery.count({ where: { clinicId } });
   let imageNumber = totalCount + 1;
 
   const images = await Promise.all(
@@ -141,6 +170,7 @@ const bulkUploadImages = async (req, res) => {
           image: imagePath,
           order: currentOrder++,
           published: publishedValue,
+          clinicId,
         },
       });
     })
@@ -168,6 +198,11 @@ const updateImage = async (req, res) => {
     throw new AppError('تصویر یافت نشد', 404);
   }
 
+  const managedClinicId = await getManagedClinicId(req);
+  if (req.session.userRole !== 'ADMIN' && currentImage.clinicId !== managedClinicId) {
+    throw new AppError('دسترسی به تصویر این کلینیک مجاز نیست', 403);
+  }
+
   // Prepare update data
   const updateData = {};
   if (title !== undefined) {
@@ -181,6 +216,9 @@ const updateImage = async (req, res) => {
   }
   if (published !== undefined) {
     updateData.published = published === 'true';
+  }
+  if (req.body.clinicId !== undefined && req.session.userRole === 'ADMIN') {
+    updateData.clinicId = req.body.clinicId;
   }
 
   // Handle gallery image removal
@@ -238,6 +276,11 @@ const deleteImage = async (req, res) => {
 
   if (!image) {
     throw new AppError('تصویر یافت نشد', 404);
+  }
+
+  const managedClinicId = await getManagedClinicId(req);
+  if (req.session.userRole !== 'ADMIN' && image.clinicId !== managedClinicId) {
+    throw new AppError('دسترسی به تصویر این کلینیک مجاز نیست', 403);
   }
 
   // Delete image file

@@ -8,6 +8,7 @@ const {
 const { sanitizeContent } = require("../utils/sanitizeHtml");
 const fs = require("fs").promises;
 const path = require("path");
+const { serviceDoctorWhere } = require("../domain/tenantContent");
 
 /**
  * Get all services
@@ -136,12 +137,23 @@ const getService = async (req, res) => {
           },
         },
       },
+      doctors: {
+        where: serviceDoctorWhere(req.tenantClinic?.id || (req.clinicHostname ? "__unresolved_tenant__" : null)),
+        include: {
+          doctor: {
+            include: {
+              clinics: { include: { clinic: { select: { id: true, name: true } } } },
+            },
+          },
+        },
+      },
     },
   });
 
   // Transform categories
   if (service) {
     service.categories = service.categories.map((rel) => rel.category);
+    service.doctors = service.doctors.map((rel) => rel.doctor);
   }
 
   if (!service) {

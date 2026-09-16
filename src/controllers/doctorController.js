@@ -7,6 +7,7 @@ const {
 } = require("../utils/helpers");
 const fs = require("fs").promises;
 const path = require("path");
+const { normalizeIdList } = require("../domain/tenantContent");
 
 /**
  * Get all doctors
@@ -95,6 +96,9 @@ const getDoctors = async (req, res) => {
             rating: true,
             published: true,
           },
+        },
+        services: {
+          include: { service: { select: { id: true, title: true, slug: true } } },
         },
         _count: {
           select: { 
@@ -197,6 +201,9 @@ const getDoctor = async (req, res) => {
         },
         orderBy: { createdAt: "desc" },
       },
+      services: {
+        include: { service: { select: { id: true, title: true, slug: true } } },
+      },
     },
   });
 
@@ -238,6 +245,7 @@ const createDoctor = async (req, res) => {
     clinicIds,
     workingDays,
     isAppointmentEnabled,
+    serviceIds,
   } = req.body;
 
   const profileImage = req.file
@@ -295,6 +303,14 @@ const createDoctor = async (req, res) => {
       })),
     });
   }
+  const normalizedServiceIds = normalizeIdList(serviceIds);
+  if (normalizedServiceIds.length > 0) {
+    const serviceCount = await prisma.service.count({ where: { id: { in: normalizedServiceIds } } });
+    if (serviceCount !== normalizedServiceIds.length) throw new AppError("یک یا چند خدمت یافت نشد", 404);
+    await prisma.doctorService.createMany({
+      data: normalizedServiceIds.map((serviceId) => ({ doctorId: doctor.id, serviceId })),
+    });
+  }
 
   const doctorWithClinics = await prisma.doctor.findUnique({
     where: { id: doctor.id },
@@ -309,6 +325,7 @@ const createDoctor = async (req, res) => {
           },
         },
       },
+      services: { include: { service: { select: { id: true, title: true, slug: true } } } },
     },
   });
 
@@ -335,6 +352,7 @@ const updateDoctor = async (req, res) => {
     clinicIds,
     workingDays,
     isAppointmentEnabled,
+    serviceIds,
   } = req.body;
 
   // Get current doctor
@@ -474,6 +492,18 @@ const updateDoctor = async (req, res) => {
     }
   }
 
+  if (serviceIds !== undefined) {
+    const normalizedServiceIds = normalizeIdList(serviceIds);
+    const serviceCount = await prisma.service.count({ where: { id: { in: normalizedServiceIds } } });
+    if (serviceCount !== normalizedServiceIds.length) throw new AppError("یک یا چند خدمت یافت نشد", 404);
+    await prisma.$transaction([
+      prisma.doctorService.deleteMany({ where: { doctorId: id } }),
+      ...(normalizedServiceIds.length ? [prisma.doctorService.createMany({
+        data: normalizedServiceIds.map((serviceId) => ({ doctorId: id, serviceId })),
+      })] : []),
+    ]);
+  }
+
   const updatedDoctor = await prisma.doctor.findUnique({
     where: { id },
     include: {
@@ -487,6 +517,7 @@ const updateDoctor = async (req, res) => {
           },
         },
       },
+      services: { include: { service: { select: { id: true, title: true, slug: true } } } },
     },
   });
 

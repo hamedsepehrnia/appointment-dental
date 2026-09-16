@@ -31,7 +31,7 @@ router.post(
   isAdminOrSecretary,
   csrfProtection,
   upload.single("profileImage"),
-  parseFormData("skills", "clinicIds", "workingDays"), // Parse JSON strings to arrays/objects
+  parseFormData("skills", "clinicIds", "serviceIds", "workingDays"), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string().required().messages({
@@ -50,6 +50,7 @@ router.post(
         "any.required": "شماره نظام پزشکی الزامی است",
       }),
       clinicIds: Joi.array().items(Joi.string().uuid()),
+      serviceIds: Joi.array().items(Joi.string().uuid()),
       // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
       workingDays: Joi.object().pattern(
         Joi.string().uuid(), // کلید: شناسه کلینیک
@@ -75,7 +76,7 @@ router.patch(
   isAdminOrSecretary,
   csrfProtection,
   upload.single("profileImage"),
-  parseFormData("skills", "clinicIds", "workingDays"), // Parse JSON strings to arrays/objects
+  parseFormData("skills", "clinicIds", "serviceIds", "workingDays"), // Parse JSON strings to arrays/objects
   validate(
     Joi.object({
       firstName: Joi.string(),
@@ -86,6 +87,7 @@ router.patch(
       skills: Joi.array().items(Joi.string()),
       medicalLicenseNo: Joi.string(),
       clinicIds: Joi.array().items(Joi.string().uuid()),
+      serviceIds: Joi.array().items(Joi.string().uuid()),
       // ساعات کاری به تفکیک کلینیک: {"clinicId": {"saturday": "18:00-20:00", ...}, "clinicId2": {...}}
       workingDays: Joi.object().pattern(
         Joi.string().uuid(), // کلید: شناسه کلینیک
