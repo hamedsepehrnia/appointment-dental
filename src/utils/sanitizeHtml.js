@@ -34,6 +34,9 @@ const sanitizeContent = (html) => {
       
       // Divs and spans for styling
       'div', 'span',
+
+      // CKEditor image wrappers and captions
+      'figure', 'figcaption',
       
       // Images
       'img',
@@ -45,6 +48,7 @@ const sanitizeContent = (html) => {
     allowedAttributes: {
       'a': ['href', 'title', 'target', 'rel'],
       'img': ['src', 'alt', 'title', 'width', 'height'],
+      'figure': ['class'],
       'div': ['class'],
       'span': ['class'],
       'code': ['class'],
@@ -60,6 +64,20 @@ const sanitizeContent = (html) => {
       'li': ['data-todo', 'data-todo-checked', 'class'],
       'label': ['for', 'class'],
       'input': ['type', 'checked', 'disabled', 'class'],
+    },
+
+    // Preserve only the presentation classes emitted by our CKEditor image
+    // configuration. Arbitrary classes are deliberately discarded.
+    allowedClasses: {
+      figure: [
+        'image',
+        'image-style-side',
+        'image-style-align-left',
+        'image-style-align-center',
+        'image-style-align-right',
+        'image-style-block-align-left',
+        'image-style-block-align-right',
+      ],
     },
     
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
