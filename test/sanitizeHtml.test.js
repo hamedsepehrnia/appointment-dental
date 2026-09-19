@@ -25,3 +25,21 @@ test("removes unsupported classes while preserving safe CKEditor image classes",
     '<figure class="image image-style-align-right"><img src="https://example.com/tooth.jpg" /></figure>',
   );
 });
+
+test("preserves safe percentage image widths", () => {
+  const html = '<figure class="image" style="width:50%;"><img src="https://example.com/tooth.jpg"></figure>';
+
+  assert.equal(
+    sanitizeContent(html),
+    '<figure class="image" style="width:50%"><img src="https://example.com/tooth.jpg" /></figure>',
+  );
+});
+
+test("removes unsafe image style properties and invalid widths", () => {
+  const html = '<figure class="image" style="width:500%;position:fixed;background:url(javascript:alert(1))"><img src="https://example.com/tooth.jpg"></figure>';
+
+  assert.equal(
+    sanitizeContent(html),
+    '<figure class="image"><img src="https://example.com/tooth.jpg" /></figure>',
+  );
+});

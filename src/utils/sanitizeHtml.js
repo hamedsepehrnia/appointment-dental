@@ -47,8 +47,8 @@ const sanitizeContent = (html) => {
     
     allowedAttributes: {
       'a': ['href', 'title', 'target', 'rel'],
-      'img': ['src', 'alt', 'title', 'width', 'height'],
-      'figure': ['class'],
+      'img': ['src', 'alt', 'title', 'width', 'height', 'style'],
+      'figure': ['class', 'style'],
       'div': ['class'],
       'span': ['class'],
       'code': ['class'],
@@ -78,6 +78,17 @@ const sanitizeContent = (html) => {
         'image-style-block-align-left',
         'image-style-block-align-right',
       ],
+    },
+
+    // CKEditor stores resized image width as an inline percentage. Only this
+    // single property and values from 0% through 100% are accepted.
+    allowedStyles: {
+      figure: {
+        width: [/^(?:100(?:\.0+)?|[1-9]?\d(?:\.\d+)?)%$/],
+      },
+      img: {
+        width: [/^(?:100(?:\.0+)?|[1-9]?\d(?:\.\d+)?)%$/],
+      },
     },
     
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
