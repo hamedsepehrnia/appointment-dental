@@ -52,3 +52,18 @@ test("preserves CKEditor bold, italic, and safe hyperlink markup", () => {
     '<p><strong>بولد</strong> <i>ایتالیک</i> <a href="https://example.com/page" rel="noopener noreferrer" target="_blank">لینک</a></p>',
   );
 });
+
+test("preserves configured CKEditor font sizes", () => {
+  const html = '<p><span style="font-size:18px;">متن بزرگ</span></p>';
+
+  assert.equal(
+    sanitizeContent(html),
+    '<p><span style="font-size:18px">متن بزرگ</span></p>',
+  );
+});
+
+test("removes arbitrary or dangerous span styles", () => {
+  const html = '<p><span style="font-size:999px;position:fixed;background:url(javascript:alert(1))">متن</span></p>';
+
+  assert.equal(sanitizeContent(html), '<p><span>متن</span></p>');
+});

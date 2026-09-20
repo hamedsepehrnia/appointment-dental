@@ -50,7 +50,7 @@ const sanitizeContent = (html) => {
       'img': ['src', 'alt', 'title', 'width', 'height', 'style'],
       'figure': ['class', 'style'],
       'div': ['class'],
-      'span': ['class'],
+      'span': ['class', 'style'],
       'code': ['class'],
       'pre': ['class'],
       'h1': ['id'],
@@ -88,6 +88,9 @@ const sanitizeContent = (html) => {
       },
       img: {
         width: [/^(?:100(?:\.0+)?|[1-9]?\d(?:\.\d+)?)%$/],
+      },
+      span: {
+        'font-size': [/^(?:10|12|14|18|20|22)px$/],
       },
     },
     
