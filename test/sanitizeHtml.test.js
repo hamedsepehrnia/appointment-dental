@@ -43,3 +43,12 @@ test("removes unsafe image style properties and invalid widths", () => {
     '<figure class="image"><img src="https://example.com/tooth.jpg" /></figure>',
   );
 });
+
+test("preserves CKEditor bold, italic, and safe hyperlink markup", () => {
+  const html = '<p><strong>بولد</strong> <i>ایتالیک</i> <a href="https://example.com/page">لینک</a></p>';
+
+  assert.equal(
+    sanitizeContent(html),
+    '<p><strong>بولد</strong> <i>ایتالیک</i> <a href="https://example.com/page" rel="noopener noreferrer" target="_blank">لینک</a></p>',
+  );
+});
